@@ -1330,6 +1330,51 @@ const craftTools = {
       { flag: "-oX", label: "XML output to file", customInput: true, placeholder: "scan.xml", docId: "nmap-oX" },
       { flag: "--reason", label: "Show reason for port state", docId: "nmap-reason" }
     ]
+  },
+  curl: {
+    name: "curl",
+    description: "Command-line tool for transferring data with URLs",
+    targetPlaceholder: "https://api.example.com/endpoint",
+    groups: [
+      {
+        name: "Method",
+        type: "single",
+        options: [
+          { flag: "-X GET", label: "GET", default: true, docId: "curl-GET" },
+          { flag: "-X POST", label: "POST", docId: "curl-POST" },
+          { flag: "-X PUT", label: "PUT", docId: "curl-PUT" },
+          { flag: "-X DELETE", label: "DELETE", docId: "curl-DELETE" },
+          { flag: "-X PATCH", label: "PATCH", docId: "curl-PATCH" },
+          { flag: "-X HEAD", label: "HEAD", docId: "curl-HEAD" }
+        ]
+      },
+      {
+        name: "Data/Body",
+        type: "single",
+        options: [
+          { flag: "", label: "None", default: true, docId: "curl-no-body" },
+          { flag: "-d", label: "JSON body", customInput: true, placeholder: '{"key": "value"}', docId: "curl-d-json" },
+          { flag: "-d", label: "Form data", customInput: true, placeholder: "key=value&key2=value2", docId: "curl-d-form" },
+          { flag: "-F", label: "File upload", customInput: true, placeholder: "file=@/path/to/file", docId: "curl-F" }
+        ]
+      }
+    ],
+    toggles: [
+      { flag: '-H "Content-Type: application/json"', label: "Content-Type: JSON", docId: "curl-ct-json" },
+      { flag: '-H "Content-Type: application/x-www-form-urlencoded"', label: "Content-Type: Form", docId: "curl-ct-form" },
+      { flag: '-H "Authorization: Bearer', label: "Auth Bearer token", customInput: true, placeholder: '<token>"', docId: "curl-auth-bearer" },
+      { flag: '-H "Accept: application/json"', label: "Accept: JSON", docId: "curl-accept-json" },
+      { flag: "-H", label: "Custom header", customInput: true, placeholder: '"X-Custom: value"', docId: "curl-custom-header" },
+      { flag: "-v", label: "Verbose", docId: "curl-v" },
+      { flag: "-s", label: "Silent", docId: "curl-s" },
+      { flag: "-L", label: "Follow redirects", docId: "curl-L" },
+      { flag: "-k", label: "Insecure (skip TLS)", docId: "curl-k" },
+      { flag: "-o", label: "Output to file", customInput: true, placeholder: "output.json", docId: "curl-o" },
+      { flag: "-I", label: "Headers only", docId: "curl-I" },
+      { flag: '-w "%{http_code}"', label: "Show status code", docId: "curl-w" },
+      { flag: "--connect-timeout", label: "Connection timeout", customInput: true, placeholder: "10", docId: "curl-timeout" },
+      { flag: "-x", label: "Use proxy", customInput: true, placeholder: "http://proxy:8080", docId: "curl-proxy" }
+    ]
   }
 };
 

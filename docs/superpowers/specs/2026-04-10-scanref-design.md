@@ -8,7 +8,7 @@ Single offline HTML file for shell/terminal command reference with interactive c
 - **Fully offline** — no CDNs, no external fonts, no network requests
 - **Data-driven** — commands and docs defined as JS arrays/objects at the top of the file; the rest is rendering logic
 - **No localStorage** — no browser storage at all. Commands are edited directly in the HTML source. Scan history is persisted via a JSON file alongside the HTML
-- **Target environment** — Windows laptop with limited internet, opened in local browser from OneDrive folder
+- **Target environment** — Windows laptops connected to Office 365. The `ScanRef/` folder lives in OneDrive and syncs across devices. User opens `index.html` directly in the browser (`file://` protocol). Some machines have limited/restricted internet access
 
 ## Visual Design
 
@@ -299,19 +299,47 @@ A fourth sidebar group:
 - **Docs** — verbose flag/option reference
 - **Rescan History** — scan result tracking and comparison
 
-### Storage: JSON File
+### Storage: JSON Files in OneDrive Folder
 
-No localStorage. All scan history is persisted in a `.json` file stored alongside the HTML in OneDrive.
+No localStorage. All scan history persisted as JSON files in the same OneDrive folder as `index.html`. The folder syncs across Office 365 connected devices.
 
-- **Load**: on app open, user loads their history file via drag & drop or file picker. A prominent "Load History" area is shown if no data is loaded.
-- **Save**: after every import or edit, the app auto-downloads an updated `scanref-history.json` file. A "Save History" button is also always available in the Rescan History section header.
-- **Format**: the JSON file contains all scan entries organized by environment and target.
-- **Portable**: history file can be shared, backed up, or moved between machines.
+```
+OneDrive/ScanRef/
+  ├── index.html
+  └── history/
+      ├── 2026-04-10_prod-web-initial.json
+      ├── 2026-04-15_prod-web-rescan.json
+      ├── 2026-04-12_uat-api-initial.json
+      └── archive-2026-q1.json          (optional: consolidated archive)
+```
+
+**Default mode: one file per scan session.** Each time the user imports scan results and saves, the app downloads a new JSON file with a descriptive filename (`YYYY-MM-DD_<env>-<target>-<title>.json`).
+
+**Single-file mode (optional):** User can choose to work with a single consolidated JSON file instead. All new scan entries append to that file. The app detects whether a loaded file contains one entry or multiple and handles both.
+
+**Archiving:** When a single file gets too large or the user wants to clean up, they can:
+- Select scan entries in the history view
+- Click "Export as Archive" — downloads selected entries as a new JSON file (e.g., `archive-2026-q1.json`)
+- Optionally remove archived entries from the active working file
+
+**Loading:**
+- On app open, a prominent "Load History" drop zone is shown
+- User can drag & drop one or multiple JSON files at once (or use file picker)
+- App merges all loaded entries into memory, deduplicates by entry `id`
+- Loaded files can be a mix of single-entry and multi-entry JSON files
+
+**Saving:**
+- After importing new scan results, user clicks "Save" which downloads the JSON file
+- Filename auto-generated from metadata: `YYYY-MM-DD_<env>-<target>-<title-slug>.json`
+- User can override the filename before saving
+- If working in single-file mode, the save downloads the full consolidated file
+
+**File format:** Both single-entry and multi-entry files use the same schema:
 
 ### Data Model
 
 ```js
-// scanref-history.json structure
+// JSON file structure (works for single or multiple entries)
 {
   "version": 1,
   "entries": [
@@ -703,4 +731,4 @@ Add a new key to `craftTools` with the same structure. The sidebar and crafter U
 - Docs content (verbose entries for ~50 flags): ~25-30 KB
 - Rescan History UI + parsers + diff engine: ~15-20 KB
 - **Total: ~75-100 KB** — well within single-file practicality
-- **Scan history JSON file**: separate file, grows with usage (~1-5 KB per scan entry)
+- **Scan history JSON files**: one per scan session (~1-5 KB each), or consolidated files that grow with usage

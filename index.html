@@ -1275,7 +1275,63 @@ const commands = [
   }
 ];
 
-const craftTools = {};
+const craftTools = {
+  nmap: {
+    name: "nmap",
+    description: "Network scanner and security auditing tool",
+    targetPlaceholder: "192.168.1.1, hostname, or CIDR range",
+    groups: [
+      {
+        name: "Scan Type",
+        type: "single",
+        options: [
+          { flag: "-sS", label: "SYN Stealth", default: true, docId: "nmap-sS" },
+          { flag: "-sT", label: "TCP Connect", docId: "nmap-sT" },
+          { flag: "-sU", label: "UDP", docId: "nmap-sU" },
+          { flag: "-sA", label: "ACK", docId: "nmap-sA" },
+          { flag: "-sV", label: "Version Detection", docId: "nmap-sV" },
+          { flag: "-sn", label: "Ping Sweep", docId: "nmap-sn" }
+        ]
+      },
+      {
+        name: "Ports",
+        type: "single",
+        options: [
+          { flag: "", label: "Top 1000", default: true, docId: "nmap-ports-default" },
+          { flag: "-p-", label: "All 65535 Ports", docId: "nmap-p-all" },
+          { flag: "--top-ports 100", label: "Top 100", docId: "nmap-top-ports" },
+          { flag: "-p", label: "Custom range", customInput: true, placeholder: "80,443,8080-8090", docId: "nmap-p-custom" }
+        ]
+      },
+      {
+        name: "Timing",
+        type: "single",
+        options: [
+          { flag: "-T0", label: "T0 Paranoid", docId: "nmap-T0" },
+          { flag: "-T1", label: "T1 Sneaky", docId: "nmap-T1" },
+          { flag: "-T2", label: "T2 Polite", docId: "nmap-T2" },
+          { flag: "-T3", label: "T3 Normal", default: true, docId: "nmap-T3" },
+          { flag: "-T4", label: "T4 Aggressive", docId: "nmap-T4" },
+          { flag: "-T5", label: "T5 Insane", docId: "nmap-T5" }
+        ]
+      }
+    ],
+    toggles: [
+      { flag: "-O", label: "OS Detection", docId: "nmap-O" },
+      { flag: "-sV", label: "Service/Version Detection", docId: "nmap-sV-toggle" },
+      { flag: "-A", label: "Aggressive (OS + version + script + traceroute)", docId: "nmap-A" },
+      { flag: "-v", label: "Verbose output", docId: "nmap-v" },
+      { flag: "-vv", label: "Very verbose", docId: "nmap-vv" },
+      { flag: "-Pn", label: "Skip host discovery", docId: "nmap-Pn" },
+      { flag: "-n", label: "No DNS resolution", docId: "nmap-n" },
+      { flag: "--script vuln", label: "Vulnerability scripts", docId: "nmap-script-vuln" },
+      { flag: "--script=default", label: "Default NSE scripts", docId: "nmap-script-default" },
+      { flag: "-oN", label: "Normal output to file", customInput: true, placeholder: "scan.txt", docId: "nmap-oN" },
+      { flag: "-oX", label: "XML output to file", customInput: true, placeholder: "scan.xml", docId: "nmap-oX" },
+      { flag: "--reason", label: "Show reason for port state", docId: "nmap-reason" }
+    ]
+  }
+};
 
 const docs = {};
 

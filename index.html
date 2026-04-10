@@ -2023,6 +2023,503 @@ const docs = {
         "Reason 'admin-prohibited' typically indicates a stateful firewall sending ICMP type 3 code 13"
       ]
     }
+  ],
+
+  curl: [
+    /* ── Method ── */
+    {
+      id: "curl-GET",
+      flag: "-X GET",
+      category: "Method",
+      title: "GET Request",
+      description: "Sends an HTTP GET request to the specified URL. GET is curl's default method, so -X GET is technically optional but makes the intent explicit in scripts and documentation. Use it to retrieve resources, query APIs, or fetch web pages. GET requests should not have a body — pass query parameters in the URL instead.",
+      example: "curl -X GET https://api.example.com/users",
+      platforms: {
+        linux: "Default method — -X GET is optional. Works identically with or without the flag.",
+        windows: "Use double quotes around URLs containing query strings in CMD: curl -X GET \"https://api.example.com/search?q=test\"",
+        powershell: "PowerShell has a built-in curl alias for Invoke-WebRequest. Use curl.exe to invoke real curl: curl.exe -X GET https://api.example.com/users"
+      },
+      warnings: [],
+      tips: [
+        "You can omit -X GET since it is the default method",
+        "Add -v to see full request/response headers for debugging",
+        "Combine with -H 'Accept: application/json' to request JSON responses"
+      ]
+    },
+    {
+      id: "curl-POST",
+      flag: "-X POST",
+      category: "Method",
+      title: "POST Request",
+      description: "Sends an HTTP POST request, typically used to create resources or submit data to a server. POST requires a body — use -d for raw data or form fields, or -F for multipart form uploads. Without a body flag, curl sends an empty POST which many APIs reject. Always pair -X POST with an appropriate Content-Type header.",
+      example: "curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\":\"Alice\"}'",
+      platforms: {
+        linux: "Single quotes work well for JSON bodies in bash. Use -d '{\"key\":\"value\"}' without escaping issues.",
+        windows: "CMD requires double quotes; escape inner quotes with backslash: curl -X POST https://api.example.com/users -H \"Content-Type: application/json\" -d \"{\\\"name\\\":\\\"Alice\\\"}\"",
+        powershell: "Use curl.exe (not the alias). PowerShell quoting for JSON can be tricky — consider storing the body in a variable or a file: curl.exe -X POST url -d '@body.json'"
+      },
+      warnings: [
+        "Sending credentials or tokens in POST bodies over HTTP (not HTTPS) exposes them in transit"
+      ],
+      tips: [
+        "Use -d '@filename.json' to read the body from a file instead of inline",
+        "Add -i to see the response headers alongside the body",
+        "Use -w '%{http_code}' to print just the HTTP status code"
+      ]
+    },
+    {
+      id: "curl-PUT",
+      flag: "-X PUT",
+      category: "Method",
+      title: "PUT Request",
+      description: "Sends an HTTP PUT request, conventionally used to replace an entire resource at a known URL. Unlike PATCH, PUT is expected to send the complete updated representation of the resource. Always include a Content-Type header and a body. Many REST APIs require PUT for full-object updates.",
+      example: "curl -X PUT https://api.example.com/users/42 -H 'Content-Type: application/json' -d '{\"name\":\"Bob\",\"email\":\"bob@example.com\"}'",
+      platforms: {
+        linux: "Works as expected. Combine with -d or -d '@file.json' for the body.",
+        windows: "Escape double quotes inside the body in CMD: -d \"{\\\"name\\\":\\\"Bob\\\"}\"",
+        powershell: "Use curl.exe. Store JSON in a file and use -d '@file.json' to avoid quoting complexity."
+      },
+      warnings: [
+        "PUT replaces the entire resource — omitting a field may result in it being cleared server-side"
+      ],
+      tips: [
+        "Use PATCH instead if you only want to update specific fields",
+        "Add -v to confirm the server returns 200 OK or 204 No Content on success"
+      ]
+    },
+    {
+      id: "curl-DELETE",
+      flag: "-X DELETE",
+      category: "Method",
+      title: "DELETE Request",
+      description: "Sends an HTTP DELETE request to remove a resource at the specified URL. Most DELETE endpoints require authentication via a token or session cookie. Some APIs accept a request body with DELETE to specify additional parameters, though this is non-standard. Always double-check the target URL before sending a DELETE in production.",
+      example: "curl -X DELETE https://api.example.com/users/42 -H 'Authorization: Bearer YOUR_TOKEN'",
+      platforms: {
+        linux: "Works as expected. Combine with -H for auth headers.",
+        windows: "Use double quotes around header values in CMD: -H \"Authorization: Bearer YOUR_TOKEN\"",
+        powershell: "Use curl.exe. PowerShell's Invoke-WebRequest alias does not accept the same flags."
+      },
+      warnings: [
+        "DELETE is irreversible on most APIs — verify the resource ID before sending",
+        "Some servers return 200 with a body, others return 204 No Content — check the API docs"
+      ],
+      tips: [
+        "Add -i to see the response status code and headers",
+        "Use -v for full debug output when troubleshooting auth issues"
+      ]
+    },
+    {
+      id: "curl-PATCH",
+      flag: "-X PATCH",
+      category: "Method",
+      title: "PATCH Request",
+      description: "Sends an HTTP PATCH request, used to apply partial updates to a resource. Unlike PUT, you only send the fields you want to change. PATCH is supported by most modern REST APIs. Always include a Content-Type header and a JSON body with only the fields to update.",
+      example: "curl -X PATCH https://api.example.com/users/42 -H 'Content-Type: application/json' -d '{\"email\":\"newemail@example.com\"}'",
+      platforms: {
+        linux: "Works as expected. Use single quotes for JSON bodies to avoid shell escaping.",
+        windows: "Escape inner quotes in CMD: -d \"{\\\"email\\\":\\\"new@example.com\\\"}\"",
+        powershell: "Use curl.exe. Store the JSON body in a temp file for cleaner syntax: curl.exe -X PATCH url -d '@patch.json'"
+      },
+      warnings: [
+        "Not all servers implement PATCH — some may return 405 Method Not Allowed"
+      ],
+      tips: [
+        "PATCH is preferred over PUT when updating only a subset of fields",
+        "Some APIs use a JSON Patch format (RFC 6902) with an array of operations — check the API docs"
+      ]
+    },
+    {
+      id: "curl-HEAD",
+      flag: "-X HEAD",
+      category: "Method",
+      title: "HEAD Request",
+      description: "Sends an HTTP HEAD request, which returns only the response headers with no body. This is useful for checking if a resource exists, reading metadata like Content-Length or Last-Modified, or testing if an endpoint is reachable without downloading data. Note: curl has a dedicated -I flag that does the same thing more cleanly.",
+      example: "curl -X HEAD -I https://example.com",
+      platforms: {
+        linux: "Use -I as a shorthand for HEAD. curl -I https://example.com is equivalent.",
+        windows: "Both -X HEAD and -I work in CMD. Use -I for brevity.",
+        powershell: "Use curl.exe -I https://example.com. PowerShell's Invoke-WebRequest does not have a clean HEAD equivalent."
+      },
+      warnings: [
+        "Some servers do not correctly implement HEAD and may return a body or behave unexpectedly"
+      ],
+      tips: [
+        "Use curl -I instead of -X HEAD — it is cleaner and equivalent",
+        "Check Content-Length to estimate the size of a resource before downloading it"
+      ]
+    },
+
+    /* ── Data/Body ── */
+    {
+      id: "curl-no-body",
+      flag: "--no-body",
+      category: "Data/Body",
+      title: "Suppress Response Body",
+      description: "Tells curl to discard the response body and only display headers when combined with -v or -i. This is useful when you care only about status codes, headers, or timing. It can also be used to avoid printing binary bodies that would corrupt your terminal. Equivalent to sending a HEAD-style response display without changing the HTTP method.",
+      example: "curl -s -o /dev/null -w '%{http_code}' https://example.com",
+      platforms: {
+        linux: "Use /dev/null to discard body output: curl -o /dev/null https://example.com",
+        windows: "Use NUL instead of /dev/null in CMD: curl -o NUL https://example.com",
+        powershell: "Use curl.exe -o NUL https://example.com. The PowerShell curl alias requires completely different syntax."
+      },
+      warnings: [],
+      tips: [
+        "Combine with -w '%{http_code}' to print only the HTTP status code",
+        "Use -s to suppress progress meter when scripting health checks"
+      ]
+    },
+    {
+      id: "curl-d-json",
+      flag: "-d",
+      category: "Data/Body",
+      title: "Send Raw Data / JSON Body",
+      description: "Sends the specified string as the HTTP request body. By default curl uses POST when -d is provided, so -X POST is optional. When sending JSON, you must set Content-Type: application/json explicitly — curl does not infer it. You can also pass a filename prefixed with @ to read the body from a file: -d '@data.json'.",
+      example: "curl -d '{\"username\":\"alice\",\"password\":\"secret\"}' -H 'Content-Type: application/json' https://api.example.com/login",
+      platforms: {
+        linux: "Single quotes around JSON bodies prevent shell from interpreting braces and quotes.",
+        windows: "CMD does not support single quotes — use double quotes and escape inner ones: -d \"{\\\"username\\\":\\\"alice\\\"}\"",
+        powershell: "Use curl.exe. Prefer storing JSON in a file and using -d '@body.json' to avoid PowerShell quoting issues entirely."
+      },
+      warnings: [
+        "Inline passwords or tokens in shell commands are visible in shell history — use a file or environment variable instead"
+      ],
+      tips: [
+        "Use -d '@filename.json' to read body from a file — cleaner and avoids quoting issues",
+        "curl automatically sets Content-Type to application/x-www-form-urlencoded with -d; override it with -H 'Content-Type: application/json'"
+      ]
+    },
+    {
+      id: "curl-d-form",
+      flag: "-d (form encoded)",
+      category: "Data/Body",
+      title: "Send Form-Encoded Data",
+      description: "Sends URL-encoded form data as the request body, mimicking an HTML form submission. curl automatically sets Content-Type: application/x-www-form-urlencoded when -d is used. Separate multiple fields with &. This is the correct format for OAuth token endpoints and many legacy APIs. Do not use for file uploads — use -F for multipart form data.",
+      example: "curl -d 'grant_type=client_credentials&client_id=myapp&client_secret=topsecret' https://auth.example.com/token",
+      platforms: {
+        linux: "Single quotes work perfectly for form data without special characters.",
+        windows: "Use double quotes in CMD: curl -d \"grant_type=client_credentials&client_id=myapp\" https://auth.example.com/token",
+        powershell: "Use curl.exe. The & character has special meaning in PowerShell — wrap the data in double quotes or use a file with -d '@params.txt'."
+      },
+      warnings: [
+        "URL-encode special characters in field values — spaces become %20, & becomes %26"
+      ],
+      tips: [
+        "Use --data-urlencode for automatic URL encoding of individual field values",
+        "To send multiple separate -d flags, curl concatenates them with & automatically"
+      ]
+    },
+    {
+      id: "curl-F",
+      flag: "-F",
+      category: "Data/Body",
+      title: "Multipart Form Upload",
+      description: "Sends a multipart/form-data request, required for file uploads and HTML forms that include files. Each -F argument defines a field; prefix the value with @ to specify a file path. curl automatically sets the correct Content-Type header including the boundary. You can mix file fields and regular text fields in the same request.",
+      example: "curl -F 'file=@/path/to/report.pdf' -F 'title=Monthly Report' https://api.example.com/upload",
+      platforms: {
+        linux: "Works as expected. Use absolute or relative paths after @.",
+        windows: "Use full Windows-style paths or forward slashes: -F \"file=@C:/Users/user/report.pdf\"",
+        powershell: "Use curl.exe. Note that PowerShell may require escaping @ in some contexts — use curl.exe -F \"file=@report.pdf\""
+      },
+      warnings: [
+        "File paths after @ are resolved on the local machine — double-check the path exists"
+      ],
+      tips: [
+        "Add ;type=application/pdf to explicitly set the MIME type: -F 'file=@report.pdf;type=application/pdf'",
+        "Use -F for any endpoint that expects multipart/form-data, not just file uploads"
+      ]
+    },
+
+    /* ── Header ── */
+    {
+      id: "curl-ct-json",
+      flag: "-H 'Content-Type: application/json'",
+      category: "Header",
+      title: "Set JSON Content-Type",
+      description: "Sets the Content-Type request header to application/json, telling the server that the request body contains JSON. Without this header, many APIs will reject the request or misparse the body. Always include this header when sending JSON with -d. It does not affect response format — use Accept: application/json for that.",
+      example: "curl -X POST https://api.example.com/items -H 'Content-Type: application/json' -d '{\"name\":\"widget\"}'",
+      platforms: {
+        linux: "Single quotes around the header value work cleanly in bash.",
+        windows: "Use double quotes in CMD: -H \"Content-Type: application/json\"",
+        powershell: "Use curl.exe. In PowerShell, single-quoted strings do not expand variables — fine for static headers. Use curl.exe -H 'Content-Type: application/json' or double quotes."
+      },
+      warnings: [],
+      tips: [
+        "Pair with -d '@file.json' to read the body from a file for cleaner scripts",
+        "If the API returns XML by default, also add -H 'Accept: application/json'"
+      ]
+    },
+    {
+      id: "curl-ct-form",
+      flag: "-H 'Content-Type: application/x-www-form-urlencoded'",
+      category: "Header",
+      title: "Set Form Content-Type",
+      description: "Explicitly sets the Content-Type header to application/x-www-form-urlencoded. curl sets this automatically when you use -d with a plain string, but specifying it explicitly makes the intent clear in scripts. Use this for OAuth endpoints, legacy login forms, and any API that expects key=value pairs in the body.",
+      example: "curl -X POST https://auth.example.com/token -H 'Content-Type: application/x-www-form-urlencoded' -d 'grant_type=password&username=alice&password=secret'",
+      platforms: {
+        linux: "curl sets this automatically with -d, but explicit is better in scripts.",
+        windows: "Use double quotes: -H \"Content-Type: application/x-www-form-urlencoded\"",
+        powershell: "Use curl.exe. The & in form data has special meaning in PowerShell — quote the -d value: curl.exe -d \"key1=val1&key2=val2\""
+      },
+      warnings: [
+        "Do not use this Content-Type for file uploads — use multipart/form-data with -F instead"
+      ],
+      tips: [
+        "Use --data-urlencode field=value to have curl handle URL encoding for you",
+        "This header is set automatically by -d — you only need to include it explicitly when overriding a previous header"
+      ]
+    },
+    {
+      id: "curl-auth-bearer",
+      flag: "-H 'Authorization: Bearer TOKEN'",
+      category: "Header",
+      title: "Bearer Token Authentication",
+      description: "Sends a Bearer token in the Authorization header, which is the standard authentication mechanism for OAuth 2.0 and most modern REST APIs. Replace TOKEN with your actual access token. The token is sent as a plain header, so always use HTTPS — never send tokens over unencrypted HTTP. Tokens are typically short-lived and may need to be refreshed.",
+      example: "curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...' https://api.example.com/profile",
+      platforms: {
+        linux: "Use a variable to avoid token exposure in shell history: curl -H \"Authorization: Bearer $TOKEN\" url",
+        windows: "Set a variable first: set TOKEN=yourtoken, then: curl -H \"Authorization: Bearer %TOKEN%\" url",
+        powershell: "Use curl.exe with a variable: $token = 'yourtoken'; curl.exe -H \"Authorization: Bearer $token\" url"
+      },
+      warnings: [
+        "Never hardcode tokens in scripts committed to version control",
+        "Always use HTTPS — tokens in headers are plaintext over HTTP",
+        "Tokens in shell commands may appear in process listings"
+      ],
+      tips: [
+        "Store tokens in environment variables or a .env file excluded from git",
+        "Use -s to suppress progress output when scripting API calls with tokens"
+      ]
+    },
+    {
+      id: "curl-accept-json",
+      flag: "-H 'Accept: application/json'",
+      category: "Header",
+      title: "Request JSON Response",
+      description: "Sets the Accept header to tell the server that the client prefers a JSON response. Servers that support content negotiation will return JSON instead of HTML or XML when this header is present. This is useful when an API serves multiple formats. Combine with Content-Type: application/json when also sending a JSON body.",
+      example: "curl -H 'Accept: application/json' https://api.example.com/status",
+      platforms: {
+        linux: "Works as expected. Single quotes around the header value are fine in bash.",
+        windows: "Use double quotes in CMD: curl -H \"Accept: application/json\" https://api.example.com/status",
+        powershell: "Use curl.exe: curl.exe -H \"Accept: application/json\" https://api.example.com/status"
+      },
+      warnings: [],
+      tips: [
+        "Some APIs default to JSON anyway — check the docs before adding this header",
+        "Combine with -H 'Content-Type: application/json' when sending a JSON body",
+        "Pipe the output to jq for pretty-printed JSON: curl -H 'Accept: application/json' url | jq ."
+      ]
+    },
+    {
+      id: "curl-custom-header",
+      flag: "-H 'Header: Value'",
+      category: "Header",
+      title: "Custom Request Header",
+      description: "Adds any arbitrary HTTP header to the request. Use this for API keys, correlation IDs, custom auth schemes, versioning headers, or any header required by the target service. You can use multiple -H flags in one command to send multiple headers. To remove a header that curl sends by default, pass -H 'Header:' with an empty value.",
+      example: "curl -H 'X-API-Key: abc123' -H 'X-Request-ID: req-001' https://api.example.com/data",
+      platforms: {
+        linux: "Multiple -H flags work as expected. Use single quotes to avoid shell interpretation.",
+        windows: "Use double quotes for each header: curl -H \"X-API-Key: abc123\" -H \"X-Request-ID: req-001\" url",
+        powershell: "Use curl.exe with double quotes: curl.exe -H \"X-API-Key: abc123\" url"
+      },
+      warnings: [
+        "Header names are case-insensitive per HTTP spec, but some servers are case-sensitive in practice"
+      ],
+      tips: [
+        "Use -H 'User-Agent: MyApp/1.0' to identify your client to the server",
+        "Remove a default curl header by passing an empty value: -H 'Expect:'",
+        "Use -v to confirm all headers are being sent correctly"
+      ]
+    },
+
+    /* ── Option ── */
+    {
+      id: "curl-v",
+      flag: "-v",
+      category: "Option",
+      title: "Verbose Output",
+      description: "Enables verbose mode, printing the full request including method, URL, headers sent, headers received, and TLS handshake details. Lines prefixed with > are sent headers, < are received headers, and * are informational curl messages. This is the first flag to add when debugging any curl issue. Combine with -s to suppress progress output but keep verbose info.",
+      example: "curl -v https://api.example.com/health",
+      platforms: {
+        linux: "Output goes to stderr. Redirect with 2>debug.txt to capture it.",
+        windows: "Verbose output goes to stderr in CMD. Redirect: curl -v url 2>debug.txt",
+        powershell: "Use curl.exe -v url. PowerShell merges stderr differently — use 2>debug.txt or 2>&1 to capture."
+      },
+      warnings: [
+        "Verbose output may display Authorization headers and tokens — be careful when sharing logs"
+      ],
+      tips: [
+        "Use -vv or --trace for even more detail including binary hex dumps",
+        "Combine with -s to suppress progress but keep headers: curl -vs url",
+        "Redirect verbose output to a file for analysis: curl -v url 2>verbose.log"
+      ]
+    },
+    {
+      id: "curl-s",
+      flag: "-s",
+      category: "Option",
+      title: "Silent Mode",
+      description: "Suppresses curl's progress meter and error messages, making it suitable for use in scripts where extra output would interfere with parsing results. When -s is used, curl no longer shows transfer statistics. Combine with -S (--show-error) if you still want error messages suppressed progress: -sS.",
+      example: "curl -s https://api.example.com/status | jq .status",
+      platforms: {
+        linux: "Commonly used in scripts. Combine with -o to redirect output: curl -s -o result.json url",
+        windows: "Works as expected in CMD scripts.",
+        powershell: "Use curl.exe -s. Useful in PowerShell scripts where clean output is needed."
+      },
+      warnings: [],
+      tips: [
+        "Use -sS to suppress progress but still show errors: curl -sS url",
+        "Combine with -o /dev/null and -w to get only metrics or status codes",
+        "In scripts, always combine with error handling: curl -sf url || echo 'Request failed'"
+      ]
+    },
+    {
+      id: "curl-L",
+      flag: "-L",
+      category: "Option",
+      title: "Follow Redirects",
+      description: "Tells curl to follow HTTP redirects (3xx responses) automatically. By default, curl stops at the first redirect and shows the redirect response. With -L, curl will keep following until it reaches a non-redirect response or hits the redirect limit (30 by default). Use this when accessing URLs that redirect to HTTPS, CDN endpoints, or canonical URLs.",
+      example: "curl -L http://example.com",
+      platforms: {
+        linux: "Works as expected. Use --max-redirs N to limit the number of followed redirects.",
+        windows: "Works as expected in CMD.",
+        powershell: "Use curl.exe -L. PowerShell's Invoke-WebRequest follows redirects by default — another reason to use curl.exe."
+      },
+      warnings: [
+        "Redirects may lead to a different host — your Authorization header could be sent to an unintended server",
+        "Use --max-redirs 5 to prevent infinite redirect loops from hanging your script"
+      ],
+      tips: [
+        "Add -v to see each redirect hop curl follows",
+        "Use --location-trusted to preserve auth headers across cross-host redirects (use carefully)",
+        "Combine with -o to save the final redirected content to a file"
+      ]
+    },
+    {
+      id: "curl-k",
+      flag: "-k",
+      category: "Option",
+      title: "Skip TLS Verification",
+      description: "Disables SSL/TLS certificate verification, allowing curl to connect to HTTPS endpoints with self-signed, expired, or hostname-mismatched certificates. This is commonly used in development and testing environments where proper certificates are not set up. Never use -k in production scripts or with sensitive data — it completely removes the protection TLS provides.",
+      example: "curl -k https://dev-server.local/api/status",
+      platforms: {
+        linux: "Works as expected. Avoid in production automation scripts.",
+        windows: "Works as expected in CMD. Use only on trusted internal dev environments.",
+        powershell: "Use curl.exe -k. PowerShell's Invoke-WebRequest uses -SkipCertificateCheck for the same purpose."
+      },
+      warnings: [
+        "Using -k exposes you to man-in-the-middle attacks — never use with real credentials",
+        "Do not use -k in production or CI pipelines that touch real infrastructure",
+        "Use --cacert to provide a custom CA bundle instead of skipping verification entirely"
+      ],
+      tips: [
+        "Use --cacert /path/to/ca.crt to trust a specific self-signed CA instead of disabling verification",
+        "In Docker dev environments, add the internal CA cert to curl's trusted store rather than using -k globally"
+      ]
+    },
+    {
+      id: "curl-o",
+      flag: "-o",
+      category: "Option",
+      title: "Save Output to File",
+      description: "Writes the response body to the specified file instead of stdout. This is the standard way to download files with curl. You can combine -o with -# to show a progress bar or with -s to suppress all output. For downloading with the original remote filename, use -O (uppercase) instead.",
+      example: "curl -o /tmp/report.json https://api.example.com/reports/latest",
+      platforms: {
+        linux: "Works as expected. Supports absolute and relative paths.",
+        windows: "Use Windows paths: curl -o C:\\tmp\\report.json https://api.example.com/reports/latest",
+        powershell: "Use curl.exe -o .\\report.json url. Relative paths work. Avoid spaces in paths without quoting."
+      },
+      warnings: [
+        "curl will overwrite existing files without warning — ensure the path is correct before running"
+      ],
+      tips: [
+        "Use -O (uppercase) to save with the filename from the URL: curl -O https://example.com/file.zip",
+        "Combine with -L to follow redirects when downloading: curl -L -o file.zip https://example.com/download",
+        "Use --create-dirs to create the target directory if it does not exist: curl -o subdir/file.json --create-dirs url"
+      ]
+    },
+    {
+      id: "curl-I",
+      flag: "-I",
+      category: "Option",
+      title: "Fetch Headers Only (HEAD)",
+      description: "Sends an HTTP HEAD request and displays only the response headers. This is useful for inspecting metadata — Content-Type, Content-Length, Last-Modified, cache headers, server version — without downloading the body. Equivalent to -X HEAD but cleaner. Some servers do not correctly implement HEAD, in which case -v with a GET may be more reliable.",
+      example: "curl -I https://example.com",
+      platforms: {
+        linux: "Works as expected. Output goes to stdout.",
+        windows: "Works as expected in CMD.",
+        powershell: "Use curl.exe -I https://example.com. PowerShell's Invoke-WebRequest always fetches the body."
+      },
+      warnings: [
+        "Some servers return incorrect or missing headers for HEAD requests — use GET with -v if results seem wrong"
+      ],
+      tips: [
+        "Check Content-Length before downloading large files: curl -I url | grep Content-Length",
+        "Use to verify if a CDN is returning correct Cache-Control headers",
+        "Combine with -L to follow redirects and inspect final destination headers"
+      ]
+    },
+    {
+      id: "curl-w",
+      flag: "-w",
+      category: "Option",
+      title: "Write-Out Formatting",
+      description: "Outputs custom information after a request completes, using format variables like %{http_code}, %{time_total}, %{size_download}, and %{url_effective}. This is invaluable for scripting health checks, benchmarking, and validating responses without parsing headers manually. The format string is printed after the response body — use -o /dev/null to suppress the body.",
+      example: "curl -s -o /dev/null -w 'Status: %{http_code}\\nTime: %{time_total}s\\n' https://api.example.com/health",
+      platforms: {
+        linux: "Use single quotes around the format string to prevent shell from interpreting % and \\n.",
+        windows: "Use double quotes in CMD: curl -o NUL -w \"Status: %{http_code}\" url",
+        powershell: "Use curl.exe -o NUL -w \"Status: %{http_code}\" url. The % character may need escaping in some PowerShell contexts."
+      },
+      warnings: [],
+      tips: [
+        "Common variables: %{http_code}, %{time_total}, %{time_connect}, %{size_download}, %{url_effective}",
+        "Use -w '@format.txt' to load the format string from a file for complex templates",
+        "Combine with -s and -o /dev/null for clean metric-only output in scripts"
+      ]
+    },
+    {
+      id: "curl-timeout",
+      flag: "--max-time",
+      category: "Option",
+      title: "Request Timeout",
+      description: "Sets the maximum total time in seconds that curl will wait for the entire operation to complete, including connection, data transfer, and response. If the request takes longer, curl aborts it and exits with error code 28. Use --connect-timeout to limit only the connection phase. Always set a timeout in automated scripts to prevent hanging indefinitely.",
+      example: "curl --max-time 10 https://api.example.com/slow-endpoint",
+      platforms: {
+        linux: "Works as expected. Use in cron jobs and scripts to prevent stalled processes.",
+        windows: "Works as expected in CMD.",
+        powershell: "Use curl.exe --max-time 10 url. PowerShell's Invoke-WebRequest uses -TimeoutSec for the same purpose."
+      },
+      warnings: [
+        "A timed-out request still counts as a request on the server — it may have been processed before the timeout"
+      ],
+      tips: [
+        "Use --connect-timeout 5 to set a separate shorter timeout just for connection establishment",
+        "Check curl exit code 28 to detect timeouts in scripts: curl --max-time 5 url; [ $? -eq 28 ] && echo 'Timed out'",
+        "For retries, use --retry N with --retry-max-time to set total retry budget"
+      ]
+    },
+    {
+      id: "curl-proxy",
+      flag: "--proxy",
+      category: "Option",
+      title: "Use HTTP Proxy",
+      description: "Routes the curl request through the specified HTTP or SOCKS proxy. The proxy address format is [protocol://]host[:port]. Supports http://, https://, socks4://, socks5://, and socks5h:// (SOCKS5 with remote DNS resolution). Proxies are commonly used in corporate environments, for debugging with tools like Burp Suite or mitmproxy, or for routing through an SSH tunnel.",
+      example: "curl --proxy http://127.0.0.1:8080 https://api.example.com/test",
+      platforms: {
+        linux: "Also respects http_proxy and https_proxy environment variables if set.",
+        windows: "Use double quotes if the proxy URL contains special characters. Also respects http_proxy env var.",
+        powershell: "Use curl.exe --proxy http://127.0.0.1:8080 url. PowerShell's Invoke-WebRequest uses -Proxy for this purpose."
+      },
+      warnings: [
+        "Routing through an intercepting proxy (like Burp) exposes all request data including tokens and credentials",
+        "Combine with -k if the proxy uses a self-signed cert for TLS interception — understand the security implications"
+      ],
+      tips: [
+        "Use with Burp Suite for API pentesting: curl --proxy http://127.0.0.1:8080 -k https://target.com",
+        "Use socks5h:// to also resolve DNS through the proxy — useful with SSH SOCKS tunnels",
+        "Set the https_proxy environment variable to avoid adding --proxy to every command"
+      ]
+    }
   ]
 };
 

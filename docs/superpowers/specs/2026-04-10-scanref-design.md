@@ -7,7 +7,7 @@ Single offline HTML file for shell/terminal command reference with interactive c
 - **Single `index.html` file** — all CSS, JS, and data inline
 - **Fully offline** — no CDNs, no external fonts, no network requests
 - **Data-driven** — commands and docs defined as JS arrays/objects at the top of the file; the rest is rendering logic
-- **No localStorage for data** — commands are edited directly in the HTML source. `localStorage` is only used for theme preference (dark/light)
+- **No localStorage** — no browser storage at all. Commands are edited directly in the HTML source. Scan history is persisted via a JSON file alongside the HTML
 - **Target environment** — Windows laptop with limited internet, opened in local browser from OneDrive folder
 
 ## Visual Design
@@ -286,6 +286,371 @@ Each entry contains:
 - A **"← Back to Craft"** link at the top of Docs returns to the Craft section. All Craft selections and the target input are preserved (state lives in JS variables, not the DOM)
 - Pill button groups in Craft also have a "Compare all →" link that jumps to the Docs page with all options in that group visible
 
+## Rescan History Section
+
+Tracks scan results over time and provides side-by-side comparison to see what's been fixed between scans.
+
+### Sidebar Addition
+
+A fourth sidebar group:
+
+- **Reference** — static command cheatsheets
+- **Craft** — interactive command builders
+- **Docs** — verbose flag/option reference
+- **Rescan History** — scan result tracking and comparison
+
+### Storage: JSON File
+
+No localStorage. All scan history is persisted in a `.json` file stored alongside the HTML in OneDrive.
+
+- **Load**: on app open, user loads their history file via drag & drop or file picker. A prominent "Load History" area is shown if no data is loaded.
+- **Save**: after every import or edit, the app auto-downloads an updated `scanref-history.json` file. A "Save History" button is also always available in the Rescan History section header.
+- **Format**: the JSON file contains all scan entries organized by environment and target.
+- **Portable**: history file can be shared, backed up, or moved between machines.
+
+### Data Model
+
+```js
+// scanref-history.json structure
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "uuid-string",
+      "title": "Prod Web Server - Initial Scan",
+      "environment": "Prod",         // "Prod" or "UAT"
+      "target": "192.168.1.100",
+      "timestamp": "2026-04-10T14:30:00Z",
+      "scanType": "nmap-port",       // "nmap-port", "nmap-script", "curl-headers"
+      "rawOutput": "...",            // original pasted/imported text
+      "parsed": { ... }             // structured parsed data (see Parsing section)
+    }
+  ]
+}
+```
+
+### User Flow
+
+1. **Navigate to Rescan History** in sidebar
+2. **Choose environment**: Prod or UAT (tab buttons at top)
+3. **Import scan result**:
+   - **Drag & drop** a `.txt`/`.nmap` output file onto the import area
+   - **File picker** — click "Browse" to select a file
+   - **Copy-paste** — paste raw output into a textarea, click "Import"
+4. **Classify the import**:
+   - App auto-detects scan type (nmap port scan, nmap script scan, curl headers) from the output format
+   - User provides: **title** (required), confirms **environment** (Prod/UAT), confirms **target** (auto-detected from output)
+   - Timestamp auto-set to current date/time, editable
+5. **View parsed results** — app shows the structured parse (port table, script findings, headers)
+6. **Save** — entry added to history, updated JSON auto-downloads
+
+### Rescan Comparison Flow
+
+1. User is in **Rescan History** → selects **Prod** or **UAT**
+2. Sees a timeline/list of all scans for that environment, grouped by target
+3. Selects two scans (or the app auto-selects latest vs. previous for same target)
+4. **Side-by-side comparison view** opens:
+   - Left: older scan (with timestamp + title)
+   - Right: newer scan (with timestamp + title)
+   - Differences highlighted with color coding:
+     - **Green** — fixed/improved (port closed, vuln removed, header added)
+     - **Red** — new issue (port opened, new vuln, header removed)
+     - **Yellow** — changed but needs review (version changed, cipher changed)
+     - **Gray** — unchanged
+
+### Navigation Structure
+
+```
+Rescan History
+  └─ Environment? → [Prod] [UAT]
+       └─ Target list (grouped by IP/host)
+            └─ Scan timeline (chronological list of scans for that target)
+                 └─ Select two scans → Side-by-side comparison
+```
+
+### Parsing
+
+The app parses three types of scan output into structured data.
+
+#### nmap Port Scan Parser
+
+Parses output from basic nmap scans (`-sS`, `-sT`, `-sU`, etc.).
+
+**Input pattern:**
+```
+Nmap scan report for 192.168.1.100
+Host is up (0.0045s latency).
+Not shown: 995 closed ports
+
+PORT     STATE    SERVICE     VERSION
+22/tcp   open     ssh         OpenSSH 8.9p1
+80/tcp   open     http        Apache httpd 2.4.52
+443/tcp  open     ssl/http    nginx 1.18.0
+3306/tcp closed   mysql
+8080/tcp filtered http-proxy
+
+OS details: Linux 5.4 - 5.15
+```
+
+**Parsed structure:**
+```js
+{
+  type: "nmap-port",
+  target: "192.168.1.100",
+  hostStatus: "up",
+  latency: "0.0045s",
+  ports: [
+    { port: 22, protocol: "tcp", state: "open", service: "ssh", version: "OpenSSH 8.9p1" },
+    { port: 80, protocol: "tcp", state: "open", service: "http", version: "Apache httpd 2.4.52" },
+    { port: 443, protocol: "tcp", state: "open", service: "ssl/http", version: "nginx 1.18.0" },
+    { port: 3306, protocol: "tcp", state: "closed", service: "mysql", version: "" },
+    { port: 8080, protocol: "tcp", state: "filtered", service: "http-proxy", version: "" }
+  ],
+  os: "Linux 5.4 - 5.15"
+}
+```
+
+**Comparison logic:**
+- Port state change: `open → closed` = green (fixed), `closed → open` = red (new exposure), `filtered → open` = red
+- Service version change = yellow (review)
+- Port not in new scan = green (removed)
+- Port not in old scan = red (new)
+- OS change = yellow
+
+#### nmap Script Scan Parser
+
+Parses output from NSE script scans (`--script ssl-cert`, `--script http-methods`, `--script vuln`, etc.).
+
+**Supported script outputs:**
+
+**`ssl-cert`:**
+```
+| ssl-cert: Subject: commonName=example.com
+|   Issuer: commonName=R3/organizationName=Let's Encrypt
+|   Not valid before: 2026-01-15
+|   Not valid after:  2026-04-15
+|   Subject Alternative Name: DNS:example.com, DNS:www.example.com
+```
+
+Parsed into:
+```js
+{
+  script: "ssl-cert",
+  port: 443,
+  data: {
+    subject: "example.com",
+    issuer: "Let's Encrypt (R3)",
+    validFrom: "2026-01-15",
+    validTo: "2026-04-15",
+    sans: ["example.com", "www.example.com"],
+    expired: false,          // computed from validTo vs current date
+    daysRemaining: 5         // computed
+  }
+}
+```
+
+Comparison: expired status changed, issuer changed, expiry date extended, SANs added/removed.
+
+**`ssl-enum-ciphers`:**
+```
+| ssl-enum-ciphers:
+|   TLSv1.0:
+|     ciphers:
+|       TLS_RSA_WITH_AES_128_CBC_SHA - weak
+|   TLSv1.2:
+|     ciphers:
+|       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 - strong
+|   TLSv1.3:
+|     ciphers:
+|       TLS_AES_256_GCM_SHA384 - strong
+```
+
+Parsed into:
+```js
+{
+  script: "ssl-enum-ciphers",
+  port: 443,
+  data: {
+    versions: [
+      { version: "TLSv1.0", ciphers: [{ name: "TLS_RSA_WITH_AES_128_CBC_SHA", strength: "weak" }] },
+      { version: "TLSv1.2", ciphers: [{ name: "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", strength: "strong" }] },
+      { version: "TLSv1.3", ciphers: [{ name: "TLS_AES_256_GCM_SHA384", strength: "strong" }] }
+    ]
+  }
+}
+```
+
+Comparison: TLS version added/removed (TLSv1.0 removed = green), weak cipher removed = green, new weak cipher = red.
+
+**`http-methods`:**
+```
+| http-methods:
+|   Supported Methods: GET HEAD POST OPTIONS TRACE
+|   Potentially risky methods: TRACE
+```
+
+Parsed into:
+```js
+{
+  script: "http-methods",
+  port: 80,
+  data: {
+    methods: ["GET", "HEAD", "POST", "OPTIONS", "TRACE"],
+    risky: ["TRACE"]
+  }
+}
+```
+
+Comparison: risky method removed = green, new risky method = red, method added/removed = yellow.
+
+**`http-security-headers` / `http-headers`:**
+```
+| http-security-headers:
+|   Strict-Transport-Security: max-age=31536000
+|   X-Frame-Options: DENY
+|   X-Content-Type-Options: NOSNIFF
+|   MISSING: Content-Security-Policy
+|   MISSING: X-XSS-Protection
+```
+
+Parsed into:
+```js
+{
+  script: "http-security-headers",
+  port: 443,
+  data: {
+    present: [
+      { header: "Strict-Transport-Security", value: "max-age=31536000" },
+      { header: "X-Frame-Options", value: "DENY" },
+      { header: "X-Content-Type-Options", value: "NOSNIFF" }
+    ],
+    missing: ["Content-Security-Policy", "X-XSS-Protection"]
+  }
+}
+```
+
+Comparison: missing header now present = green, present header now missing = red, header value changed = yellow.
+
+**`vulners` / `vuln`:**
+```
+| vulners:
+|   cpe:/a:apache:http_server:2.4.52:
+|     CVE-2024-12345  7.5  https://vulners.com/cve/CVE-2024-12345
+|     CVE-2024-67890  5.0  https://vulners.com/cve/CVE-2024-67890
+```
+
+Parsed into:
+```js
+{
+  script: "vulners",
+  port: 80,
+  data: {
+    service: "apache:http_server:2.4.52",
+    vulns: [
+      { cve: "CVE-2024-12345", score: 7.5 },
+      { cve: "CVE-2024-67890", score: 5.0 }
+    ]
+  }
+}
+```
+
+Comparison: CVE no longer found = green (fixed), new CVE = red, score changed = yellow.
+
+**Fallback for unrecognized scripts:** store as raw text blocks keyed by script name. Comparison uses line-level text diff with additions (red) and removals (green).
+
+#### curl Headers Parser
+
+Parses output from `curl -I` or `curl -v` (headers section).
+
+**Input pattern:**
+```
+HTTP/2 200
+date: Thu, 10 Apr 2026 14:30:00 GMT
+content-type: text/html; charset=utf-8
+server: nginx
+strict-transport-security: max-age=31536000; includeSubDomains
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+content-security-policy: default-src 'self'
+x-xss-protection: 1; mode=block
+```
+
+**Parsed structure:**
+```js
+{
+  type: "curl-headers",
+  target: "https://example.com",
+  statusCode: 200,
+  protocol: "HTTP/2",
+  headers: [
+    { key: "date", value: "Thu, 10 Apr 2026 14:30:00 GMT" },
+    { key: "content-type", value: "text/html; charset=utf-8" },
+    { key: "server", value: "nginx" },
+    // ...
+  ],
+  securityHeaders: {
+    present: [
+      { header: "strict-transport-security", value: "max-age=31536000; includeSubDomains" },
+      { header: "x-frame-options", value: "SAMEORIGIN" },
+      { header: "x-content-type-options", value: "nosniff" },
+      { header: "content-security-policy", value: "default-src 'self'" },
+      { header: "x-xss-protection", value: "1; mode=block" }
+    ],
+    missing: []   // checked against known security header list
+  }
+}
+```
+
+**Known security headers checklist** (flagged as missing if absent):
+- `Strict-Transport-Security`
+- `X-Frame-Options`
+- `X-Content-Type-Options`
+- `Content-Security-Policy`
+- `X-XSS-Protection`
+- `Referrer-Policy`
+- `Permissions-Policy`
+- `X-Permitted-Cross-Domain-Policies`
+- `Cross-Origin-Opener-Policy`
+- `Cross-Origin-Resource-Policy`
+- `Cross-Origin-Embedder-Policy`
+
+**Comparison logic:**
+- Security header missing → now present = green
+- Security header present → now missing = red
+- Header value changed = yellow (with old/new values shown)
+- Status code changed = yellow
+- Server header version disclosure removed = green
+- New headers = neutral (gray)
+
+### Comparison View UI
+
+The side-by-side comparison view displays:
+
+**Header bar:**
+- Left: older scan title + timestamp
+- Right: newer scan title + timestamp
+- Summary badge: "3 fixed, 1 new issue, 2 unchanged"
+
+**Comparison body (depends on scan type):**
+
+**For port scans:**
+- Table with columns: Port | Service | Old State | New State | Status
+- Each row color-coded: green (fixed), red (new issue), yellow (changed), gray (same)
+
+**For script scans:**
+- Grouped by script name, then by finding
+- Each finding shows old value → new value with color coding
+- Expandable sections for verbose details
+
+**For curl headers:**
+- Table with columns: Header | Old Value | New Value | Status
+- Security headers section at top with present/missing audit
+- Color coding same as above
+
+**Raw output tab:**
+- Always available as a fallback
+- Shows both raw outputs side by side with line-level diff highlighting
+
 ## Search
 
 - Lives in the sidebar, always visible
@@ -294,6 +659,7 @@ Each entry contains:
   - **Reference**: title, command text, notes, tags
   - **Craft**: tool name, flag labels, group names
   - **Docs**: flag, title, description text
+  - **Rescan History**: scan title, target, environment
 - When searching:
   - Sidebar categories show match counts (e.g., "Git (3)")
   - Main area shows matching items grouped by section across all three groups
@@ -304,7 +670,7 @@ Each entry contains:
 ## Interactions
 
 - **Copy to clipboard**: uses `navigator.clipboard.writeText()` with fallback to `document.execCommand('copy')` for older browsers. Shows "Copied!" tooltip for ~1.5s
-- **Theme toggle**: switches CSS custom properties on `:root`. Stores preference in `localStorage` under key `scanref-theme`
+- **Theme toggle**: switches CSS custom properties on `:root`. Defaults to dark mode on each load (no persistence)
 - **Keyboard**: `/` to search, `Esc` to clear search, `1-9` to switch sidebar sections
 - **Responsive**: below 768px width, sidebar becomes a slide-out menu triggered by hamburger icon
 
@@ -331,8 +697,10 @@ Add a new key to `craftTools` with the same structure. The sidebar and crafter U
 
 ## File Size Estimate
 
-- HTML structure + CSS + JS rendering logic: ~15-20 KB
+- HTML structure + CSS + JS rendering logic: ~25-30 KB (includes parser + comparison engine)
 - Starter reference commands (~30-40 entries): ~5 KB
 - Craft tool definitions (nmap + curl): ~5 KB
 - Docs content (verbose entries for ~50 flags): ~25-30 KB
-- **Total: ~50-75 KB** — well within single-file practicality
+- Rescan History UI + parsers + diff engine: ~15-20 KB
+- **Total: ~75-100 KB** — well within single-file practicality
+- **Scan history JSON file**: separate file, grows with usage (~1-5 KB per scan entry)

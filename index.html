@@ -1018,7 +1018,262 @@ mark { background: var(--mark-bg); color: inherit; padding: 1px 2px; border-radi
    DATA -- Empty placeholders, populated in subsequent tasks
    ================================================================ */
 
-const commands = [];
+const commands = [
+  // Git
+  {
+    section: "Git",
+    title: "Undo last commit (keep changes)",
+    cmd: "git reset --soft HEAD~1",
+    notes: "Moves HEAD back one commit but leaves all changes staged. Safe way to uncommit without losing work.",
+    tags: ["undo", "reset", "commit"]
+  },
+  {
+    section: "Git",
+    title: "Undo last commit (discard changes)",
+    cmd: "git reset --hard HEAD~1",
+    notes: "Permanently discards the last commit and all its changes. Cannot be undone unless you have the hash.",
+    tags: ["undo", "reset", "destructive"]
+  },
+  {
+    section: "Git",
+    title: "Cherry-pick a commit",
+    cmd: "git cherry-pick <hash>",
+    notes: "Applies a single commit from another branch onto the current branch. Replace <hash> with the commit SHA.",
+    tags: ["cherry-pick", "merge", "commit"]
+  },
+  {
+    section: "Git",
+    title: "Stash changes",
+    cmd: "git stash",
+    notes: "Saves all uncommitted changes to a temporary stack so you can switch branches cleanly.",
+    tags: ["stash", "save"]
+  },
+  {
+    section: "Git",
+    title: "Restore stashed changes",
+    cmd: "git stash pop",
+    notes: "Applies the most recent stash and removes it from the stash stack.",
+    tags: ["stash", "restore"]
+  },
+  {
+    section: "Git",
+    title: "Interactive rebase",
+    cmd: "git rebase -i HEAD~<n>",
+    notes: "Opens an editor to squash, reorder, or edit the last <n> commits. Replace <n> with a number.",
+    tags: ["rebase", "squash", "history"]
+  },
+  {
+    section: "Git",
+    title: "Diff staged changes",
+    cmd: "git diff --cached",
+    notes: "Shows the diff between the staging area and the last commit. Useful before committing.",
+    tags: ["diff", "staged", "review"]
+  },
+  {
+    section: "Git",
+    title: "Bisect to find bad commit",
+    cmd: "git bisect start && git bisect bad && git bisect good <hash>",
+    notes: "Starts a binary search through commit history to find which commit introduced a bug. Replace <hash> with a known good commit.",
+    tags: ["bisect", "debug", "history"]
+  },
+
+  // Docker
+  {
+    section: "Docker",
+    title: "List running containers",
+    cmd: "docker ps",
+    notes: "Shows all currently running containers with their IDs, names, ports, and status.",
+    tags: ["list", "status"]
+  },
+  {
+    section: "Docker",
+    title: "List all containers",
+    cmd: "docker ps -a",
+    notes: "Shows all containers including stopped ones. Useful for finding exited containers.",
+    tags: ["list", "status", "stopped"]
+  },
+  {
+    section: "Docker",
+    title: "Stop all running containers",
+    cmd: "docker stop $(docker ps -q)",
+    notes: "Gracefully stops every running container. Uses a subshell to get all running container IDs.",
+    tags: ["stop", "bulk"]
+  },
+  {
+    section: "Docker",
+    title: "Prune stopped containers",
+    cmd: "docker container prune -f",
+    notes: "Removes all stopped containers without prompting. -f skips the confirmation dialog.",
+    tags: ["prune", "cleanup"]
+  },
+  {
+    section: "Docker",
+    title: "Prune unused images",
+    cmd: "docker image prune -a -f",
+    notes: "Removes all images not used by any container. -a includes non-dangling images too.",
+    tags: ["prune", "cleanup", "images"]
+  },
+  {
+    section: "Docker",
+    title: "Follow container logs",
+    cmd: "docker logs -f <container>",
+    notes: "Streams live logs from a container. Replace <container> with a name or ID. Ctrl+C to stop.",
+    tags: ["logs", "debug", "monitor"]
+  },
+  {
+    section: "Docker",
+    title: "Exec into container shell",
+    cmd: "docker exec -it <container> /bin/bash",
+    notes: "Opens an interactive bash shell inside a running container. Try /bin/sh if bash is unavailable.",
+    tags: ["exec", "shell", "debug"]
+  },
+  {
+    section: "Docker",
+    title: "Build image from Dockerfile",
+    cmd: "docker build -t <name>:<tag> .",
+    notes: "Builds a Docker image from the Dockerfile in the current directory. Replace <name> and <tag> with your values.",
+    tags: ["build", "image"]
+  },
+
+  // PowerShell
+  {
+    section: "PowerShell",
+    title: "Find files recursively",
+    cmd: "Get-ChildItem -Recurse -Filter '*.log'",
+    notes: "Recursively searches the current directory for files matching the filter pattern. Change *.log to any pattern.",
+    tags: ["search", "files", "recurse"]
+  },
+  {
+    section: "PowerShell",
+    title: "Check service status",
+    cmd: "Get-Service -Name <ServiceName>",
+    notes: "Retrieves the status of a Windows service. Replace <ServiceName> with the actual service name.",
+    tags: ["service", "status", "windows"]
+  },
+  {
+    section: "PowerShell",
+    title: "Kill a process by name",
+    cmd: "Stop-Process -Name <ProcessName> -Force",
+    notes: "Forcibly terminates all processes matching the given name. Replace <ProcessName> (e.g. notepad).",
+    tags: ["kill", "process", "force"]
+  },
+  {
+    section: "PowerShell",
+    title: "Test TCP connection",
+    cmd: "Test-NetConnection -ComputerName <host> -Port <port>",
+    notes: "Checks if a TCP port is reachable on the target host. Useful for firewall and connectivity debugging.",
+    tags: ["network", "tcp", "test"]
+  },
+  {
+    section: "PowerShell",
+    title: "List established TCP connections",
+    cmd: "Get-NetTCPConnection | Where-Object State -eq 'Established'",
+    notes: "Filters current TCP connections to show only established (active) ones. Useful for spotting unexpected connections.",
+    tags: ["network", "tcp", "connections"]
+  },
+  {
+    section: "PowerShell",
+    title: "Export process list to CSV",
+    cmd: "Get-Process | Export-Csv -Path processes.csv -NoTypeInformation",
+    notes: "Dumps the current process list to a CSV file without the PowerShell type header row.",
+    tags: ["export", "csv", "process"]
+  },
+
+  // SSH / Network
+  {
+    section: "SSH / Network",
+    title: "SSH with identity key",
+    cmd: "ssh -i ~/.ssh/id_rsa user@host",
+    notes: "Connects to a remote host using a specific private key file. Replace user and host accordingly.",
+    tags: ["ssh", "key", "connect"]
+  },
+  {
+    section: "SSH / Network",
+    title: "SSH local port tunnel",
+    cmd: "ssh -L <local-port>:<remote-host>:<remote-port> user@jump-host",
+    notes: "Forwards a local port through the jump host to a remote host and port. Useful for accessing internal services.",
+    tags: ["ssh", "tunnel", "port-forward"]
+  },
+  {
+    section: "SSH / Network",
+    title: "SCP remote to local",
+    cmd: "scp user@host:/remote/path /local/path",
+    notes: "Securely copies a file from a remote host to the local machine over SSH.",
+    tags: ["scp", "copy", "transfer"]
+  },
+  {
+    section: "SSH / Network",
+    title: "nmap TCP connect scan",
+    cmd: "nmap -sT <host>",
+    notes: "Performs a full TCP connect scan on a host. Does not require root. Replace <host> with IP or hostname.",
+    tags: ["nmap", "scan", "network"]
+  },
+  {
+    section: "SSH / Network",
+    title: "DNS lookup",
+    cmd: "nslookup <domain>",
+    notes: "Queries the default DNS server for the given domain's A record and other DNS info.",
+    tags: ["dns", "lookup", "network"]
+  },
+  {
+    section: "SSH / Network",
+    title: "Trace network route",
+    cmd: "traceroute <host>",
+    notes: "Shows each hop a packet takes to reach the destination. Use tracert on Windows.",
+    tags: ["traceroute", "network", "debug"]
+  },
+
+  // npm / Node
+  {
+    section: "npm / Node",
+    title: "Init new project",
+    cmd: "npm init -y",
+    notes: "Creates a package.json with defaults, skipping all prompts. Good for quick project scaffolding.",
+    tags: ["init", "setup"]
+  },
+  {
+    section: "npm / Node",
+    title: "Check outdated packages",
+    cmd: "npm outdated",
+    notes: "Lists all installed packages that have newer versions available in the registry.",
+    tags: ["outdated", "update", "audit"]
+  },
+  {
+    section: "npm / Node",
+    title: "Audit for vulnerabilities",
+    cmd: "npm audit",
+    notes: "Scans installed packages for known security vulnerabilities and suggests fixes.",
+    tags: ["audit", "security"]
+  },
+  {
+    section: "npm / Node",
+    title: "Run a package script",
+    cmd: "npm run <script-name>",
+    notes: "Executes a script defined in the scripts section of package.json. E.g. npm run build.",
+    tags: ["run", "script"]
+  },
+  {
+    section: "npm / Node",
+    title: "Install dev dependency",
+    cmd: "npm install --save-dev <package>",
+    notes: "Installs a package and saves it under devDependencies. Use for tools like linters and bundlers.",
+    tags: ["install", "dev", "dependency"]
+  },
+  {
+    section: "npm / Node",
+    title: "Clean npm cache",
+    cmd: "npm cache clean --force",
+    notes: "Clears the local npm cache. Useful when packages fail to install due to cache corruption.",
+    tags: ["cache", "clean"]
+  },
+  {
+    section: "npm / Node",
+    title: "List global packages",
+    cmd: "npm list -g --depth=0",
+    notes: "Shows all globally installed npm packages at the top level (no nested dependencies).",
+    tags: ["list", "global"]
+  }
+];
 
 const craftTools = {};
 

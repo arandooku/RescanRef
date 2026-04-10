@@ -1550,6 +1550,14 @@ const craftTools = {
       { flag: "-n", label: "No DNS resolution", docId: "nmap-n" },
       { flag: "--script vuln", label: "Vulnerability scripts", docId: "nmap-script-vuln" },
       { flag: "--script=default", label: "Default NSE scripts", docId: "nmap-script-default" },
+      { flag: "--script ssl-cert", label: "SSL certificate info", docId: "nmap-script-ssl-cert" },
+      { flag: "--script ssl-enum-ciphers", label: "Enumerate SSL/TLS ciphers", docId: "nmap-script-ssl-enum-ciphers" },
+      { flag: "--script http-methods", label: "HTTP methods enumeration", docId: "nmap-script-http-methods" },
+      { flag: "--script http-security-headers", label: "HTTP security headers audit", docId: "nmap-script-http-security-headers" },
+      { flag: "--script ssh2-enum-algos", label: "SSH algorithm enumeration", docId: "nmap-script-ssh2-enum-algos" },
+      { flag: "--script ssh-auth-methods", label: "SSH auth methods", docId: "nmap-script-ssh-auth-methods" },
+      { flag: "--script http-headers", label: "HTTP response headers", docId: "nmap-script-http-headers" },
+      { flag: "--script banner", label: "Service banner grab", docId: "nmap-script-banner" },
       { flag: "-oN", label: "Normal output to file", customInput: true, placeholder: "scan.txt", docId: "nmap-oN" },
       { flag: "-oX", label: "XML output to file", customInput: true, placeholder: "scan.xml", docId: "nmap-oX" },
       { flag: "--reason", label: "Show reason for port state", docId: "nmap-reason" }
@@ -2245,6 +2253,192 @@ const docs = {
         "Combine with -vv for the most detailed per-port diagnostic output: nmap -vv --reason target",
         "Use when troubleshooting why expected ports appear 'filtered' to determine firewall behavior",
         "Reason 'admin-prohibited' typically indicates a stateful firewall sending ICMP type 3 code 13"
+      ]
+    },
+
+    /* ── NSE Scripts ── */
+    {
+      id: "nmap-script-ssl-cert",
+      flag: "--script ssl-cert",
+      category: "NSE Script",
+      title: "SSL/TLS Certificate Information",
+      description: "Retrieves and displays the SSL/TLS certificate from a target port. Shows the subject (Common Name), issuer, validity dates (Not Before / Not After), Subject Alternative Names (SANs), public key algorithm and size, and signature algorithm. Essential for verifying certificate expiry, detecting self-signed certificates, checking SAN coverage, and identifying outdated signature algorithms like SHA-1.",
+      example: "nmap -p 443 --script ssl-cert 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 443 --script ssl-cert target. No root required — connects via standard TLS handshake.",
+        windows: "Same syntax. Works without Administrator elevation.",
+        powershell: "Same as CMD. No escaping needed."
+      },
+      warnings: [
+        "Only works on ports with active SSL/TLS listeners — ensure you target the right ports (443, 8443, 993, 995, etc.)",
+        "Does not validate the certificate chain — it only retrieves and displays the certificate"
+      ],
+      tips: [
+        "Check certificate expiry across all HTTPS hosts: nmap -p 443 --script ssl-cert -iL targets.txt",
+        "Combine with ssl-enum-ciphers for a full TLS audit: nmap -p 443 --script ssl-cert,ssl-enum-ciphers target",
+        "Look for SHA-1 signatures, wildcard certs, and expired dates in the output",
+        "Use -oX to export results and parse certificates programmatically"
+      ]
+    },
+    {
+      id: "nmap-script-ssl-enum-ciphers",
+      flag: "--script ssl-enum-ciphers",
+      category: "NSE Script",
+      title: "Enumerate SSL/TLS Cipher Suites",
+      description: "Enumerates all supported SSL/TLS protocol versions and cipher suites on a target port. For each protocol version (SSLv3, TLSv1.0, TLSv1.1, TLSv1.2, TLSv1.3), lists every accepted cipher suite with a strength rating (A through F). Identifies weak protocols (SSLv3, TLSv1.0, TLSv1.1) and weak ciphers (RC4, DES, NULL, EXPORT, CBC in older TLS). Critical for compliance audits (PCI DSS, HIPAA) and hardening TLS configurations.",
+      example: "nmap -p 443 --script ssl-enum-ciphers 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 443 --script ssl-enum-ciphers target. No root required.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Can take significant time per port — enumerates every possible cipher/protocol combination",
+        "Some IDS/IPS may flag the rapid TLS handshake attempts",
+        "Results depend on nmap's cipher database — update nmap regularly for accurate ratings"
+      ],
+      tips: [
+        "Look for TLSv1.0 and TLSv1.1 — these should be disabled on modern servers",
+        "Any cipher rated below 'A' is a finding — CBC ciphers in TLSv1.0 are vulnerable to BEAST",
+        "Pair with ssl-cert for a complete TLS assessment: nmap -p 443 --script ssl-cert,ssl-enum-ciphers target",
+        "Use --script-args ssl-enum-ciphers.maxdepth=2 to reduce scan time on hosts with many ciphers"
+      ]
+    },
+    {
+      id: "nmap-script-http-methods",
+      flag: "--script http-methods",
+      category: "NSE Script",
+      title: "HTTP Methods Enumeration",
+      description: "Queries a web server to discover which HTTP methods are supported (GET, POST, PUT, DELETE, OPTIONS, TRACE, CONNECT, PATCH, etc.) and flags potentially risky methods. TRACE enables cross-site tracing (XST) attacks, PUT/DELETE may allow unauthorized file modification, and CONNECT can be abused for proxying. This script sends an OPTIONS request and parses the Allow header.",
+      example: "nmap -p 80,443 --script http-methods 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 80 --script http-methods target. No root required.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Some web servers return different methods per path — test specific paths with --script-args http-methods.url-path=/api/",
+        "The OPTIONS response may not be accurate — some servers lie about supported methods"
+      ],
+      tips: [
+        "TRACE should almost always be disabled — it is flagged in most compliance frameworks",
+        "Use --script-args http-methods.url-path=/specific/path to test methods on specific endpoints",
+        "Combine with http-security-headers for a web server hardening review",
+        "PUT/DELETE findings should be verified manually — presence in OPTIONS does not guarantee they work"
+      ]
+    },
+    {
+      id: "nmap-script-http-security-headers",
+      flag: "--script http-security-headers",
+      category: "NSE Script",
+      title: "HTTP Security Headers Audit",
+      description: "Checks HTTP responses for the presence and values of security-related headers: Strict-Transport-Security (HSTS), Content-Security-Policy (CSP), X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy, and others. Reports missing headers as findings. Essential for web application security assessments and compliance checks.",
+      example: "nmap -p 443 --script http-security-headers 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 443 --script http-security-headers target. No root required.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "This script may not be included in all nmap distributions — check with nmap --script-help http-security-headers",
+        "Headers may vary by path — the root page may differ from application endpoints"
+      ],
+      tips: [
+        "Missing HSTS is a common finding — look for Strict-Transport-Security with max-age >= 31536000",
+        "X-Frame-Options should be DENY or SAMEORIGIN to prevent clickjacking",
+        "Content-Security-Policy is the most impactful security header — any value is better than none",
+        "Combine with http-methods for a comprehensive web server review"
+      ]
+    },
+    {
+      id: "nmap-script-ssh2-enum-algos",
+      flag: "--script ssh2-enum-algos",
+      category: "NSE Script",
+      title: "SSH Algorithm Enumeration",
+      description: "Enumerates the key exchange algorithms, encryption ciphers, MAC algorithms, and compression methods supported by an SSH server. Identifies weak or deprecated algorithms: diffie-hellman-group1-sha1 (1024-bit DH), diffie-hellman-group-exchange-sha1, arcfour/RC4 ciphers, MD5/SHA-96 MACs, and CBC-mode ciphers vulnerable to the Terrapin attack. Essential for SSH hardening assessments and compliance audits.",
+      example: "nmap -p 22 --script ssh2-enum-algos 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 22 --script ssh2-enum-algos target. No root required — uses standard SSH handshake.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Algorithm support does not mean algorithms are used — servers negotiate the strongest mutually supported algorithm",
+        "Removing algorithms may break connectivity for older clients — coordinate with system owners"
+      ],
+      tips: [
+        "Look for diffie-hellman-group1-sha1 (weak 1024-bit DH) — should be replaced with curve25519-sha256 or diffie-hellman-group16-sha512",
+        "CBC ciphers (aes128-cbc, aes256-cbc) are vulnerable to plaintext recovery — prefer CTR or GCM modes",
+        "hmac-md5 and hmac-sha1-96 are weak MACs — recommend hmac-sha2-256 or hmac-sha2-512",
+        "Compare results against CIS SSH benchmarks for a structured remediation list"
+      ]
+    },
+    {
+      id: "nmap-script-ssh-auth-methods",
+      flag: "--script ssh-auth-methods",
+      category: "NSE Script",
+      title: "SSH Authentication Methods",
+      description: "Queries an SSH server to determine which authentication methods it accepts: password, publickey, keyboard-interactive, hostbased, gssapi-with-mic, etc. Reveals whether password authentication is enabled (a common finding — key-based auth is preferred), whether keyboard-interactive is available (used by PAM/2FA), and whether less common methods like hostbased auth are permitted.",
+      example: "nmap -p 22 --script ssh-auth-methods 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 22 --script ssh-auth-methods target. No root required.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Results show what the server advertises — actual enforcement depends on PAM and sshd_config settings",
+        "Some servers restrict auth methods per user — results may vary for different accounts"
+      ],
+      tips: [
+        "Password authentication enabled is almost always a finding — recommend publickey-only auth",
+        "Use --script-args ssh-auth-methods.username=root to check auth methods for specific users",
+        "keyboard-interactive is often PAM-backed — may indicate 2FA is in use (or should be)",
+        "Combine with ssh2-enum-algos for a complete SSH audit: nmap -p 22 --script ssh2-enum-algos,ssh-auth-methods target"
+      ]
+    },
+    {
+      id: "nmap-script-http-headers",
+      flag: "--script http-headers",
+      category: "NSE Script",
+      title: "HTTP Response Headers",
+      description: "Retrieves and displays all HTTP response headers from a web server. Unlike http-security-headers which focuses on security-specific headers, this script shows every header including Server (version disclosure), X-Powered-By (technology disclosure), Set-Cookie (cookie flags), Cache-Control, and custom application headers. Useful for fingerprinting web server technology and identifying information disclosure.",
+      example: "nmap -p 80 --script http-headers 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 80 --script http-headers target. No root required.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Headers may reveal server software and version — this is exactly what you are looking for in an assessment"
+      ],
+      tips: [
+        "Server header with version (e.g., 'Apache/2.4.52') is an information disclosure finding — recommend suppressing version",
+        "X-Powered-By reveals framework (e.g., 'PHP/8.1', 'Express') — should be removed in production",
+        "Check Set-Cookie for missing Secure, HttpOnly, and SameSite flags",
+        "Use as a lightweight alternative to curl -I when scanning many hosts"
+      ]
+    },
+    {
+      id: "nmap-script-banner",
+      flag: "--script banner",
+      category: "NSE Script",
+      title: "Service Banner Grabbing",
+      description: "Connects to open ports and retrieves the initial service banner — the text a service sends upon connection. Captures SSH version strings, SMTP greetings, FTP banners, database welcome messages, and any other service that sends data first. Banners often reveal software name, version, OS hints, and sometimes hostname or organization details. Faster and lighter than -sV for quick reconnaissance.",
+      example: "nmap -p 22,25,21 --script banner 192.168.1.1",
+      platforms: {
+        linux: "nmap --script banner -p 22 target. No root required for TCP connections.",
+        windows: "Same syntax. No Administrator needed.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Some services require specific protocol initiation (like HTTP) and do not send banners automatically",
+        "Banner information can be spoofed by defenders — do not rely solely on banners for identification"
+      ],
+      tips: [
+        "Faster than -sV when you only need the initial banner and do not need probe-based version detection",
+        "SSH banners (e.g., 'SSH-2.0-OpenSSH_8.9p1') reveal exact software version — useful for CVE matching",
+        "Combine with --script-args banner.timeout=5 to set a custom timeout for slow responders",
+        "Scan common banner ports in bulk: nmap --script banner -p 21,22,23,25,80,110,143,993,995 target"
       ]
     }
   ],

@@ -1378,7 +1378,653 @@ const craftTools = {
   }
 };
 
-const docs = {};
+const docs = {
+  nmap: [
+    /* ── Scan Type ── */
+    {
+      id: "nmap-sS",
+      flag: "-sS",
+      category: "Scan Type",
+      title: "TCP SYN Stealth Scan",
+      description: "Sends SYN packets and waits for SYN/ACK or RST responses without completing the three-way handshake. Because the connection is never fully established, many older intrusion detection systems and application-layer logs do not record it. This is nmap's default scan when run with root/admin privileges and is the fastest reliable TCP scan method. Use it as your primary port discovery technique on any network where you have appropriate authorization.",
+      example: "nmap -sS 192.168.1.1",
+      platforms: {
+        linux: "Requires root: sudo nmap -sS target. Without sudo, nmap falls back to -sT (connect scan).",
+        windows: "Run nmap as Administrator (right-click → Run as Administrator, or elevated cmd.exe). Npcap must be installed; nmap prompts you if it is missing.",
+        powershell: "Same elevation requirement as CMD. Open PowerShell as Administrator. Npcap required. No special escaping needed for this flag."
+      },
+      warnings: [
+        "Requires root or Administrator privileges",
+        "Still detectable by modern IDS/IPS and stateful firewalls",
+        "Not a guarantee of stealth on monitored networks"
+      ],
+      tips: [
+        "Combine with -p- for a full port range SYN scan: nmap -sS -p- target",
+        "Add -T4 to speed up on reliable networks: nmap -sS -T4 target",
+        "Pair with -sV to also grab service versions: nmap -sS -sV target"
+      ]
+    },
+    {
+      id: "nmap-sT",
+      flag: "-sT",
+      category: "Scan Type",
+      title: "TCP Connect Scan",
+      description: "Performs a full TCP three-way handshake for each probed port using the OS's connect() system call. Because the connection completes, it is reliably logged by target services and firewalls. This is nmap's default scan when run without root/admin privileges. It is slower than -sS but works without special privileges and through some proxies.",
+      example: "nmap -sT 192.168.1.1",
+      platforms: {
+        linux: "Does not require root. Runs as any user: nmap -sT target. Useful in restricted environments where sudo is unavailable.",
+        windows: "Runs without Administrator privileges, but elevation may still improve results for certain OS-level operations. Npcap is not strictly required for connect scans.",
+        powershell: "Runs without elevation for basic connect scans. Same behavior as CMD."
+      },
+      warnings: [
+        "Fully logged by target services — least stealthy scan type",
+        "Slower than SYN scan due to complete handshake overhead",
+        "May trigger rate-limit defenses on hardened hosts"
+      ],
+      tips: [
+        "Use when you cannot run as root/admin but still need TCP discovery",
+        "Works through SOCKS proxies: combine with --proxies socks4://proxyhost:port",
+        "Suitable for environments where raw-socket access is blocked (shared hosting, containers)"
+      ]
+    },
+    {
+      id: "nmap-sU",
+      flag: "-sU",
+      category: "Scan Type",
+      title: "UDP Scan",
+      description: "Probes UDP ports by sending UDP packets and analyzing ICMP port-unreachable responses (port closed) or application responses (port open). UDP scanning is inherently slower and less reliable than TCP because UDP is connectionless and many hosts rate-limit ICMP responses. Critical services like DNS (53), SNMP (161), and DHCP (67/68) run over UDP and are often missed when only TCP is scanned.",
+      example: "nmap -sU -p 53,67,68,161,123 192.168.1.1",
+      platforms: {
+        linux: "Requires root: sudo nmap -sU target. Rate-limiting means full scans can take hours; use -p to narrow ports.",
+        windows: "Requires Administrator elevation. Npcap required. Consider scanning only key UDP ports to keep runtime manageable.",
+        powershell: "Run as Administrator. Same behavior as CMD. Use -p to limit scope."
+      },
+      warnings: [
+        "Requires root/Administrator privileges",
+        "Extremely slow on full port range — can take hours",
+        "Results can be unreliable due to ICMP rate limiting on target",
+        "Many firewalls silently drop UDP probes, showing ports as open|filtered"
+      ],
+      tips: [
+        "Combine with TCP scan: nmap -sS -sU -p T:80,443,U:53,161 target",
+        "Use --max-retries 1 and -T4 to speed up UDP scans at the cost of accuracy",
+        "Focus on well-known UDP ports: 53, 67, 68, 69, 123, 161, 162, 500, 514"
+      ]
+    },
+    {
+      id: "nmap-sA",
+      flag: "-sA",
+      category: "Scan Type",
+      title: "TCP ACK Scan",
+      description: "Sends TCP ACK packets (without a preceding SYN) to determine firewall rule sets rather than open ports. Hosts behind stateful firewalls drop or ignore unsolicited ACK packets (filtered), while unfiltered hosts return RST. This scan does not reveal open vs. closed ports — it maps firewall behavior and identifies unfiltered ports that can be reached for further scanning.",
+      example: "nmap -sA 192.168.1.1",
+      platforms: {
+        linux: "Requires root: sudo nmap -sA target.",
+        windows: "Requires Administrator elevation and Npcap.",
+        powershell: "Same as CMD. Run as Administrator."
+      },
+      warnings: [
+        "Requires root/Administrator privileges",
+        "Does not distinguish open from closed ports — only filtered vs. unfiltered",
+        "May confuse correlation tools that expect SYN-based scans"
+      ],
+      tips: [
+        "Use to map firewall rules before deciding which TCP scan type to use",
+        "Combine with -sS in two-pass approach: ACK scan first to find unfiltered ports, then SYN scan those ports",
+        "Effective for determining whether a stateless packet filter or stateful firewall is in place"
+      ]
+    },
+    {
+      id: "nmap-sV",
+      flag: "-sV",
+      category: "Scan Type",
+      title: "Service/Version Detection",
+      description: "After discovering open ports, sends probes designed to elicit banner or protocol-specific responses to identify the service name, version number, and sometimes OS details running on each port. Version detection significantly increases scan time but provides critical information for vulnerability assessment. The intensity of probing can be tuned with --version-intensity (0–9).",
+      example: "nmap -sV 192.168.1.1",
+      platforms: {
+        linux: "Requires root when combined with -sS. Can run without root when combined with -sT.",
+        windows: "When combined with -sS, requires Administrator and Npcap. Works unprivileged with -sT.",
+        powershell: "Same requirements as CMD depending on underlying scan type."
+      },
+      warnings: [
+        "Increases scan time substantially",
+        "Probing services may trigger IDS alerts or cause unstable services to crash",
+        "Some services fingerprint poorly — results may show 'unknown'"
+      ],
+      tips: [
+        "Use --version-intensity 0 for a fast, low-noise version probe",
+        "Combine with -sS for a comprehensive scan: nmap -sS -sV target",
+        "Use -sV --version-all (intensity 9) for thorough but slow identification"
+      ]
+    },
+    {
+      id: "nmap-sn",
+      flag: "-sn",
+      category: "Scan Type",
+      title: "Ping Scan (No Port Scan)",
+      description: "Performs host discovery without port scanning. Nmap sends ICMP echo, TCP SYN to port 443, TCP ACK to port 80, and ICMP timestamp requests to determine if hosts are up. This is the fastest way to discover live hosts on a network and is useful as the first step in a multi-phase assessment. Formerly called -sP.",
+      example: "nmap -sn 192.168.1.0/24",
+      platforms: {
+        linux: "Requires root for ICMP and raw-packet probes: sudo nmap -sn 192.168.1.0/24. Without root, only TCP-based probes are used.",
+        windows: "Requires Administrator and Npcap for full probe set. May produce fewer results without elevation.",
+        powershell: "Run as Administrator for full discovery. Same as CMD."
+      },
+      warnings: [
+        "Hosts with ICMP blocked may appear down even when alive",
+        "Requires root for raw-socket probes; without root, host discovery is less reliable",
+        "Do not use on production networks without authorization — ARP probes are visible"
+      ],
+      tips: [
+        "Follow with a targeted port scan: nmap -sn 10.0.0.0/24 first, then scan live hosts",
+        "Add -v to see each probe sent and response received",
+        "Use on /24 or larger subnets to quickly build a live-host inventory"
+      ]
+    },
+
+    /* ── Ports ── */
+    {
+      id: "nmap-ports-default",
+      flag: "(default ports)",
+      category: "Ports",
+      title: "Default Port Scan (Top 1000)",
+      description: "When no -p flag is specified, nmap scans the 1000 most commonly used TCP (or UDP with -sU) ports as ranked by frequency in the nmap-services file. This covers the vast majority of services encountered in practice and completes quickly. For most assessments the default port list is an excellent starting point before expanding to a full -p- scan.",
+      example: "nmap 192.168.1.1",
+      platforms: {
+        linux: "nmap target — no flag needed. Requires root for -sS; runs as user with -sT fallback.",
+        windows: "nmap target — no flag needed. Run as Administrator for best results.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Misses services running on non-standard ports",
+        "Does not scan UDP ports unless -sU is also specified"
+      ],
+      tips: [
+        "Use as a quick first pass, then follow up with nmap -p- for thoroughness",
+        "The nmap-services file in the nmap data directory defines port ranking — can be customized",
+        "Combine with -sV to get both discovery and version info in one pass"
+      ]
+    },
+    {
+      id: "nmap-p-all",
+      flag: "-p-",
+      category: "Ports",
+      title: "Scan All 65535 Ports",
+      description: "Instructs nmap to scan every TCP port from 1 to 65535 (or every UDP port with -sU). This catches services running on non-standard ports that the default top-1000 scan would miss. Full scans take significantly longer — from minutes to hours depending on timing template, target responsiveness, and network conditions.",
+      example: "nmap -p- -T4 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -p- target. Combine with -T4 on fast, local networks. Expect 5–30 min per host.",
+        windows: "Run as Administrator with Npcap. Use -T4 to reduce scan time on reliable networks.",
+        powershell: "Same as CMD. The dash in -p- does not require escaping in PowerShell."
+      },
+      warnings: [
+        "Very slow without a fast timing template (-T4 or -T5)",
+        "Generates significantly more traffic — easily detected by IDS/IPS",
+        "On UDP, scanning all 65535 ports can take many hours per host"
+      ],
+      tips: [
+        "Use -T4 on trusted networks: nmap -sS -p- -T4 target",
+        "For stealth, use --scan-delay 500ms or -T2 to reduce detection risk",
+        "Pipe results into -oG then grep for open ports to build a quick inventory"
+      ]
+    },
+    {
+      id: "nmap-top-ports",
+      flag: "--top-ports",
+      category: "Ports",
+      title: "Top N Ports",
+      description: "Scans the N most frequently seen ports according to the nmap-services frequency data. Useful when the default 1000 ports is too broad for time constraints, or when you want to expand beyond 1000 without a full -p- scan. For example, --top-ports 100 gives a fast sweep; --top-ports 5000 catches more obscure services.",
+      example: "nmap --top-ports 100 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap --top-ports 500 target. Works with any scan type.",
+        windows: "Run as Administrator. nmap --top-ports 500 target.",
+        powershell: "Same as CMD. No escaping required."
+      },
+      warnings: [
+        "Port frequency rankings are based on internet-wide scans and may not match internal network port distributions",
+        "Still misses custom-port services not in the top N"
+      ],
+      tips: [
+        "Use --top-ports 200 as a balance between speed and coverage for internal assessments",
+        "Combine with -sU --top-ports 100 to quickly sweep common UDP ports",
+        "Compare results of top-100 vs. top-1000 to see what the extra ports reveal"
+      ]
+    },
+    {
+      id: "nmap-p-custom",
+      flag: "-p <ports>",
+      category: "Ports",
+      title: "Custom Port Specification",
+      description: "Specifies exactly which ports or port ranges to scan. Accepts individual ports (80), comma-separated lists (22,80,443), ranges (1-1024), protocol prefixes (T:80,U:53), and combinations. This gives precise control over scan scope and is useful for targeted testing of specific services or for reducing scan time on large networks.",
+      example: "nmap -p 22,80,443,8080-8090 192.168.1.1",
+      platforms: {
+        linux: "nmap -p 22,80,443 target. For mixed TCP/UDP: sudo nmap -sS -sU -p T:80,443,U:53,161 target.",
+        windows: "nmap -p 22,80,443 target. For mixed protocols, run as Administrator with Npcap.",
+        powershell: "Wrap complex port specs in quotes if they conflict with PowerShell parsing: nmap -p '22,80,443' target. The comma is safe without quotes in most cases."
+      },
+      warnings: [
+        "Forgetting the protocol prefix (T:/U:) when mixing TCP and UDP may produce unexpected results",
+        "Ranges like 1-65535 are equivalent to -p- but require explicit bounds"
+      ],
+      tips: [
+        "Use T: and U: prefixes for mixed scans: -p T:80,443,U:53,161",
+        "Scan a range around a known port: -p 8000-9000 to find dev servers",
+        "Combine with --open to only show ports that are open: nmap -p 1-1024 --open target"
+      ]
+    },
+
+    /* ── Timing ── */
+    {
+      id: "nmap-T0",
+      flag: "-T0",
+      category: "Timing",
+      title: "Paranoid Timing",
+      description: "The slowest timing template, serializing probes with a 5-minute delay between each. Designed to evade IDS systems that use time-based correlation to detect port scans. At this speed, a full scan of even a single host's top 1000 ports takes many hours. Rarely practical outside of highly targeted, extremely covert operations.",
+      example: "nmap -T0 -p 22,80,443 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -T0 target. Expect extremely long runtimes — run in a screen/tmux session.",
+        windows: "nmap -T0 target as Administrator. Feasible only for very small port sets.",
+        powershell: "Same as CMD. Use Start-Process or a background job for long runs."
+      },
+      warnings: [
+        "Extremely slow — impractical for most engagements",
+        "Even -T0 may not evade modern behavioral IDS systems",
+        "Session may time out or be interrupted before scan completes"
+      ],
+      tips: [
+        "Pair with -p to limit to only essential ports when using -T0",
+        "Use --max-parallelism 1 alongside -T0 for maximum serialization",
+        "Consider whether threat model actually requires -T0 vs. -T1 for the target environment"
+      ]
+    },
+    {
+      id: "nmap-T1",
+      flag: "-T1",
+      category: "Timing",
+      title: "Sneaky Timing",
+      description: "Very slow timing with 15-second delays between probes. Intended to slip under the radar of IDS systems that detect scan activity based on packet rate thresholds. Practical for small, targeted port lists on critical or well-monitored hosts where stealth is required but -T0's extreme delay is unnecessary.",
+      example: "nmap -T1 -p 22,80,443 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -T1 target. Use tmux or screen to keep session alive during long scans.",
+        windows: "Run as Administrator. Expect very long runtimes for large port ranges.",
+        powershell: "Same as CMD. Background jobs recommended for non-blocking operation."
+      },
+      warnings: [
+        "Still very slow — plan scan time accordingly",
+        "Modern IDS with behavioral analysis may still detect slow scans over time",
+        "Not suitable for large port ranges or subnets in a single session"
+      ],
+      tips: [
+        "Use -T1 combined with randomized port ordering (--randomize-hosts) for additional evasion",
+        "Appropriate when scanning a perimeter host that you know has active monitoring",
+        "Document expected scan duration before starting so stakeholders are informed"
+      ]
+    },
+    {
+      id: "nmap-T2",
+      flag: "-T2",
+      category: "Timing",
+      title: "Polite Timing",
+      description: "Slows probing to reduce bandwidth consumption and lower the chance of impacting the target host. Uses 0.4-second delays between probes. Suitable for scanning production systems during business hours when service disruption risk must be minimized, or when operating over low-bandwidth connections.",
+      example: "nmap -T2 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -T2 target. Good balance of politeness and practicality for production scans.",
+        windows: "nmap -T2 target as Administrator.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "Noticeably slower than default (-T3) — budget extra time",
+        "Still produces detectable traffic; not a stealth technique"
+      ],
+      tips: [
+        "Use during authorized scans of sensitive production systems",
+        "Combine with --max-parallelism 10 to keep some concurrency while staying polite",
+        "Good default for external internet-facing targets where you want to avoid triggering rate limits"
+      ]
+    },
+    {
+      id: "nmap-T3",
+      flag: "-T3",
+      category: "Timing",
+      title: "Normal Timing (Default)",
+      description: "The default timing template when -T is not specified. Balances speed and reliability with adaptive algorithms that increase or decrease probe rate based on network responsiveness. Suitable for most general-purpose scans on modern networks. No special tuning is needed — this is the safe, sensible default.",
+      example: "nmap -T3 192.168.1.1",
+      platforms: {
+        linux: "Default — no flag needed unless explicitly overriding another -T value.",
+        windows: "Default. Runs well on Windows with Npcap.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "On very slow or congested networks, -T3 may still produce missed ports — consider -T2",
+        "On fast local LANs, -T4 may be more efficient"
+      ],
+      tips: [
+        "Explicitly set -T3 in scripts to make timing intent clear and prevent accidental -T5 runs",
+        "Good starting point; switch to -T4 if scans feel sluggish on a reliable network",
+        "Adaptive timing means -T3 self-adjusts; no manual tuning required"
+      ]
+    },
+    {
+      id: "nmap-T4",
+      flag: "-T4",
+      category: "Timing",
+      title: "Aggressive Timing",
+      description: "Speeds up scans by reducing timeouts and increasing parallelism. Assumes a fast, reliable network — typically a wired LAN or fast VPN. Missed ports or inaccurate results are possible on slow or lossy networks because nmap gives up on slow responses faster. The go-to timing template for internal assessments on well-connected infrastructure.",
+      example: "nmap -T4 192.168.1.0/24",
+      platforms: {
+        linux: "sudo nmap -T4 target or subnet. Excellent for LAN-speed assessments.",
+        windows: "Run as Administrator with Npcap. -T4 works well on Windows for local networks.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "May produce false negatives (missed ports) on slow, congested, or high-latency networks",
+        "Generates high traffic volume — clearly detectable by IDS/IPS",
+        "Not appropriate for internet-facing scans without explicit authorization"
+      ],
+      tips: [
+        "Standard choice for internal penetration tests: nmap -sS -sV -T4 -p- target",
+        "Combine with --min-rate 1000 to enforce a minimum packet rate",
+        "Use with -oA to save results in all formats: nmap -T4 -oA scan_results target"
+      ]
+    },
+    {
+      id: "nmap-T5",
+      flag: "-T5",
+      category: "Timing",
+      title: "Insane Timing",
+      description: "The fastest timing template, sacrificing accuracy for speed. Drastically reduces timeouts and maximizes parallelism. Suitable only for extremely fast networks (gigabit LAN) where missing some ports is acceptable. In practice, -T4 is preferred for most engagements because -T5 can miss significant numbers of open ports on any network with latency.",
+      example: "nmap -T5 192.168.1.0/24",
+      platforms: {
+        linux: "sudo nmap -T5 target. Best on gigabit wired networks only.",
+        windows: "Run as Administrator with Npcap. Results may be less reliable than on Linux.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "High rate of false negatives — missed open ports — even on good networks",
+        "Extremely noisy — will trigger virtually all IDS/IPS systems",
+        "Not recommended for assessments requiring accuracy"
+      ],
+      tips: [
+        "Use only for a very fast first sweep when you will follow up with a more careful scan",
+        "If using -T5, always run a -T4 follow-up on ports discovered as closed to confirm",
+        "Useful for CTF environments with virtual machines on localhost where speed is valued over accuracy"
+      ]
+    },
+
+    /* ── Options/Toggles ── */
+    {
+      id: "nmap-O",
+      flag: "-O",
+      category: "Option",
+      title: "OS Detection",
+      description: "Attempts to determine the operating system of the target by analyzing TCP/IP stack behavior — including initial TTL, window size, IP options, and other protocol fingerprints. Results include a confidence percentage and often a list of possible OS matches. Requires at least one open and one closed port to produce reliable results.",
+      example: "nmap -O 192.168.1.1",
+      platforms: {
+        linux: "Requires root: sudo nmap -O target.",
+        windows: "Requires Administrator and Npcap.",
+        powershell: "Run as Administrator. Same as CMD."
+      },
+      warnings: [
+        "Requires root/Administrator privileges",
+        "Results are probabilistic — always verify OS independently",
+        "Firewalls and network devices can spoof or normalize TCP/IP stack behavior, misleading fingerprinting"
+      ],
+      tips: [
+        "Use --osscan-guess to show best guesses even when nmap is not confident",
+        "Combine with -sV for comprehensive host profiling: nmap -O -sV target",
+        "Ensure at least one open and one closed port is accessible for best results; use -p 1-1000 if needed"
+      ]
+    },
+    {
+      id: "nmap-sV-toggle",
+      flag: "-sV",
+      category: "Option",
+      title: "Version Detection Toggle",
+      description: "Enables service and version detection as a standalone toggle when combined with other scan types. After port discovery, nmap sends service-specific probes to each open port and matches responses against its version detection database (nmap-service-probes). Results typically include service name, version number, and extrainfo such as protocol variant or configuration details.",
+      example: "nmap -sS -sV -p 22,80,443,8080 192.168.1.1",
+      platforms: {
+        linux: "Works with -sS (root) or -sT (no root). sudo nmap -sS -sV target is the standard combination.",
+        windows: "Run as Administrator when combined with -sS. Works unprivileged with -sT.",
+        powershell: "Same as CMD requirements. No escaping needed."
+      },
+      warnings: [
+        "Increases scan duration — version probes take time per port",
+        "Active probing may crash poorly-implemented services",
+        "Some services obfuscate banners — reported version may be misleading"
+      ],
+      tips: [
+        "Use --version-intensity 2 for a faster, lighter probe: nmap -sV --version-intensity 2 target",
+        "The nmap-service-probes file can be updated or customized for internal services",
+        "Combine with -O and -A for a full profiling scan"
+      ]
+    },
+    {
+      id: "nmap-A",
+      flag: "-A",
+      category: "Option",
+      title: "Aggressive Scan (OS + Version + Scripts + Traceroute)",
+      description: "Enables a combination of -O (OS detection), -sV (version detection), -sC (default NSE scripts), and --traceroute in a single flag. This is the most comprehensive single-flag option for host profiling. It is intentionally noisy and slow — use it when you want maximum information and are not concerned about detection.",
+      example: "nmap -A 192.168.1.1",
+      platforms: {
+        linux: "Requires root for OS detection component: sudo nmap -A target.",
+        windows: "Run as Administrator with Npcap for full functionality.",
+        powershell: "Same as CMD. Run as Administrator."
+      },
+      warnings: [
+        "Very noisy — will trigger IDS/IPS alerts on monitored networks",
+        "Slow due to multiple detection phases running sequentially",
+        "NSE scripts in -sC may interact with services in unexpected ways"
+      ],
+      tips: [
+        "Use on internal lab or CTF targets for quick comprehensive profiles",
+        "For production scans, decompose into -sV -O -sC separately to control each phase",
+        "Combine with -T4 for faster runs on reliable networks: nmap -A -T4 target"
+      ]
+    },
+    {
+      id: "nmap-v",
+      flag: "-v",
+      category: "Option",
+      title: "Verbose Output",
+      description: "Increases output verbosity so nmap prints open ports as they are discovered, rather than waiting until the scan completes. Also shows additional information about scan phases, timing, and host states. Particularly useful for long-running scans where you want to see progress and act on findings incrementally.",
+      example: "nmap -v -sS 192.168.1.0/24",
+      platforms: {
+        linux: "Works with any nmap invocation. No privilege change required for this flag alone.",
+        windows: "Same. Works with all scan types and privilege levels.",
+        powershell: "Same as CMD. Output goes to stdout; pipe to Tee-Object to capture while viewing: nmap -v target | Tee-Object -FilePath results.txt"
+      },
+      warnings: [
+        "Increases terminal output — can be distracting for automated pipelines",
+        "No security implications, but verbose output in logs may include sensitive IP/port data"
+      ],
+      tips: [
+        "Use -v for interactive scans so you can start investigating open ports before the scan finishes",
+        "Combine with -oN to both display and save output: nmap -v -oN out.txt target",
+        "Can be specified multiple times for more detail, equivalent to -vv"
+      ]
+    },
+    {
+      id: "nmap-vv",
+      flag: "-vv",
+      category: "Option",
+      title: "Very Verbose Output",
+      description: "Sets verbosity to level 2, providing even more detail than -v. Shows reason codes for each port state (e.g., syn-ack, reset, no-response), additional timing information, and more detailed NSE script output. Useful for understanding exactly how nmap is interpreting responses and for debugging unexpected results.",
+      example: "nmap -vv -sS 192.168.1.1",
+      platforms: {
+        linux: "Works with any nmap invocation. sudo if scan type requires it.",
+        windows: "Same. Run as Administrator if using raw-socket scans.",
+        powershell: "Same as CMD. Consider redirecting output: nmap -vv target 2>&1 | Tee-Object scan.txt"
+      },
+      warnings: [
+        "Very large output for subnet scans — consider redirecting to a file",
+        "Reason codes require understanding nmap internals to interpret correctly"
+      ],
+      tips: [
+        "Use -vv when a port shows 'filtered' to see why (timeout vs. ICMP unreachable)",
+        "Combine with --reason for explicit per-port state reasons: nmap -vv --reason target",
+        "Equivalent to -v -v; any further -v flags increase verbosity further (-vvv etc.)"
+      ]
+    },
+    {
+      id: "nmap-Pn",
+      flag: "-Pn",
+      category: "Option",
+      title: "Skip Host Discovery (Treat All Hosts as Up)",
+      description: "Disables host discovery (ping probes) and assumes all specified hosts are online, proceeding directly to port scanning. Essential when targets block ICMP and common TCP/UDP ping probes, causing nmap to incorrectly mark them as down. Use this flag whenever you know a host exists but normal ping-based discovery fails.",
+      example: "nmap -Pn 192.168.1.1",
+      platforms: {
+        linux: "nmap -Pn target. No additional privilege requirements imposed by this flag alone.",
+        windows: "nmap -Pn target. Windows hosts commonly block ICMP by default, making -Pn frequently needed.",
+        powershell: "Same as CMD. -Pn is often required when scanning Windows hosts from Windows."
+      },
+      warnings: [
+        "Scanning offline hosts wastes significant time — be confident the target exists",
+        "Increases total scan time since no hosts are skipped based on ping non-response",
+        "On large subnets, -Pn combined with -p- can take an extremely long time"
+      ],
+      tips: [
+        "Standard flag when scanning internet hosts or hardened systems that block ICMP",
+        "Combine with -n to also skip DNS resolution for maximum speed: nmap -Pn -n target",
+        "If scanning a /24 with -Pn, use -p 22,80,443 or similar to keep runtime manageable"
+      ]
+    },
+    {
+      id: "nmap-n",
+      flag: "-n",
+      category: "Option",
+      title: "No DNS Resolution",
+      description: "Disables reverse DNS resolution for discovered IP addresses. By default, nmap attempts to resolve every IP to a hostname, which adds latency (especially for non-responding DNS servers) and can leak information about the scan via DNS queries. Disabling resolution speeds up scans and prevents DNS-based detection of scanning activity.",
+      example: "nmap -n -sS 192.168.1.0/24",
+      platforms: {
+        linux: "nmap -n target. No privilege change required for this flag.",
+        windows: "nmap -n target. Especially useful on Windows where DNS resolution can be slow.",
+        powershell: "Same as CMD."
+      },
+      warnings: [
+        "You lose hostname context in output — IPs only, no domain names",
+        "Some NSE scripts rely on hostnames; -n may affect their operation"
+      ],
+      tips: [
+        "Always use -n during time-sensitive or large-subnet scans",
+        "Pair with -Pn for maximum speed when host/network state is known: nmap -n -Pn target",
+        "Use -R to force reverse DNS resolution of all hosts if you specifically need names"
+      ]
+    },
+    {
+      id: "nmap-script-vuln",
+      flag: "--script=vuln",
+      category: "NSE Script",
+      title: "Vulnerability Detection Scripts",
+      description: "Runs nmap's built-in vulnerability detection NSE scripts against discovered open ports. These scripts check for known CVEs, misconfigured services, weak credentials, and common vulnerabilities such as MS17-010 (EternalBlue), Heartbleed, shellshock, and more. Results provide actionable vulnerability findings directly in the nmap output.",
+      example: "nmap -sV --script=vuln 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -sV --script=vuln target. Root required for underlying scan types.",
+        windows: "Run as Administrator with Npcap. nmap -sV --script=vuln target.",
+        powershell: "Wrap the script argument in quotes if needed: nmap -sV '--script=vuln' target. Standard CMD-style invocation usually works."
+      },
+      warnings: [
+        "Actively probes services for vulnerabilities — may crash unstable services",
+        "Generates significant traffic and IDS/IPS alerts",
+        "Not a substitute for a dedicated vulnerability scanner — coverage is limited to bundled scripts",
+        "Some scripts attempt exploitation — review script behavior before running in production"
+      ],
+      tips: [
+        "Combine with -sV so scripts have version context for better matching: nmap -sV --script=vuln target",
+        "Run --script-updatedb to ensure scripts are current after nmap updates",
+        "Use --script=vuln,exploit with caution — exploit scripts may make changes to targets"
+      ]
+    },
+    {
+      id: "nmap-script-default",
+      flag: "--script=default",
+      category: "NSE Script",
+      title: "Default NSE Scripts (-sC)",
+      description: "Runs the collection of NSE scripts tagged 'default' — a curated set designed to be safe, useful, and non-intrusive. These scripts gather service information (HTTP titles, SSH host keys, SSL certificates, SMB shares, FTP banners) that version detection alone does not capture. Equivalent to -sC shorthand.",
+      example: "nmap -sV --script=default 192.168.1.1",
+      platforms: {
+        linux: "sudo nmap -sC -sV target. -sC is shorthand for --script=default.",
+        windows: "Run as Administrator. nmap -sC -sV target.",
+        powershell: "Same as CMD. -sC works without quoting."
+      },
+      warnings: [
+        "Some default scripts make active connections to services — may be logged",
+        "HTTP scripts may send requests that appear in web server access logs",
+        "SMB enumeration scripts may trigger security alerts on monitored Windows networks"
+      ],
+      tips: [
+        "Use -sC as the shorthand: nmap -sC -sV target",
+        "Default scripts are conservative but not invisible — assume they will be logged",
+        "Combine -A to run default scripts along with OS detection and traceroute"
+      ]
+    },
+    {
+      id: "nmap-oN",
+      flag: "-oN",
+      category: "Output",
+      title: "Normal Output to File",
+      description: "Saves scan results in nmap's human-readable 'normal' format to the specified file. The file format matches what would be displayed on screen. Useful for keeping records, sharing results with team members, or parsing with basic text tools. Use -oA to save in all three formats simultaneously.",
+      example: "nmap -sS -sV -oN scan_results.txt 192.168.1.1",
+      platforms: {
+        linux: "nmap -oN /path/to/output.txt target. Ensure write permissions for the target directory.",
+        windows: "nmap -oN C:\\scans\\output.txt target. Use full paths to avoid ambiguity.",
+        powershell: "nmap -oN .\\output.txt target. PowerShell working directory applies. Quote paths with spaces."
+      },
+      warnings: [
+        "Output files may contain sensitive network topology data — protect accordingly",
+        "If the file already exists, nmap will overwrite it without warning"
+      ],
+      tips: [
+        "Use -oA basename to save normal, XML, and grepable output at once: nmap -oA scan_20240101 target",
+        "Include date/hostname in filename for organized archives: nmap -oN scan_$(date +%Y%m%d)_target.txt target",
+        "XML output (-oX) is better for tool integration; -oN is better for human review"
+      ]
+    },
+    {
+      id: "nmap-oX",
+      flag: "-oX",
+      category: "Output",
+      title: "XML Output to File",
+      description: "Saves scan results in XML format, which is machine-parseable and supported by many security tools including Metasploit, Faraday, Dradis, and custom scripts. XML output preserves all scan data including timing, host states, port details, script output, and OS detection results. The preferred format for tool-chain integration and automated processing.",
+      example: "nmap -sS -sV -oX scan_results.xml 192.168.1.1",
+      platforms: {
+        linux: "nmap -oX /path/output.xml target.",
+        windows: "nmap -oX C:\\scans\\output.xml target.",
+        powershell: "nmap -oX .\\output.xml target. No special escaping required."
+      },
+      warnings: [
+        "XML files can be large for big subnet scans",
+        "Contains full scan details including timing data — treat as sensitive",
+        "If the output file exists, it will be overwritten without prompt"
+      ],
+      tips: [
+        "Import directly into Metasploit db: db_import /path/to/scan.xml",
+        "Use xsltproc with nmap's bundled stylesheet to generate HTML reports: xsltproc scan.xml -o report.html",
+        "Use -oA to also get normal and grepable formats alongside XML"
+      ]
+    },
+    {
+      id: "nmap-reason",
+      flag: "--reason",
+      category: "Option",
+      title: "Show Port State Reasons",
+      description: "Displays the reason nmap assigned each port its state — for example, 'syn-ack' for open, 'reset' for closed, 'no-response' or 'admin-prohibited' for filtered. This is invaluable for understanding scan results, debugging unexpected port states, and determining whether filtering is stateless (RST) or stateful (silence/ICMP unreachable).",
+      example: "nmap --reason 192.168.1.1",
+      platforms: {
+        linux: "nmap --reason target. Works with any scan type; root required for raw-socket scans.",
+        windows: "nmap --reason target as Administrator.",
+        powershell: "Same as CMD. No quoting needed."
+      },
+      warnings: [
+        "Reason codes require familiarity with TCP/IP and nmap internals to interpret correctly",
+        "Some reasons (e.g., 'no-response') are ambiguous — could indicate filtering, a down host, or a dropped packet"
+      ],
+      tips: [
+        "Combine with -vv for the most detailed per-port diagnostic output: nmap -vv --reason target",
+        "Use when troubleshooting why expected ports appear 'filtered' to determine firewall behavior",
+        "Reason 'admin-prohibited' typically indicates a stateful firewall sending ICMP type 3 code 13"
+      ]
+    }
+  ]
+};
 
 /* ================================================================
    STATE

@@ -3187,7 +3187,6 @@ let pendingImportParsed = null;
 var auditEntries = [];
 var auditSelected = [];
 var auditComparing = false;
-var pendingAuditResult = null;
 
 var HEADER_RULES = {
   missing: [
@@ -4608,9 +4607,18 @@ function normalizeHeaderInput(raw) {
     result.meta.statusCode = parsed.statusCode;
     result.meta.protocol = parsed.protocol;
     result.meta.target = parsed.target || '';
-    parsed.headers.forEach(function(h) {
-      result.headers[h.key] = { original: h.key, value: h.value };
-    });
+    // Re-parse raw lines to preserve original header casing (parseCurlHeaders lowercases keys)
+    var lines = raw.trim().split('\n');
+    for (var i = 1; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var colonIdx = line.indexOf(':');
+      if (colonIdx > 0) {
+        var originalKey = line.substring(0, colonIdx).trim();
+        var val = line.substring(colonIdx + 1).trim();
+        result.headers[originalKey.toLowerCase()] = { original: originalKey, value: val };
+      }
+    }
   } else if (inputType === 'nmap-script') {
     var scriptParsed = parseNmapScript(raw);
     result.meta.target = scriptParsed.target || '';

@@ -3181,6 +3181,262 @@ let pendingImportRaw = '';
 let pendingImportParsed = null;
 
 /* ================================================================
+   HEADER AUDIT: DATA
+   ================================================================ */
+
+var auditEntries = [];
+var auditSelected = [];
+var auditComparing = false;
+var pendingAuditResult = null;
+
+var HEADER_RULES = {
+  missing: [
+    { header: 'Cache-Control', description: 'Controls caching behavior; prevents sensitive data from being cached', recommended: 'no-store, max-age=0' },
+    { header: 'Clear-Site-Data', description: 'Clears browsing data (cookies, storage, cache) associated with the site', recommended: '"cache","cookies","storage"' },
+    { header: 'Content-Type', description: 'Prevents MIME type confusion attacks', recommended: 'text/html; charset=UTF-8' },
+    { header: 'Content-Security-Policy', description: 'Mitigates XSS and data injection attacks by controlling resource loading', recommended: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'" },
+    { header: 'Cross-Origin-Embedder-Policy', description: 'Controls cross-origin resource embedding; required for SharedArrayBuffer', recommended: 'require-corp' },
+    { header: 'Cross-Origin-Opener-Policy', description: 'Isolates browsing context to prevent cross-origin attacks', recommended: 'same-origin' },
+    { header: 'Cross-Origin-Resource-Policy', description: 'Controls which origins can load this resource', recommended: 'same-origin' },
+    { header: 'NEL', description: 'Network Error Logging; reports network errors to a specified endpoint', recommended: '{"report_to":"default","max_age":31536000,"include_subdomains":true}' },
+    { header: 'Permissions-Policy', description: 'Controls which browser features the page can use', recommended: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()' },
+    { header: 'Referrer-Policy', description: 'Controls how much referrer information is sent with requests', recommended: 'strict-origin-when-cross-origin' },
+    { header: 'Strict-Transport-Security', description: 'Forces HTTPS connections; prevents protocol downgrade attacks', recommended: 'max-age=31536000; includeSubDomains; preload' },
+    { header: 'X-Content-Type-Options', description: 'Prevents MIME type sniffing', recommended: 'nosniff' },
+    { header: 'X-Frame-Options', description: 'Prevents clickjacking by controlling iframe embedding', recommended: 'DENY' },
+    { header: 'X-Permitted-Cross-Domain-Policies', description: 'Controls Adobe Flash/Acrobat cross-domain policy files', recommended: 'none' },
+    { header: 'Integrity-Policy', description: 'Enforces subresource integrity checks', recommended: 'require-sri-for script style' }
+  ],
+  deprecated: [
+    { header: 'Accept-CH-Lifetime', reason: 'Deprecated; removed from Client Hints specification' },
+    { header: 'Content-DPR', reason: 'Deprecated; removed from Client Hints specification' },
+    { header: 'Digest', reason: 'Deprecated; superseded by Content-Digest and Repr-Digest' },
+    { header: 'Expect-CT', reason: 'Deprecated since June 2021; Certificate Transparency is now enforced by default' },
+    { header: 'Feature-Policy', reason: 'Deprecated; renamed to Permissions-Policy' },
+    { header: 'Large-Allocation', reason: 'Deprecated; non-standard Firefox-only header' },
+    { header: 'P3P', reason: 'Deprecated; Platform for Privacy Preferences is obsolete' },
+    { header: 'Pragma', reason: 'Deprecated; use Cache-Control instead' },
+    { header: 'Public-Key-Pins', reason: 'Deprecated; risk of bricking sites, replaced by Certificate Transparency' },
+    { header: 'Public-Key-Pins-Report-Only', reason: 'Deprecated along with Public-Key-Pins' },
+    { header: 'Report-To', reason: 'Deprecated; superseded by Reporting-Endpoints' },
+    { header: 'Tk', reason: 'Deprecated; Do Not Track header is obsolete' },
+    { header: 'Warning', reason: 'Deprecated in HTTP/1.1; removed in HTTP semantics (RFC 9110)' },
+    { header: 'X-Content-Security-Policy', reason: 'Deprecated; use standard Content-Security-Policy instead' },
+    { header: 'X-Download-Options', reason: 'Deprecated; IE-only header, no longer relevant' },
+    { header: 'X-Pad', reason: 'Deprecated; was a Netscape workaround for browser bugs' },
+    { header: 'X-SourceMap', reason: 'Deprecated; use standard SourceMap header instead' },
+    { header: 'X-UA-Compatible', reason: 'Deprecated; IE compatibility mode is obsolete' },
+    { header: 'X-Webkit-CSP', reason: 'Deprecated; use standard Content-Security-Policy instead' },
+    { header: 'X-XSS-Protection', reason: 'Deprecated; can introduce XSS vulnerabilities in older browsers. Use CSP instead' }
+  ],
+  fingerprint: [
+    { header: 'Server', pattern: 'Apache', technology: 'Apache HTTP Server' },
+    { header: 'Server', pattern: 'nginx', technology: 'nginx' },
+    { header: 'Server', pattern: 'Microsoft-IIS', technology: 'Microsoft IIS' },
+    { header: 'Server', pattern: 'LiteSpeed', technology: 'LiteSpeed Web Server' },
+    { header: 'Server', pattern: 'Caddy', technology: 'Caddy Web Server' },
+    { header: 'Server', pattern: 'Kestrel', technology: 'ASP.NET Core Kestrel' },
+    { header: 'Server', pattern: 'Cowboy', technology: 'Erlang/Cowboy' },
+    { header: 'Server', pattern: 'gunicorn', technology: 'Python Gunicorn' },
+    { header: 'Server', pattern: 'Jetty', technology: 'Eclipse Jetty' },
+    { header: 'Server', pattern: 'Tomcat', technology: 'Apache Tomcat' },
+    { header: 'Server', pattern: 'Express', technology: 'Node.js Express' },
+    { header: 'Server', pattern: 'Werkzeug', technology: 'Python Werkzeug/Flask' },
+    { header: 'Server', pattern: 'Phusion Passenger', technology: 'Phusion Passenger' },
+    { header: 'Server', pattern: 'Tengine', technology: 'Tengine (Alibaba)' },
+    { header: 'Server', pattern: 'openresty', technology: 'OpenResty (nginx + Lua)' },
+    { header: 'Server', pattern: 'AmazonS3', technology: 'Amazon S3' },
+    { header: 'Server', pattern: 'CloudFront', technology: 'Amazon CloudFront' },
+    { header: 'Server', pattern: 'gws', technology: 'Google Web Server' },
+    { header: 'Server', pattern: 'ESF', technology: 'Google ESF' },
+    { header: 'Server', pattern: 'Varnish', technology: 'Varnish Cache' },
+    { header: 'X-Powered-By', pattern: '*', technology: 'Technology stack disclosure' },
+    { header: 'X-AspNet-Version', pattern: '*', technology: 'ASP.NET version disclosure' },
+    { header: 'X-AspNetMvc-Version', pattern: '*', technology: 'ASP.NET MVC version disclosure' },
+    { header: 'X-Drupal-Cache', pattern: '*', technology: 'Drupal CMS' },
+    { header: 'X-Drupal-Dynamic-Cache', pattern: '*', technology: 'Drupal CMS' },
+    { header: 'X-Generator', pattern: '*', technology: 'Site generator disclosure' },
+    { header: 'X-Litespeed-Cache', pattern: '*', technology: 'LiteSpeed Cache' },
+    { header: 'X-Mod-Pagespeed', pattern: '*', technology: 'Google PageSpeed Module' },
+    { header: 'X-Page-Speed', pattern: '*', technology: 'Google PageSpeed' },
+    { header: 'X-Turbo-Charged-By', pattern: '*', technology: 'LiteSpeed Web Server' },
+    { header: 'X-Varnish', pattern: '*', technology: 'Varnish Cache' },
+    { header: 'X-OWA-Version', pattern: '*', technology: 'Microsoft Outlook Web Access' },
+    { header: 'X-SharePointHealthScore', pattern: '*', technology: 'Microsoft SharePoint' },
+    { header: 'SPRequestGuid', pattern: '*', technology: 'Microsoft SharePoint' },
+    { header: 'MicrosoftSharePointTeamServices', pattern: '*', technology: 'Microsoft SharePoint' },
+    { header: 'X-MS-InvokeApp', pattern: '*', technology: 'Microsoft service' },
+    { header: 'X-FEServer', pattern: '*', technology: 'Microsoft Exchange' },
+    { header: 'X-DiagInfo', pattern: '*', technology: 'Microsoft Exchange' },
+    { header: 'X-Cocoon-Version', pattern: '*', technology: 'Apache Cocoon' },
+    { header: 'X-Content-Powered-By', pattern: '*', technology: 'CMS disclosure' },
+    { header: 'X-Envoy-Upstream-Service-Time', pattern: '*', technology: 'Envoy Proxy' },
+    { header: 'X-Runtime', pattern: '*', technology: 'Ruby/Rails runtime disclosure' },
+    { header: 'X-Rack-Cache', pattern: '*', technology: 'Ruby Rack Cache' },
+    { header: 'X-Request-Id', pattern: '*', technology: 'Application framework disclosure' },
+    { header: 'X-Shopify-Stage', pattern: '*', technology: 'Shopify' },
+    { header: 'X-ShopId', pattern: '*', technology: 'Shopify' },
+    { header: 'X-StorageUsed', pattern: '*', technology: 'Shopify' },
+    { header: 'CF-RAY', pattern: '*', technology: 'Cloudflare CDN' },
+    { header: 'CF-Cache-Status', pattern: '*', technology: 'Cloudflare CDN' },
+    { header: 'CF-Request-ID', pattern: '*', technology: 'Cloudflare CDN' },
+    { header: 'X-Sucuri-ID', pattern: '*', technology: 'Sucuri WAF' },
+    { header: 'X-Sucuri-Cache', pattern: '*', technology: 'Sucuri CDN' },
+    { header: 'X-Iinfo', pattern: '*', technology: 'Incapsula/Imperva WAF' },
+    { header: 'X-CDN', pattern: '*', technology: 'CDN disclosure' },
+    { header: 'X-CDN-Pop', pattern: '*', technology: 'CDN Point of Presence disclosure' },
+    { header: 'X-Served-By', pattern: '*', technology: 'Server/CDN node disclosure' },
+    { header: 'X-Cache', pattern: '*', technology: 'Cache layer disclosure' },
+    { header: 'X-Cache-Hits', pattern: '*', technology: 'Cache layer disclosure' },
+    { header: 'X-Timer', pattern: '*', technology: 'Fastly CDN' },
+    { header: 'Fastly-Debug-Digest', pattern: '*', technology: 'Fastly CDN' },
+    { header: 'X-Fastly-Request-ID', pattern: '*', technology: 'Fastly CDN' },
+    { header: 'X-Akamai-Transformed', pattern: '*', technology: 'Akamai CDN' },
+    { header: 'X-Azure-Ref', pattern: '*', technology: 'Microsoft Azure' },
+    { header: 'X-MSEdge-Ref', pattern: '*', technology: 'Microsoft Azure CDN' },
+    { header: 'X-Amz-Cf-Id', pattern: '*', technology: 'Amazon CloudFront' },
+    { header: 'X-Amz-Cf-Pop', pattern: '*', technology: 'Amazon CloudFront' },
+    { header: 'X-Amz-Request-Id', pattern: '*', technology: 'Amazon Web Services' },
+    { header: 'X-Amz-Id-2', pattern: '*', technology: 'Amazon S3' },
+    { header: 'X-Served-By-Varnish', pattern: '*', technology: 'Varnish Cache' },
+    { header: 'Via', pattern: 'varnish', technology: 'Varnish Cache' },
+    { header: 'Via', pattern: 'CloudFront', technology: 'Amazon CloudFront' },
+    { header: 'Via', pattern: 'vegur', technology: 'Heroku' },
+    { header: 'X-Heroku-Queue-Depth', pattern: '*', technology: 'Heroku' },
+    { header: 'X-Heroku-Queue-Wait-Time', pattern: '*', technology: 'Heroku' },
+    { header: 'X-Vercel-Cache', pattern: '*', technology: 'Vercel' },
+    { header: 'X-Vercel-Id', pattern: '*', technology: 'Vercel' },
+    { header: 'X-Netlify-Request-Id', pattern: '*', technology: 'Netlify' },
+    { header: 'X-NF-Request-Id', pattern: '*', technology: 'Netlify' },
+    { header: 'X-GitHub-Request-Id', pattern: '*', technology: 'GitHub' },
+    { header: 'X-Served-By', pattern: 'cache-', technology: 'Fastly CDN' },
+    { header: 'X-WordPress-Cache', pattern: '*', technology: 'WordPress' },
+    { header: 'X-Redirect-By', pattern: 'WordPress', technology: 'WordPress' },
+    { header: 'X-Pingback', pattern: '*', technology: 'WordPress' },
+    { header: 'X-Wix-Request-Id', pattern: '*', technology: 'Wix' },
+    { header: 'X-Cloud-Trace-Context', pattern: '*', technology: 'Google Cloud Platform' },
+    { header: 'X-GCP-Route', pattern: '*', technology: 'Google Cloud Platform' },
+    { header: 'X-Appengine-Resource-Usage', pattern: '*', technology: 'Google App Engine' },
+    { header: 'X-Cloud-Functions', pattern: '*', technology: 'Google Cloud Functions' },
+    { header: 'X-Firebase-Auth', pattern: '*', technology: 'Google Firebase' },
+    { header: 'X-Debug-Token', pattern: '*', technology: 'Symfony PHP framework' },
+    { header: 'X-Symfony-Cache', pattern: '*', technology: 'Symfony PHP framework' },
+    { header: 'X-Laravel-Cache', pattern: '*', technology: 'Laravel PHP framework' },
+    { header: 'X-Django-Cache', pattern: '*', technology: 'Django Python framework' },
+    { header: 'X-Craft-CSRF', pattern: '*', technology: 'Craft CMS' },
+    { header: 'X-Magento-Cache-Control', pattern: '*', technology: 'Magento eCommerce' },
+    { header: 'X-Magento-Cache-Debug', pattern: '*', technology: 'Magento eCommerce' },
+    { header: 'X-Joomla-Token', pattern: '*', technology: 'Joomla CMS' },
+    { header: 'Liferay-Portal', pattern: '*', technology: 'Liferay Portal' },
+    { header: 'X-Confluence-Request-Time', pattern: '*', technology: 'Atlassian Confluence' },
+    { header: 'X-JIRA-Request-Time', pattern: '*', technology: 'Atlassian JIRA' },
+    { header: 'X-Umbraco-Version', pattern: '*', technology: 'Umbraco CMS' },
+    { header: 'X-Kentico-Version', pattern: '*', technology: 'Kentico CMS' },
+    { header: 'X-EPiServer-PageId', pattern: '*', technology: 'Episerver CMS' },
+    { header: 'X-Sitecore-Cluster', pattern: '*', technology: 'Sitecore CMS' }
+  ],
+  security: [
+    'accept-ch', 'accept-patch', 'accept-ranges', 'access-control-allow-credentials',
+    'access-control-allow-headers', 'access-control-allow-methods', 'access-control-allow-origin',
+    'access-control-expose-headers', 'access-control-max-age', 'cache-control',
+    'clear-site-data', 'content-disposition', 'content-security-policy',
+    'content-security-policy-report-only', 'content-type', 'cross-origin-embedder-policy',
+    'cross-origin-opener-policy', 'cross-origin-resource-policy', 'document-policy',
+    'expect-ct', 'feature-policy', 'integrity-policy', 'nel',
+    'no-vary-search', 'origin-agent-cluster', 'permissions-policy',
+    'permissions-policy-report-only', 'pragma', 'public-key-pins',
+    'public-key-pins-report-only', 'referrer-policy', 'report-to',
+    'reporting-endpoints', 'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site',
+    'sec-fetch-user', 'sec-websocket-accept', 'server-timing',
+    'set-cookie', 'strict-transport-security', 'supports-loading-mode',
+    'timing-allow-origin', 'tk', 'vary', 'warning',
+    'www-authenticate', 'x-content-security-policy', 'x-content-type-options',
+    'x-dns-prefetch-control', 'x-download-options', 'x-frame-options',
+    'x-pad', 'x-permitted-cross-domain-policies', 'x-ua-compatible',
+    'x-webkit-csp', 'x-xss-protection'
+  ],
+  valueChecks: {
+    'strict-transport-security': {
+      checks: [
+        {
+          test: function(value) {
+            var match = value.match(/max-age\s*=\s*(\d+)/i);
+            return match && parseInt(match[1]) >= 31536000;
+          },
+          issue: 'max-age should be at least 31536000 (1 year)',
+          recommended: 'max-age=31536000; includeSubDomains'
+        },
+        {
+          test: function(value) {
+            return /includeSubDomains/i.test(value);
+          },
+          issue: 'Should include includeSubDomains directive',
+          recommended: 'max-age=31536000; includeSubDomains'
+        }
+      ]
+    },
+    'referrer-policy': {
+      checks: [
+        {
+          test: function(value) {
+            var insecure = ['unsafe-url', 'no-referrer-when-downgrade', ''];
+            return insecure.indexOf(value.toLowerCase().trim()) === -1;
+          },
+          issue: 'Insecure referrer policy; may leak full URL to external sites',
+          recommended: 'strict-origin-when-cross-origin'
+        }
+      ]
+    },
+    'x-frame-options': {
+      checks: [
+        {
+          test: function(value) {
+            var valid = ['deny', 'sameorigin'];
+            return valid.indexOf(value.toLowerCase().trim()) >= 0;
+          },
+          issue: 'Invalid or deprecated value; ALLOW-FROM is deprecated',
+          recommended: 'DENY'
+        }
+      ]
+    },
+    'x-content-type-options': {
+      checks: [
+        {
+          test: function(value) {
+            return value.toLowerCase().trim() === 'nosniff';
+          },
+          issue: 'Must be set to "nosniff"',
+          recommended: 'nosniff'
+        }
+      ]
+    },
+    'permissions-policy': {
+      checks: [
+        {
+          test: function(value) {
+            var deprecated = ['speaker', 'vibrate', 'vr'];
+            var found = [];
+            deprecated.forEach(function(feat) {
+              if (value.toLowerCase().indexOf(feat) >= 0) found.push(feat);
+            });
+            return found.length === 0;
+          },
+          issue: 'Contains deprecated feature directives',
+          recommended: 'Remove deprecated features (speaker, vibrate, vr)'
+        },
+        {
+          test: function(value) {
+            return value.indexOf('=*') === -1;
+          },
+          issue: 'Overly permissive; using wildcard (*) grants access to all origins',
+          recommended: 'Restrict features to specific origins or self'
+        }
+      ]
+    }
+  }
+};
+
+/* ================================================================
    UTILITY FUNCTIONS
    ================================================================ */
 

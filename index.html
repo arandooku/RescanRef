@@ -1364,6 +1364,117 @@ mark {
   font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
 }
 .audit-entry-date { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Audit comparison view */
+.audit-comp-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.audit-comp-card {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+.audit-comp-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.audit-comp-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.audit-comp-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.audit-comp-arrow {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.audit-comp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.audit-comp-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+.audit-comp-badge.fixed { background: rgba(166, 226, 46, 0.15); color: var(--accent-green); }
+.audit-comp-badge.new-issue { background: rgba(249, 38, 114, 0.15); color: var(--accent-pink); }
+.audit-comp-badge.same { background: rgba(117, 113, 94, 0.15); color: var(--text-muted); }
+.audit-comp-badge.improved { background: rgba(166, 226, 46, 0.1); color: var(--accent-green); border: 1px solid rgba(166, 226, 46, 0.3); }
+.audit-comp-badge.regressed { background: rgba(249, 38, 114, 0.1); color: var(--accent-pink); border: 1px solid rgba(249, 38, 114, 0.3); }
+.audit-comp-list { margin-top: 4px; }
+.audit-comp-group-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  padding: 10px 0 6px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.audit-comp-group-label.fixed { color: var(--accent-green); }
+.audit-comp-group-label.new { color: var(--accent-pink); }
+.audit-comp-group-label.same { color: var(--text-muted); }
+.audit-comp-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.82rem;
+  transition: background 0.15s;
+}
+.audit-comp-item:last-child { border-bottom: none; }
+.audit-comp-item:hover { background: rgba(255,255,255,0.02); }
+.audit-comp-item.fixed { background: rgba(166, 226, 46, 0.04); }
+.audit-comp-item.new { background: rgba(249, 38, 114, 0.04); }
+.audit-comp-icon {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  width: 18px;
+  text-align: center;
+}
+.audit-comp-item.fixed .audit-comp-icon { color: var(--accent-green); }
+.audit-comp-item.new .audit-comp-icon { color: var(--accent-pink); }
+.audit-comp-item.same .audit-comp-icon { color: var(--text-muted); }
+.audit-comp-item-header {
+  font-weight: 600;
+  color: var(--accent-cyan);
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.8rem;
+  min-width: 180px;
+}
+.audit-comp-item-cat {
+  font-size: 0.68rem;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: rgba(102, 217, 239, 0.1);
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+.audit-comp-item-detail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex: 1;
+  text-align: right;
+}
 </style>
 </head>
 <body>
@@ -5655,97 +5766,102 @@ function renderAuditComparisonView() {
     var tmp = older; older = newer; newer = tmp;
   }
 
-  var html = '<div class="comparison-back">&larr; Back to Audit</div>';
-  html += '<div class="comparison-header">' +
-    '<div class="comparison-scan-info">Older: <strong>' + escapeHtml(older.title) + '</strong> (' + formatDate(older.timestamp) + ')</div>' +
-    '<div class="comparison-scan-info">Newer: <strong>' + escapeHtml(newer.title) + '</strong> (' + formatDate(newer.timestamp) + ')</div>' +
-    '</div>';
+  // Collect all changes across categories into a flat list
+  var changes = [];
+  var catDefs = [
+    { key: 'missing', label: 'Missing', keyFn: function(i) { return i.header.toLowerCase(); }, descFn: function(i) { return i.description || ''; } },
+    { key: 'deprecated', label: 'Deprecated', keyFn: function(i) { return i.header.toLowerCase(); }, descFn: function(i) { return i.reason || ''; } },
+    { key: 'insecure', label: 'Insecure', keyFn: function(i) { return i.header.toLowerCase() + ':' + i.issue; }, descFn: function(i) { return i.issue || ''; } },
+    { key: 'fingerprint', label: 'Fingerprint', keyFn: function(i) { return i.header.toLowerCase(); }, descFn: function(i) { return i.technology || ''; } }
+  ];
 
-  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Missing Headers</h4>';
-  html += compareAuditCategory(
-    older.findings.missing || [], newer.findings.missing || [],
-    function(item) { return item.header.toLowerCase(); },
-    'header'
-  );
-
-  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Deprecated Headers</h4>';
-  html += compareAuditCategory(
-    older.findings.deprecated || [], newer.findings.deprecated || [],
-    function(item) { return item.header.toLowerCase(); },
-    'header'
-  );
-
-  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Insecure Values</h4>';
-  html += compareAuditCategory(
-    older.findings.insecure || [], newer.findings.insecure || [],
-    function(item) { return item.header.toLowerCase() + ':' + item.issue; },
-    'header'
-  );
-
-  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Fingerprint Headers</h4>';
-  html += compareAuditCategory(
-    older.findings.fingerprint || [], newer.findings.fingerprint || [],
-    function(item) { return item.header.toLowerCase(); },
-    'header'
-  );
-
-  var fixed = 0;
-  var regressed = 0;
-  var categories = ['missing', 'deprecated', 'insecure', 'fingerprint'];
-  categories.forEach(function(cat) {
-    var oldCount = older.counts[cat] || 0;
-    var newCount = newer.counts[cat] || 0;
-    if (newCount < oldCount) fixed += (oldCount - newCount);
-    if (newCount > oldCount) regressed += (newCount - oldCount);
+  catDefs.forEach(function(cat) {
+    var oldItems = older.findings[cat.key] || [];
+    var newItems = newer.findings[cat.key] || [];
+    var oldMap = {};
+    var newMap = {};
+    oldItems.forEach(function(i) { oldMap[cat.keyFn(i)] = i; });
+    newItems.forEach(function(i) { newMap[cat.keyFn(i)] = i; });
+    var allKeys = {};
+    Object.keys(oldMap).forEach(function(k) { allKeys[k] = true; });
+    Object.keys(newMap).forEach(function(k) { allKeys[k] = true; });
+    Object.keys(allKeys).forEach(function(k) {
+      var inOld = !!oldMap[k];
+      var inNew = !!newMap[k];
+      var item = newMap[k] || oldMap[k];
+      var status;
+      if (inOld && !inNew) status = 'fixed';
+      else if (!inOld && inNew) status = 'new';
+      else status = 'same';
+      changes.push({ header: item.header, category: cat.label, detail: cat.descFn(item), status: status });
+    });
   });
 
-  html += '<div class="comparison-summary" style="margin-top:16px;">' +
-    (fixed > 0 ? '<span style="color:var(--accent-green);">' + fixed + ' fixed</span> &middot; ' : '') +
-    (regressed > 0 ? '<span style="color:var(--accent-pink);">' + regressed + ' regressed</span> &middot; ' : '') +
-    'Older: ' + (older.counts.missing + older.counts.deprecated + older.counts.insecure + older.counts.fingerprint) + ' issues &rarr; ' +
-    'Newer: ' + (newer.counts.missing + newer.counts.deprecated + newer.counts.insecure + newer.counts.fingerprint) + ' issues' +
-    '</div>';
+  // Sort: fixed first, then new, then same
+  var order = { fixed: 0, 'new': 1, same: 2 };
+  changes.sort(function(a, b) { return (order[a.status] || 2) - (order[b.status] || 2); });
 
-  return html;
-}
+  var fixedCount = changes.filter(function(c) { return c.status === 'fixed'; }).length;
+  var newCount = changes.filter(function(c) { return c.status === 'new'; }).length;
+  var sameCount = changes.filter(function(c) { return c.status === 'same'; }).length;
+  var olderTotal = older.counts.missing + older.counts.deprecated + older.counts.insecure + older.counts.fingerprint;
+  var newerTotal = newer.counts.missing + newer.counts.deprecated + newer.counts.insecure + newer.counts.fingerprint;
 
-function compareAuditCategory(olderItems, newerItems, keyFn, labelProp) {
-  var olderKeys = {};
-  var newerKeys = {};
-  olderItems.forEach(function(item) { olderKeys[keyFn(item)] = item; });
-  newerItems.forEach(function(item) { newerKeys[keyFn(item)] = item; });
+  var html = '<div class="comparison-back">&larr; Back to Audit</div>';
 
-  var allKeys = {};
-  Object.keys(olderKeys).forEach(function(k) { allKeys[k] = true; });
-  Object.keys(newerKeys).forEach(function(k) { allKeys[k] = true; });
+  // Header cards
+  html += '<div class="audit-comp-header">' +
+    '<div class="audit-comp-card">' +
+      '<div class="audit-comp-label">OLDER</div>' +
+      '<div class="audit-comp-title">' + escapeHtml(older.title) + '</div>' +
+      '<div class="audit-comp-meta">' + formatDate(older.timestamp) + ' &middot; ' + olderTotal + ' issues</div>' +
+    '</div>' +
+    '<div class="audit-comp-arrow">&rarr;</div>' +
+    '<div class="audit-comp-card">' +
+      '<div class="audit-comp-label">NEWER</div>' +
+      '<div class="audit-comp-title">' + escapeHtml(newer.title) + '</div>' +
+      '<div class="audit-comp-meta">' + formatDate(newer.timestamp) + ' &middot; ' + newerTotal + ' issues</div>' +
+    '</div>' +
+  '</div>';
 
-  if (Object.keys(allKeys).length === 0) {
-    return '<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px;">None in either audit</div>';
+  // Summary badges
+  html += '<div class="audit-comp-summary">';
+  if (fixedCount > 0) html += '<span class="audit-comp-badge fixed">' + fixedCount + ' fixed</span>';
+  if (newCount > 0) html += '<span class="audit-comp-badge new-issue">' + newCount + ' new</span>';
+  if (sameCount > 0) html += '<span class="audit-comp-badge same">' + sameCount + ' unchanged</span>';
+  if (newerTotal < olderTotal) {
+    html += '<span class="audit-comp-badge improved">Improved (' + olderTotal + ' &rarr; ' + newerTotal + ')</span>';
+  } else if (newerTotal > olderTotal) {
+    html += '<span class="audit-comp-badge regressed">Regressed (' + olderTotal + ' &rarr; ' + newerTotal + ')</span>';
+  } else {
+    html += '<span class="audit-comp-badge same">No change (' + newerTotal + ' issues)</span>';
+  }
+  html += '</div>';
+
+  // Changes list
+  if (changes.length === 0) {
+    html += '<div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:30px 0;">No findings in either audit to compare.</div>';
+  } else {
+    html += '<div class="audit-comp-list">';
+    var lastStatus = '';
+    changes.forEach(function(c) {
+      if (c.status !== lastStatus) {
+        var groupLabel = c.status === 'fixed' ? 'Fixed' : c.status === 'new' ? 'New Issues' : 'Unchanged';
+        html += '<div class="audit-comp-group-label ' + c.status + '">' + groupLabel + '</div>';
+        lastStatus = c.status;
+      }
+      var icon = c.status === 'fixed' ? '&#10003;' : c.status === 'new' ? '&#10007;' : '&#8212;';
+      html += '<div class="audit-comp-item ' + c.status + '">' +
+        '<span class="audit-comp-icon">' + icon + '</span>' +
+        '<span class="audit-comp-item-header">' + escapeHtml(c.header) + '</span>' +
+        '<span class="audit-comp-item-cat">' + escapeHtml(c.category) + '</span>' +
+        (c.detail ? '<span class="audit-comp-item-detail">' + escapeHtml(c.detail) + '</span>' : '') +
+      '</div>';
+    });
+    html += '</div>';
   }
 
-  var rows = '';
-  Object.keys(allKeys).forEach(function(key) {
-    var inOld = !!olderKeys[key];
-    var inNew = !!newerKeys[key];
-    var cls, status;
-    if (inOld && !inNew) {
-      cls = 'diff-fixed';
-      status = 'Fixed';
-    } else if (!inOld && inNew) {
-      cls = 'diff-new-issue';
-      status = 'New';
-    } else {
-      cls = 'diff-same';
-      status = 'Same';
-    }
-    var item = newerKeys[key] || olderKeys[key];
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(item[labelProp]) + '</td>' +
-      '<td>' + (inOld ? 'Yes' : '-') + '</td>' +
-      '<td>' + (inNew ? 'Yes' : '-') + '</td>' +
-      '<td>' + status + '</td></tr>';
-  });
-
-  return '<table class="diff-table"><thead><tr><th>Item</th><th>Older</th><th>Newer</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  return html;
 }
 
 function init() {

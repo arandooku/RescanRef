@@ -5288,12 +5288,291 @@ document.getElementById('themeToggle').addEventListener('click', toggleTheme);
    HEADER AUDIT: UI RENDERER
    ================================================================ */
 
+var currentAuditResult = null;
+
 function renderAuditSection(container) {
-  container.innerHTML = '<div class="audit-container">' +
-    '<div class="section-header"><h2>Header Audit</h2>' +
-    '<p>Analyze HTTP response headers for security issues</p></div>' +
-    renderEmptyState('Paste headers below to analyze', 'Supports curl -I output, raw headers, and nmap http-security-headers') +
+  var html = '<div class="audit-container">';
+  html += '<div class="section-header"><h2>Header Audit</h2>' +
+    '<p>Analyze HTTP response headers for security issues</p></div>';
+
+  if (auditComparing && auditSelected.length === 2) {
+    html += renderAuditComparisonView();
+  } else {
+    html += '<div class="audit-input-zone">';
+    html += '<div class="audit-drop-overlay" id="auditDropZone">' +
+      'Drop a .txt file with headers here, or click to browse' +
+      '<input type="file" id="auditFileInput" accept=".txt,.text,.json">' +
+      '</div>';
+    html += '<textarea class="audit-textarea" id="auditInput" placeholder="Paste headers here...\n\nSupported formats:\n  curl -I https://example.com\n  HTTP/2 200\n  Strict-Transport-Security: max-age=31536000\n  ...\n\n  Raw Header: value lines\n  nmap http-security-headers script output">' +
+      escapeHtml(currentAuditResult ? currentAuditResult.rawInput : '') + '</textarea>';
+    html += '<div class="audit-actions">';
+    html += '<button class="audit-btn-analyze" id="auditAnalyzeBtn">Analyze</button>';
+    if (currentAuditResult) {
+      html += '<button class="audit-btn-clear" id="auditClearBtn">Clear</button>';
+      html += '<button class="audit-btn-save" id="auditSaveBtn">Save Audit</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    if (currentAuditResult) {
+      html += renderAuditReport(currentAuditResult);
+    }
+
+    if (auditEntries.length > 0) {
+      html += renderAuditTimeline();
+    }
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  attachAuditHandlers(container);
+}
+
+function renderAuditReport(result) {
+  var f = result.findings;
+  var c = result.counts;
+  var html = '<div class="audit-report">';
+
+  var summaryParts = [];
+  if (c.missing > 0) summaryParts.push(c.missing + ' missing');
+  if (c.deprecated > 0) summaryParts.push(c.deprecated + ' deprecated');
+  if (c.insecure > 0) summaryParts.push(c.insecure + ' insecure');
+  if (c.fingerprint > 0) summaryParts.push(c.fingerprint + ' fingerprint');
+  if (c.empty > 0) summaryParts.push(c.empty + ' empty');
+  summaryParts.push(c.enabled + ' enabled');
+
+  html += '<div style="margin-bottom:14px;font-size:0.82rem;color:var(--text-secondary);">' +
+    (result.meta && result.meta.target ? '<strong style="color:var(--accent-cyan);">' + escapeHtml(result.meta.target) + '</strong> &mdash; ' : '') +
+    summaryParts.join(' &middot; ') + '</div>';
+
+  html += renderAuditFindingSection('Missing Security Headers', f.missing, c.missing, 'red', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-detail">' + escapeHtml(item.description) + '</div>' +
+      '<div class="audit-finding-recommended">Recommended: ' +
+      '<div class="code-block-wrapper"><pre class="code-block">' + escapeHtml(item.header) + ': ' + escapeHtml(item.recommended) + '</pre>' +
+      '<button class="copy-btn" data-copy="' + escapeHtml(item.header + ': ' + item.recommended) + '">Copy</button></div></div></div>';
+  });
+
+  html += renderAuditFindingSection('Deprecated Headers', f.deprecated, c.deprecated, 'yellow', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-value">Current: ' + escapeHtml(item.value) + '</div>' +
+      '<div class="audit-finding-detail">' + escapeHtml(item.reason) + '</div></div>';
+  });
+
+  html += renderAuditFindingSection('Insecure Values', f.insecure, c.insecure, 'orange', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-value">Current: ' + escapeHtml(item.value) + '</div>' +
+      '<div class="audit-finding-detail">' + escapeHtml(item.issue) + '</div>' +
+      '<div class="audit-finding-recommended">Recommended: ' +
+      '<div class="code-block-wrapper"><pre class="code-block">' + escapeHtml(item.header) + ': ' + escapeHtml(item.recommended) + '</pre>' +
+      '<button class="copy-btn" data-copy="' + escapeHtml(item.header + ': ' + item.recommended) + '">Copy</button></div></div></div>';
+  });
+
+  html += renderAuditFindingSection('Fingerprint Headers', f.fingerprint, c.fingerprint, 'yellow', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-value">' + escapeHtml(item.value) + '</div>' +
+      '<div class="audit-finding-detail">Leaks: ' + escapeHtml(item.technology) + '</div></div>';
+  });
+
+  html += renderAuditFindingSection('Empty Headers', f.empty, c.empty, 'gray', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-detail">Header present but value is empty</div></div>';
+  });
+
+  html += renderAuditFindingSection('Enabled Security Headers', f.enabled, c.enabled, 'green', function(item) {
+    return '<div class="audit-finding">' +
+      '<div class="audit-finding-header">' + escapeHtml(item.header) + '</div>' +
+      '<div class="audit-finding-value">' + escapeHtml(item.value) + '</div></div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function renderAuditFindingSection(title, items, count, colorClass, renderItem) {
+  var expanded = count > 0 && colorClass !== 'green';
+  var html = '<div class="audit-section' + (expanded ? ' expanded' : '') + '">';
+  html += '<div class="audit-section-header">' +
+    '<span class="audit-section-arrow">&#9654;</span>' +
+    '<span class="audit-section-title">' + escapeHtml(title) + '</span>' +
+    '<span class="audit-section-count ' + colorClass + '">' + count + '</span>' +
     '</div>';
+  html += '<div class="audit-section-body">';
+  items.forEach(function(item) {
+    html += renderItem(item);
+  });
+  if (count === 0) {
+    html += '<div class="audit-finding"><div class="audit-finding-detail" style="color:var(--accent-green);">None found</div></div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderAuditTimeline() {
+  var html = '<div class="audit-timeline">';
+  html += '<h3 style="color:var(--accent-cyan);font-size:0.9rem;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--card-border);">Saved Audits</h3>';
+
+  var groups = {};
+  auditEntries.forEach(function(e) {
+    var target = e.target || 'Unknown';
+    if (!groups[target]) groups[target] = [];
+    groups[target].push(e);
+  });
+
+  Object.keys(groups).forEach(function(target) {
+    var audits = groups[target];
+    audits.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+    html += '<div class="target-group"><div class="target-group-header">' + escapeHtml(target) + '</div>';
+    audits.forEach(function(audit) {
+      var selected = auditSelected.indexOf(audit.id) >= 0;
+      var summary = audit.counts.missing + 'M ' + audit.counts.deprecated + 'D ' +
+        audit.counts.insecure + 'I ' + audit.counts.fingerprint + 'F';
+      html += '<div class="audit-entry' + (selected ? ' selected' : '') + '" data-id="' + escapeHtml(audit.id) + '">' +
+        '<div class="audit-entry-select"></div>' +
+        '<span class="audit-entry-title">' + escapeHtml(audit.title) + '</span>' +
+        '<span class="audit-entry-summary">' + summary + '</span>' +
+        '<span class="audit-entry-date">' + formatDate(audit.timestamp) + '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '<button class="audit-btn-compare' + (auditSelected.length === 2 ? ' visible' : '') +
+    '" id="auditCompareBtn">Compare Selected (' + auditSelected.length + '/2)</button>';
+
+  html += '</div>';
+  return html;
+}
+
+function attachAuditHandlers(container) {
+  var analyzeBtn = container.querySelector('#auditAnalyzeBtn');
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', function() {
+      var raw = container.querySelector('#auditInput').value.trim();
+      if (!raw) return;
+      var normalized = normalizeHeaderInput(raw);
+      var result = analyzeHeaders(normalized);
+      currentAuditResult = {
+        rawInput: raw,
+        inputType: normalized.meta.source,
+        meta: normalized.meta,
+        findings: result.findings,
+        counts: result.counts
+      };
+      renderAuditSection(container);
+    });
+  }
+
+  var clearBtn = container.querySelector('#auditClearBtn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      currentAuditResult = null;
+      renderAuditSection(container);
+    });
+  }
+
+  var saveBtn = container.querySelector('#auditSaveBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      if (!currentAuditResult) return;
+      document.getElementById('auditModalTitle').value = '';
+      document.getElementById('auditModalTarget').value = currentAuditResult.meta.target || '';
+      document.getElementById('auditSaveModal').classList.add('open');
+    });
+  }
+
+  var dropZone = container.querySelector('#auditDropZone');
+  var fileInput = container.querySelector('#auditFileInput');
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleAuditFileDrop(e.dataTransfer.files, container);
+    });
+    fileInput.addEventListener('change', function() { handleAuditFileDrop(fileInput.files, container); });
+  }
+
+  var sectionHeaders = container.querySelectorAll('.audit-section-header');
+  for (var i = 0; i < sectionHeaders.length; i++) {
+    (function(header) {
+      header.addEventListener('click', function() {
+        header.parentElement.classList.toggle('expanded');
+      });
+    })(sectionHeaders[i]);
+  }
+
+  var entries = container.querySelectorAll('.audit-entry');
+  for (var j = 0; j < entries.length; j++) {
+    (function(entry) {
+      entry.addEventListener('click', function() {
+        var id = entry.getAttribute('data-id');
+        var idx = auditSelected.indexOf(id);
+        if (idx >= 0) {
+          auditSelected.splice(idx, 1);
+        } else if (auditSelected.length < 2) {
+          auditSelected.push(id);
+        } else {
+          auditSelected.shift();
+          auditSelected.push(id);
+        }
+        renderAuditSection(container);
+      });
+    })(entries[j]);
+  }
+
+  var compareBtn = container.querySelector('#auditCompareBtn');
+  if (compareBtn) {
+    compareBtn.addEventListener('click', function() {
+      if (auditSelected.length === 2) {
+        auditComparing = true;
+        renderAuditSection(container);
+      }
+    });
+  }
+
+  var compBack = container.querySelector('.comparison-back');
+  if (compBack) {
+    compBack.addEventListener('click', function() {
+      auditComparing = false;
+      renderAuditSection(container);
+    });
+  }
+
+  attachCopyHandlers(container);
+}
+
+function handleAuditFileDrop(files, container) {
+  var fileArray = Array.prototype.slice.call(files);
+  fileArray.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var content = e.target.result;
+      try {
+        var data = JSON.parse(content);
+        if (data.auditEntries && Array.isArray(data.auditEntries)) {
+          data.auditEntries.forEach(function(entry) {
+            var exists = auditEntries.some(function(ex) { return ex.id === entry.id; });
+            if (!exists) auditEntries.push(entry);
+          });
+          renderAuditSection(container);
+          return;
+        }
+      } catch(err) { /* not JSON, treat as header text */ }
+      var textarea = container.querySelector('#auditInput');
+      if (textarea) {
+        textarea.value = content;
+      }
+    };
+    reader.readAsText(file);
+  });
 }
 
 function init() {

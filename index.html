@@ -4634,6 +4634,105 @@ function normalizeHeaderInput(raw) {
 }
 
 /* ================================================================
+   HEADER AUDIT: ANALYSIS ENGINE
+   ================================================================ */
+
+function analyzeHeaders(normalized) {
+  var headers = normalized.headers;
+  var headerKeysLower = Object.keys(headers);
+
+  var findings = {
+    enabled: [],
+    missing: [],
+    deprecated: [],
+    fingerprint: [],
+    insecure: [],
+    empty: []
+  };
+
+  // 1. Enabled security headers
+  HEADER_RULES.security.forEach(function(secHeader) {
+    if (headers[secHeader]) {
+      findings.enabled.push({ header: headers[secHeader].original || secHeader, value: headers[secHeader].value });
+    }
+  });
+
+  // 2. Missing critical headers
+  var hasFrameAncestors = false;
+  if (headers['content-security-policy']) {
+    hasFrameAncestors = /frame-ancestors/i.test(headers['content-security-policy'].value);
+  }
+
+  HEADER_RULES.missing.forEach(function(rule) {
+    var key = rule.header.toLowerCase();
+    if (!headers[key]) {
+      if (key === 'x-frame-options' && hasFrameAncestors) return;
+      findings.missing.push({ header: rule.header, description: rule.description, recommended: rule.recommended });
+    }
+  });
+
+  // 3. Fingerprint headers
+  HEADER_RULES.fingerprint.forEach(function(rule) {
+    var key = rule.header.toLowerCase();
+    if (headers[key]) {
+      var value = headers[key].value;
+      if (rule.pattern === '*' || value.toLowerCase().indexOf(rule.pattern.toLowerCase()) >= 0) {
+        var alreadyFound = findings.fingerprint.some(function(f) {
+          return f.header.toLowerCase() === key && f.technology === rule.technology;
+        });
+        if (!alreadyFound) {
+          findings.fingerprint.push({ header: headers[key].original || rule.header, value: value, technology: rule.technology });
+        }
+      }
+    }
+  });
+
+  // 4. Deprecated headers
+  HEADER_RULES.deprecated.forEach(function(rule) {
+    var key = rule.header.toLowerCase();
+    if (headers[key]) {
+      findings.deprecated.push({ header: headers[key].original || rule.header, value: headers[key].value, reason: rule.reason });
+    }
+  });
+
+  // 5. Insecure values
+  Object.keys(HEADER_RULES.valueChecks).forEach(function(headerKey) {
+    if (headers[headerKey]) {
+      var value = headers[headerKey].value;
+      var rules = HEADER_RULES.valueChecks[headerKey];
+      (rules.checks || []).forEach(function(check) {
+        if (!check.test(value)) {
+          findings.insecure.push({
+            header: headers[headerKey].original || headerKey,
+            value: value,
+            issue: check.issue,
+            recommended: check.recommended
+          });
+        }
+      });
+    }
+  });
+
+  // 6. Empty headers
+  headerKeysLower.forEach(function(key) {
+    if (!headers[key].value || !headers[key].value.trim()) {
+      findings.empty.push({ header: headers[key].original || key });
+    }
+  });
+
+  var counts = {
+    enabled: findings.enabled.length,
+    missing: findings.missing.length,
+    deprecated: findings.deprecated.length,
+    fingerprint: findings.fingerprint.length,
+    insecure: findings.insecure.length,
+    empty: findings.empty.length
+  };
+
+  return { findings: findings, counts: counts };
+}
+
+/* ================================================================
    COMPARISON ENGINE
    ================================================================ */
 

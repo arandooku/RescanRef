@@ -5086,6 +5086,58 @@ document.getElementById('modalSave').addEventListener('click', function() {
 });
 
 /* ================================================================
+   AUDIT SAVE MODAL
+   ================================================================ */
+
+document.getElementById('auditModalCancel').addEventListener('click', function() {
+  document.getElementById('auditSaveModal').classList.remove('open');
+});
+
+document.getElementById('auditModalSave').addEventListener('click', function() {
+  var title = document.getElementById('auditModalTitle').value.trim();
+  if (!title) {
+    document.getElementById('auditModalTitle').style.borderColor = 'var(--accent-pink)';
+    return;
+  }
+
+  var target = document.getElementById('auditModalTarget').value.trim();
+  var now = new Date().toISOString();
+
+  var entry = {
+    id: generateId(),
+    title: title,
+    target: target || (currentAuditResult && currentAuditResult.meta ? currentAuditResult.meta.target : '') || 'unknown',
+    timestamp: now,
+    rawInput: currentAuditResult ? currentAuditResult.rawInput : '',
+    inputType: currentAuditResult ? currentAuditResult.inputType : '',
+    findings: currentAuditResult ? currentAuditResult.findings : {},
+    counts: currentAuditResult ? currentAuditResult.counts : {}
+  };
+
+  auditEntries.push(entry);
+
+  // Download JSON file
+  var jsonData = { version: 1, auditEntries: [entry] };
+  var blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var dateStr = now.slice(0, 10);
+  var fileSlug = slugify('audit-' + (target || 'scan') + '-' + title);
+  a.href = url;
+  a.download = dateStr + '_' + fileSlug + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  document.getElementById('auditSaveModal').classList.remove('open');
+
+  if (activeSection && activeSection.type === 'audit') {
+    renderAuditSection(document.getElementById('mainContent'));
+  }
+});
+
+/* ================================================================
    SEARCH
    ================================================================ */
 

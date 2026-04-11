@@ -1565,7 +1565,7 @@ mark {
     </div>
     <div class="modal-actions">
       <button class="modal-btn-cancel" id="auditModalCancel">Cancel</button>
-      <button class="modal-btn-save" id="auditModalSave">Save &amp; Export</button>
+      <button class="modal-btn-save" id="auditModalSave">Save</button>
     </div>
   </div>
 </div>
@@ -5346,26 +5346,27 @@ document.getElementById('auditModalSave').addEventListener('click', function() {
 
   auditEntries.push(entry);
 
-  // Download JSON file
-  var jsonData = { version: 1, auditEntries: [entry] };
-  var blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  var dateStr = now.slice(0, 10);
-  var fileSlug = slugify('audit-' + (target || 'scan') + '-' + title);
-  a.href = url;
-  a.download = dateStr + '_' + fileSlug + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
   document.getElementById('auditSaveModal').classList.remove('open');
 
   if (activeSection && activeSection.type === 'audit') {
     renderAuditSection(document.getElementById('mainContent'));
   }
 });
+
+function exportAuditEntries() {
+  if (auditEntries.length === 0) return;
+  var jsonData = { version: 1, auditEntries: auditEntries };
+  var blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = dateStr + '_audit-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 /* ================================================================
    SEARCH
@@ -5731,8 +5732,11 @@ function renderAuditTimeline() {
     html += '</div>';
   });
 
+  html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;">';
   html += '<button class="audit-btn-compare' + (auditSelected.length === 2 ? ' visible' : '') +
     '" id="auditCompareBtn">Compare Selected (' + auditSelected.length + '/2)</button>';
+  html += '<button class="audit-btn-clear" id="auditExportBtn">Export JSON</button>';
+  html += '</div>';
 
   html += '</div>';
   return html;
@@ -5806,13 +5810,25 @@ function attachAuditHandlers(container) {
         var idx = auditSelected.indexOf(id);
         if (idx >= 0) {
           auditSelected.splice(idx, 1);
+          entry.classList.remove('selected');
         } else if (auditSelected.length < 2) {
           auditSelected.push(id);
+          entry.classList.add('selected');
         } else {
-          auditSelected.shift();
+          // Deselect oldest, select new
+          var oldId = auditSelected.shift();
+          var oldEntry = container.querySelector('.audit-entry[data-id="' + oldId + '"]');
+          if (oldEntry) oldEntry.classList.remove('selected');
           auditSelected.push(id);
+          entry.classList.add('selected');
         }
-        renderAuditSection(container);
+        // Update compare button inline
+        var cBtn = container.querySelector('#auditCompareBtn');
+        if (cBtn) {
+          cBtn.textContent = 'Compare Selected (' + auditSelected.length + '/2)';
+          if (auditSelected.length === 2) cBtn.classList.add('visible');
+          else cBtn.classList.remove('visible');
+        }
       });
     })(entries[j]);
   }
@@ -5825,6 +5841,11 @@ function attachAuditHandlers(container) {
         renderAuditSection(container);
       }
     });
+  }
+
+  var exportBtn = container.querySelector('#auditExportBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function() { exportAuditEntries(); });
   }
 
   var compBack = container.querySelector('.comparison-back');

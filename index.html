@@ -3576,6 +3576,11 @@ function buildSidebar() {
   html += '<div class="nav-item" data-type="rescan" data-key="rescan">' +
     '<span class="nav-item-label">Rescan History</span></div>';
 
+  // Header Audit
+  html += '<div class="nav-group-label">Audit</div>';
+  html += '<div class="nav-item" data-type="audit" data-key="audit">' +
+    '<span class="nav-item-label">Header Audit</span></div>';
+
   nav.innerHTML = html;
 
   // Attach click handlers
@@ -3656,6 +3661,9 @@ function renderMainContent(scrollToId) {
       break;
     case 'rescan':
       renderRescanSection(main);
+      break;
+    case 'audit':
+      renderAuditSection(main);
       break;
     default:
       main.innerHTML = renderEmptyState('Unknown section type');
@@ -5114,6 +5122,18 @@ document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 /* ================================================================
    INIT
    ================================================================ */
+
+/* ================================================================
+   HEADER AUDIT: UI RENDERER
+   ================================================================ */
+
+function renderAuditSection(container) {
+  container.innerHTML = '<div class="audit-container">' +
+    '<div class="section-header"><h2>Header Audit</h2>' +
+    '<p>Analyze HTTP response headers for security issues</p></div>' +
+    renderEmptyState('Paste headers below to analyze', 'Supports curl -I output, raw headers, and nmap http-security-headers') +
+    '</div>';
+}
 
 function init() {
   initTheme();

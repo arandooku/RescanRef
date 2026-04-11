@@ -4271,9 +4271,14 @@ function renderRescanSection(container) {
     // Scan timeline
     html += renderScanTimeline();
 
-    // Compare button
+    // Compare & export buttons
+    html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;">';
     html += '<button class="compare-btn' + (rescanSelected.length === 2 ? ' visible' : '') +
       '" id="compareBtn">Compare Selected (' + rescanSelected.length + '/2)</button>';
+    if (rescanEntries.some(function(e) { return e.environment === rescanEnv; })) {
+      html += '<button class="audit-btn-clear" id="rescanExportBtn">Export JSON</button>';
+    }
+    html += '</div>';
   }
 
   html += '</div>';
@@ -4377,13 +4382,23 @@ function attachRescanHandlers(container) {
         var idx = rescanSelected.indexOf(id);
         if (idx >= 0) {
           rescanSelected.splice(idx, 1);
+          entry.classList.remove('selected');
         } else if (rescanSelected.length < 2) {
           rescanSelected.push(id);
+          entry.classList.add('selected');
         } else {
-          rescanSelected.shift();
+          var oldId = rescanSelected.shift();
+          var oldEntry = container.querySelector('.scan-entry[data-id="' + oldId + '"]');
+          if (oldEntry) oldEntry.classList.remove('selected');
           rescanSelected.push(id);
+          entry.classList.add('selected');
         }
-        renderRescanSection(container);
+        var cBtn = container.querySelector('#compareBtn');
+        if (cBtn) {
+          cBtn.textContent = 'Compare Selected (' + rescanSelected.length + '/2)';
+          if (rescanSelected.length === 2) cBtn.classList.add('visible');
+          else cBtn.classList.remove('visible');
+        }
       });
     })(scanEntries[j]);
   }
@@ -4397,6 +4412,12 @@ function attachRescanHandlers(container) {
         renderRescanSection(container);
       }
     });
+  }
+
+  // Export button
+  var rescanExportBtn = container.querySelector('#rescanExportBtn');
+  if (rescanExportBtn) {
+    rescanExportBtn.addEventListener('click', function() { exportRescanEntries(); });
   }
 
   // Comparison back button
@@ -5292,20 +5313,6 @@ document.getElementById('modalSave').addEventListener('click', function() {
 
   rescanEntries.push(entry);
 
-  // Download JSON file
-  var jsonData = { version: 1, entries: [entry] };
-  var blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  var dateStr = timestamp.slice(0, 10);
-  var fileSlug = slugify(env + '-' + (target || 'scan') + '-' + title);
-  a.href = url;
-  a.download = dateStr + '_' + fileSlug + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
   document.getElementById('classifyModal').classList.remove('open');
   pendingImportRaw = '';
   pendingImportParsed = null;
@@ -5314,6 +5321,22 @@ document.getElementById('modalSave').addEventListener('click', function() {
     renderRescanSection(document.getElementById('mainContent'));
   }
 });
+
+function exportRescanEntries() {
+  var envEntries = rescanEntries.filter(function(e) { return e.environment === rescanEnv; });
+  if (envEntries.length === 0) return;
+  var jsonData = { version: 1, entries: envEntries };
+  var blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = dateStr + '_rescan-' + rescanEnv.toLowerCase() + '-export.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 /* ================================================================
    AUDIT SAVE MODAL

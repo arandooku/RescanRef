@@ -1437,6 +1437,25 @@ mark {
   </div>
 </div>
 
+<!-- Audit Save Modal -->
+<div class="modal-overlay" id="auditSaveModal">
+  <div class="modal">
+    <h3>Save Audit Result</h3>
+    <div class="modal-field">
+      <label for="auditModalTitle">Title (required)</label>
+      <input type="text" id="auditModalTitle" placeholder="e.g. example.com - Q1 Audit">
+    </div>
+    <div class="modal-field">
+      <label for="auditModalTarget">Target</label>
+      <input type="text" id="auditModalTarget" placeholder="Auto-detected from headers">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" id="auditModalCancel">Cancel</button>
+      <button class="modal-btn-save" id="auditModalSave">Save &amp; Export</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ================================================================
    DATA -- Empty placeholders, populated in subsequent tasks

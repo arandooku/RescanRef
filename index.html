@@ -5627,6 +5627,112 @@ function handleAuditFileDrop(files, container) {
   });
 }
 
+function renderAuditComparisonView() {
+  var older = null;
+  var newer = null;
+  auditEntries.forEach(function(e) {
+    if (e.id === auditSelected[0]) older = e;
+    if (e.id === auditSelected[1]) newer = e;
+  });
+  if (!older || !newer) return renderEmptyState('Could not find selected audits');
+
+  if (new Date(older.timestamp) > new Date(newer.timestamp)) {
+    var tmp = older; older = newer; newer = tmp;
+  }
+
+  var html = '<div class="comparison-back">&larr; Back to Audit</div>';
+  html += '<div class="comparison-header">' +
+    '<div class="comparison-scan-info">Older: <strong>' + escapeHtml(older.title) + '</strong> (' + formatDate(older.timestamp) + ')</div>' +
+    '<div class="comparison-scan-info">Newer: <strong>' + escapeHtml(newer.title) + '</strong> (' + formatDate(newer.timestamp) + ')</div>' +
+    '</div>';
+
+  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Missing Headers</h4>';
+  html += compareAuditCategory(
+    older.findings.missing || [], newer.findings.missing || [],
+    function(item) { return item.header.toLowerCase(); },
+    'header'
+  );
+
+  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Deprecated Headers</h4>';
+  html += compareAuditCategory(
+    older.findings.deprecated || [], newer.findings.deprecated || [],
+    function(item) { return item.header.toLowerCase(); },
+    'header'
+  );
+
+  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Insecure Values</h4>';
+  html += compareAuditCategory(
+    older.findings.insecure || [], newer.findings.insecure || [],
+    function(item) { return item.header.toLowerCase() + ':' + item.issue; },
+    'header'
+  );
+
+  html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Fingerprint Headers</h4>';
+  html += compareAuditCategory(
+    older.findings.fingerprint || [], newer.findings.fingerprint || [],
+    function(item) { return item.header.toLowerCase(); },
+    'header'
+  );
+
+  var fixed = 0;
+  var regressed = 0;
+  var categories = ['missing', 'deprecated', 'insecure', 'fingerprint'];
+  categories.forEach(function(cat) {
+    var oldCount = older.counts[cat] || 0;
+    var newCount = newer.counts[cat] || 0;
+    if (newCount < oldCount) fixed += (oldCount - newCount);
+    if (newCount > oldCount) regressed += (newCount - oldCount);
+  });
+
+  html += '<div class="comparison-summary" style="margin-top:16px;">' +
+    (fixed > 0 ? '<span style="color:var(--accent-green);">' + fixed + ' fixed</span> &middot; ' : '') +
+    (regressed > 0 ? '<span style="color:var(--accent-pink);">' + regressed + ' regressed</span> &middot; ' : '') +
+    'Older: ' + (older.counts.missing + older.counts.deprecated + older.counts.insecure + older.counts.fingerprint) + ' issues &rarr; ' +
+    'Newer: ' + (newer.counts.missing + newer.counts.deprecated + newer.counts.insecure + newer.counts.fingerprint) + ' issues' +
+    '</div>';
+
+  return html;
+}
+
+function compareAuditCategory(olderItems, newerItems, keyFn, labelProp) {
+  var olderKeys = {};
+  var newerKeys = {};
+  olderItems.forEach(function(item) { olderKeys[keyFn(item)] = item; });
+  newerItems.forEach(function(item) { newerKeys[keyFn(item)] = item; });
+
+  var allKeys = {};
+  Object.keys(olderKeys).forEach(function(k) { allKeys[k] = true; });
+  Object.keys(newerKeys).forEach(function(k) { allKeys[k] = true; });
+
+  if (Object.keys(allKeys).length === 0) {
+    return '<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px;">None in either audit</div>';
+  }
+
+  var rows = '';
+  Object.keys(allKeys).forEach(function(key) {
+    var inOld = !!olderKeys[key];
+    var inNew = !!newerKeys[key];
+    var cls, status;
+    if (inOld && !inNew) {
+      cls = 'diff-fixed';
+      status = 'Fixed';
+    } else if (!inOld && inNew) {
+      cls = 'diff-new-issue';
+      status = 'New';
+    } else {
+      cls = 'diff-same';
+      status = 'Same';
+    }
+    var item = newerKeys[key] || olderKeys[key];
+    rows += '<tr class="' + cls + '"><td>' + escapeHtml(item[labelProp]) + '</td>' +
+      '<td>' + (inOld ? 'Yes' : '-') + '</td>' +
+      '<td>' + (inNew ? 'Yes' : '-') + '</td>' +
+      '<td>' + status + '</td></tr>';
+  });
+
+  return '<table class="diff-table"><thead><tr><th>Item</th><th>Older</th><th>Newer</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
 function init() {
   initTheme();
   buildSidebar();

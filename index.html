@@ -1164,6 +1164,206 @@ mark {
 
 /* ===== Utility ===== */
 .hidden { display: none !important; }
+
+/* ===== Header Audit ===== */
+.audit-container { max-width: 900px; }
+.audit-input-zone { margin-bottom: 20px; }
+.audit-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.8rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.audit-textarea:focus { border-color: var(--accent-pink); }
+.audit-textarea::placeholder { color: var(--text-muted); }
+.audit-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.audit-btn-analyze {
+  padding: 9px 22px;
+  background: var(--accent-pink);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.audit-btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249, 38, 114, 0.3); }
+.audit-btn-clear {
+  padding: 9px 18px;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.audit-btn-clear:hover { border-color: var(--text-muted); }
+.audit-btn-save {
+  padding: 9px 18px;
+  background: var(--accent-green);
+  border: none;
+  border-radius: 6px;
+  color: #0d0e0a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.audit-btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(166, 226, 46, 0.3); }
+.audit-btn-compare {
+  display: none;
+  padding: 9px 22px;
+  background: var(--accent-cyan);
+  color: #0d0e0a;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.audit-btn-compare:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 217, 239, 0.3); }
+.audit-btn-compare.visible { display: inline-block; }
+
+.audit-drop-overlay {
+  border: 2px dashed var(--card-border);
+  border-radius: 8px;
+  padding: 18px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.audit-drop-overlay.dragover {
+  border-color: var(--accent-pink);
+  background: rgba(249, 38, 114, 0.06);
+}
+.audit-drop-overlay input[type="file"] { display: none; }
+
+.audit-report { margin-top: 20px; }
+.audit-section {
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.audit-section:hover { border-color: var(--card-hover-border); }
+.audit-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--card-bg);
+  user-select: none;
+  transition: background 0.2s;
+}
+.audit-section-header:hover { background: var(--card-hover-border); }
+.audit-section-arrow {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.audit-section.expanded .audit-section-arrow { transform: rotate(90deg); }
+.audit-section-title {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.audit-section-count {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.audit-section-count.red { background: rgba(249, 38, 114, 0.15); color: var(--accent-pink); }
+.audit-section-count.yellow { background: rgba(230, 219, 116, 0.15); color: var(--accent-yellow); }
+.audit-section-count.orange { background: rgba(253, 151, 31, 0.15); color: #fd971f; }
+.audit-section-count.gray { background: rgba(117, 113, 94, 0.15); color: var(--text-muted); }
+.audit-section-count.green { background: rgba(166, 226, 46, 0.15); color: var(--accent-green); }
+.audit-section-body {
+  display: none;
+  padding: 0 14px 12px;
+}
+.audit-section.expanded .audit-section-body { display: block; }
+.audit-finding {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.82rem;
+}
+.audit-finding:last-child { border-bottom: none; }
+.audit-finding-header {
+  font-weight: 600;
+  color: var(--accent-cyan);
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.8rem;
+}
+.audit-finding-detail {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+.audit-finding-recommended {
+  margin-top: 5px;
+}
+.audit-finding-recommended .code-block-wrapper {
+  margin-top: 4px;
+}
+.audit-finding-recommended .code-block {
+  font-size: 0.75rem;
+  padding: 6px 10px;
+}
+.audit-finding-value {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Audit timeline (saved audits) */
+.audit-timeline { margin-top: 20px; }
+.audit-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.audit-entry:hover { border-color: var(--card-hover-border); transform: translateX(2px); }
+.audit-entry.selected { border-color: var(--accent-pink); background: rgba(249, 38, 114, 0.06); }
+.audit-entry-select {
+  width: 18px; height: 18px;
+  border: 2px solid var(--card-border);
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.audit-entry.selected .audit-entry-select { border-color: var(--accent-pink); background: var(--accent-pink); }
+.audit-entry.selected .audit-entry-select::after { content: '\2713'; color: #fff; font-size: 0.7rem; }
+.audit-entry-title { flex: 1; font-size: 0.85rem; }
+.audit-entry-summary {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+}
+.audit-entry-date { font-size: 0.75rem; color: var(--text-muted); }
 </style>
 </head>
 <body>

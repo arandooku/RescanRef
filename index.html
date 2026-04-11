@@ -4572,6 +4572,68 @@ function parseCurlHeaders(raw) {
 }
 
 /* ================================================================
+   HEADER AUDIT: PARSER
+   ================================================================ */
+
+function detectHeaderInputType(raw) {
+  var trimmed = raw.trim();
+  if (/\|\s*http-security-headers:/i.test(trimmed)) return 'nmap-script';
+  if (/^HTTP\/[12]/m.test(trimmed)) return 'curl-headers';
+  if (/^[\w-]+\s*:/m.test(trimmed)) return 'raw-headers';
+  return 'raw-headers';
+}
+
+function parseRawHeaders(raw) {
+  var headers = {};
+  var lines = raw.trim().split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var colonIdx = line.indexOf(':');
+    if (colonIdx > 0) {
+      var key = line.substring(0, colonIdx).trim();
+      var value = line.substring(colonIdx + 1).trim();
+      headers[key.toLowerCase()] = { original: key, value: value };
+    }
+  }
+  return { headers: headers, meta: { statusCode: null, protocol: null, source: 'raw-headers' } };
+}
+
+function normalizeHeaderInput(raw) {
+  var inputType = detectHeaderInputType(raw);
+  var result = { headers: {}, meta: { statusCode: null, protocol: null, source: inputType, target: '' } };
+
+  if (inputType === 'curl-headers') {
+    var parsed = parseCurlHeaders(raw);
+    result.meta.statusCode = parsed.statusCode;
+    result.meta.protocol = parsed.protocol;
+    result.meta.target = parsed.target || '';
+    parsed.headers.forEach(function(h) {
+      result.headers[h.key] = { original: h.key, value: h.value };
+    });
+  } else if (inputType === 'nmap-script') {
+    var scriptParsed = parseNmapScript(raw);
+    result.meta.target = scriptParsed.target || '';
+    (scriptParsed.scripts || []).forEach(function(s) {
+      if (s.script === 'http-security-headers' && s.data) {
+        (s.data.present || []).forEach(function(h) {
+          result.headers[h.header.toLowerCase()] = { original: h.header, value: h.value || '' };
+        });
+      }
+    });
+  } else {
+    var rawParsed = parseRawHeaders(raw);
+    result.headers = rawParsed.headers;
+  }
+
+  if (!result.meta.target && result.headers['host']) {
+    result.meta.target = result.headers['host'].value;
+  }
+
+  return result;
+}
+
+/* ================================================================
    COMPARISON ENGINE
    ================================================================ */
 

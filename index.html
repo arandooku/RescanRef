@@ -5210,6 +5210,13 @@ function performSearch(query) {
   });
   if (rescanMatches.length > 0) counts['rescan:rescan'] = rescanMatches.length;
 
+  // Search Header Audit
+  var auditMatches = auditEntries.filter(function(e) {
+    return (e.title || '').toLowerCase().indexOf(q) >= 0 ||
+      (e.target || '').toLowerCase().indexOf(q) >= 0;
+  });
+  if (auditMatches.length > 0) counts['audit:audit'] = auditMatches.length;
+
   updateSidebarMatchCounts(counts);
   renderSearchResults(results);
 }

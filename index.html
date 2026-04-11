@@ -1431,6 +1431,7 @@ mark {
 }
 .audit-comp-group-label.fixed { color: var(--accent-green); }
 .audit-comp-group-label.new { color: var(--accent-pink); }
+.audit-comp-group-label.changed { color: var(--accent-yellow); }
 .audit-comp-group-label.same { color: var(--text-muted); }
 .audit-comp-item {
   display: flex;
@@ -1445,6 +1446,7 @@ mark {
 .audit-comp-item:hover { background: rgba(255,255,255,0.02); }
 .audit-comp-item.fixed { background: rgba(166, 226, 46, 0.04); }
 .audit-comp-item.new { background: rgba(249, 38, 114, 0.04); }
+.audit-comp-item.changed { background: rgba(230, 219, 116, 0.04); }
 .audit-comp-icon {
   flex-shrink: 0;
   font-size: 0.85rem;
@@ -1453,6 +1455,7 @@ mark {
 }
 .audit-comp-item.fixed .audit-comp-icon { color: var(--accent-green); }
 .audit-comp-item.new .audit-comp-icon { color: var(--accent-pink); }
+.audit-comp-item.changed .audit-comp-icon { color: var(--accent-yellow); }
 .audit-comp-item.same .audit-comp-icon { color: var(--text-muted); }
 .audit-comp-item-header {
   font-weight: 600;
@@ -4870,10 +4873,19 @@ function renderComparisonView() {
   var html = '<span class="comparison-back">&larr; Back to timeline</span>';
   html += '<div class="comparison-view visible">';
 
-  html += '<div class="comparison-header">' +
-    '<div class="comparison-scan-info"><strong>' + escapeHtml(older.title) + '</strong><br>' + formatDate(older.timestamp) + '</div>' +
-    '<div class="comparison-scan-info" style="text-align:right"><strong>' + escapeHtml(newer.title) + '</strong><br>' + formatDate(newer.timestamp) + '</div>' +
-    '</div>';
+  html += '<div class="audit-comp-header">' +
+    '<div class="audit-comp-card">' +
+      '<div class="audit-comp-label">OLDER</div>' +
+      '<div class="audit-comp-title">' + escapeHtml(older.title) + '</div>' +
+      '<div class="audit-comp-meta">' + formatDate(older.timestamp) + ' &middot; ' + escapeHtml(older.scanType) + '</div>' +
+    '</div>' +
+    '<div class="audit-comp-arrow">&rarr;</div>' +
+    '<div class="audit-comp-card">' +
+      '<div class="audit-comp-label">NEWER</div>' +
+      '<div class="audit-comp-title">' + escapeHtml(newer.title) + '</div>' +
+      '<div class="audit-comp-meta">' + formatDate(newer.timestamp) + ' &middot; ' + escapeHtml(newer.scanType) + '</div>' +
+    '</div>' +
+  '</div>';
 
   if (older.scanType === newer.scanType) {
     switch (older.scanType) {
@@ -4905,9 +4917,7 @@ function renderPortComparison(oldParsed, newParsed) {
   newPorts.forEach(function(p) { allPortKeys[p.port + '/' + p.protocol] = true; });
   var sortedKeys = Object.keys(allPortKeys).sort(function(a, b) { return parseInt(a) - parseInt(b); });
 
-  var fixed = 0, newIssue = 0, changed = 0, same = 0;
-  var rows = '';
-
+  var items = [];
   sortedKeys.forEach(function(portKey) {
     var parts = portKey.split('/');
     var portNum = parseInt(parts[0]);
@@ -4915,45 +4925,68 @@ function renderPortComparison(oldParsed, newParsed) {
     var oldP = oldPorts.filter(function(p) { return p.port === portNum && p.protocol === proto; })[0];
     var newP = newPorts.filter(function(p) { return p.port === portNum && p.protocol === proto; })[0];
 
-    var status, cls;
+    var status, detail;
     if (!oldP && newP) {
-      if (newP.state === 'open') { status = 'New'; cls = 'diff-new-issue'; newIssue++; }
-      else { status = 'New (closed)'; cls = 'diff-fixed'; fixed++; }
+      if (newP.state === 'open') { status = 'new'; detail = 'New open port'; }
+      else { status = 'fixed'; detail = 'New (closed)'; }
     } else if (oldP && !newP) {
-      status = 'Removed'; cls = 'diff-fixed'; fixed++;
+      status = 'fixed'; detail = 'Port removed';
     } else if (oldP.state !== newP.state) {
       if (oldP.state === 'open' && (newP.state === 'closed' || newP.state === 'filtered')) {
-        status = 'Fixed'; cls = 'diff-fixed'; fixed++;
+        status = 'fixed'; detail = oldP.state + ' \u2192 ' + newP.state;
       } else if ((oldP.state === 'closed' || oldP.state === 'filtered') && newP.state === 'open') {
-        status = 'New exposure'; cls = 'diff-new-issue'; newIssue++;
+        status = 'new'; detail = oldP.state + ' \u2192 ' + newP.state;
       } else {
-        status = 'Changed'; cls = 'diff-changed'; changed++;
+        status = 'changed'; detail = oldP.state + ' \u2192 ' + newP.state;
       }
     } else if (oldP && newP && oldP.version !== newP.version) {
-      status = 'Version changed'; cls = 'diff-changed'; changed++;
+      status = 'changed'; detail = (oldP.version || '?') + ' \u2192 ' + (newP.version || '?');
     } else {
-      status = 'Same'; cls = 'diff-same'; same++;
+      status = 'same'; detail = (newP || oldP).state;
     }
 
-    rows += '<tr class="' + cls + '">' +
-      '<td>' + portKey + '</td>' +
-      '<td>' + escapeHtml((oldP || newP).service) + '</td>' +
-      '<td>' + (oldP ? escapeHtml(oldP.state) : '-') + '</td>' +
-      '<td>' + (newP ? escapeHtml(newP.state) : '-') + '</td>' +
-      '<td>' + (oldP ? escapeHtml(oldP.version || '-') : '-') + '</td>' +
-      '<td>' + (newP ? escapeHtml(newP.version || '-') : '-') + '</td>' +
-      '<td>' + status + '</td></tr>';
+    items.push({
+      port: portKey,
+      service: (oldP || newP).service || '',
+      status: status,
+      detail: detail
+    });
   });
 
-  var summary = '<span class="comparison-summary" style="margin-bottom:12px;display:inline-block;">';
-  if (fixed) summary += '<span style="color:var(--accent-green)">' + fixed + ' fixed</span> ';
-  if (newIssue) summary += '<span style="color:var(--accent-pink)">' + newIssue + ' new</span> ';
-  if (changed) summary += '<span style="color:var(--accent-yellow)">' + changed + ' changed</span> ';
-  summary += '<span style="color:var(--text-muted)">' + same + ' same</span></span>';
+  // Sort: fixed, new, changed, same
+  var order = { fixed: 0, 'new': 1, changed: 2, same: 3 };
+  items.sort(function(a, b) { return (order[a.status] || 3) - (order[b.status] || 3); });
 
-  return summary + '<table class="diff-table">' +
-    '<thead><tr><th>Port</th><th>Service</th><th>Old State</th><th>New State</th><th>Old Version</th><th>New Version</th><th>Status</th></tr></thead>' +
-    '<tbody>' + rows + '</tbody></table>';
+  var fixedCount = items.filter(function(i) { return i.status === 'fixed'; }).length;
+  var newCount = items.filter(function(i) { return i.status === 'new'; }).length;
+  var changedCount = items.filter(function(i) { return i.status === 'changed'; }).length;
+  var sameCount = items.filter(function(i) { return i.status === 'same'; }).length;
+
+  var html = '<div class="audit-comp-summary">';
+  if (fixedCount) html += '<span class="audit-comp-badge fixed">' + fixedCount + ' fixed</span>';
+  if (newCount) html += '<span class="audit-comp-badge new-issue">' + newCount + ' new</span>';
+  if (changedCount) html += '<span class="audit-comp-badge" style="background:rgba(230,219,116,0.15);color:var(--accent-yellow);">' + changedCount + ' changed</span>';
+  if (sameCount) html += '<span class="audit-comp-badge same">' + sameCount + ' unchanged</span>';
+  html += '</div>';
+
+  html += '<div class="audit-comp-list">';
+  var lastStatus = '';
+  items.forEach(function(item) {
+    if (item.status !== lastStatus) {
+      var label = item.status === 'fixed' ? 'Fixed' : item.status === 'new' ? 'New Issues' : item.status === 'changed' ? 'Changed' : 'Unchanged';
+      html += '<div class="audit-comp-group-label ' + item.status + '">' + label + '</div>';
+      lastStatus = item.status;
+    }
+    var icon = item.status === 'fixed' ? '&#10003;' : item.status === 'new' ? '&#10007;' : item.status === 'changed' ? '&#9998;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + item.status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(item.port) + '</span>' +
+      '<span class="audit-comp-item-cat">' + escapeHtml(item.service) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(item.detail) + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function renderScriptComparison(oldParsed, newParsed) {
@@ -4987,18 +5020,26 @@ function renderScriptComparison(oldParsed, newParsed) {
 function renderSSLCertComparison(oldData, newData) {
   if (!oldData && !newData) return '';
   var fields = ['subject', 'issuer', 'validFrom', 'validTo', 'expired'];
-  var rows = '';
+  var html = '<div class="audit-comp-list">';
   fields.forEach(function(f) {
     var oldVal = oldData ? String(oldData[f]) : '-';
     var newVal = newData ? String(newData[f]) : '-';
-    var cls = oldVal === newVal ? 'diff-same' : 'diff-changed';
+    var status = 'same';
+    if (oldVal !== newVal) status = 'changed';
     if (f === 'expired' && oldData && newData) {
-      if (oldData.expired && !newData.expired) cls = 'diff-fixed';
-      if (!oldData.expired && newData.expired) cls = 'diff-new-issue';
+      if (oldData.expired && !newData.expired) status = 'fixed';
+      if (!oldData.expired && newData.expired) status = 'new';
     }
-    rows += '<tr class="' + cls + '"><td>' + f + '</td><td>' + escapeHtml(oldVal) + '</td><td>' + escapeHtml(newVal) + '</td></tr>';
+    var icon = status === 'fixed' ? '&#10003;' : status === 'new' ? '&#10007;' : status === 'changed' ? '&#9998;' : '&#8212;';
+    var detail = oldVal === newVal ? oldVal : oldVal + ' \u2192 ' + newVal;
+    html += '<div class="audit-comp-item ' + status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(f) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(detail) + '</span>' +
+    '</div>';
   });
-  return '<table class="diff-table"><thead><tr><th>Field</th><th>Old</th><th>New</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  html += '</div>';
+  return html;
 }
 
 function renderCipherComparison(oldData, newData) {
@@ -5008,21 +5049,27 @@ function renderCipherComparison(oldData, newData) {
   var allVersionsObj = {};
   oldVersions.concat(newVersions).forEach(function(v) { allVersionsObj[v] = true; });
 
-  var rows = '';
+  var html = '<div class="audit-comp-list">';
   Object.keys(allVersionsObj).forEach(function(v) {
     var inOld = oldVersions.indexOf(v) >= 0;
     var inNew = newVersions.indexOf(v) >= 0;
-    var cls, status;
-    if (inOld && !inNew) { cls = 'diff-fixed'; status = 'Removed'; }
-    else if (!inOld && inNew) { cls = 'diff-new-issue'; status = 'Added'; }
-    else { cls = 'diff-same'; status = 'Present'; }
+    var status, detail;
+    if (inOld && !inNew) { status = 'fixed'; detail = 'Removed'; }
+    else if (!inOld && inNew) { status = 'new'; detail = 'Added'; }
+    else { status = 'same'; detail = 'Present'; }
     if (v === 'TLSv1.0' || v === 'TLSv1.1') {
-      if (inOld && !inNew) { cls = 'diff-fixed'; status = 'Removed (good)'; }
-      else if (inNew) { cls = 'diff-new-issue'; status = 'Still present (weak)'; }
+      if (inOld && !inNew) { status = 'fixed'; detail = 'Removed (weak)'; }
+      else if (inNew) { status = 'new'; detail = 'Still present (weak)'; }
     }
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(v) + '</td><td>' + (inOld ? 'Yes' : '-') + '</td><td>' + (inNew ? 'Yes' : '-') + '</td><td>' + status + '</td></tr>';
+    var icon = status === 'fixed' ? '&#10003;' : status === 'new' ? '&#10007;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(v) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(detail) + '</span>' +
+    '</div>';
   });
-  return '<table class="diff-table"><thead><tr><th>TLS Version</th><th>Old</th><th>New</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  html += '</div>';
+  return html;
 }
 
 function renderMethodsComparison(oldData, newData) {
@@ -5032,21 +5079,27 @@ function renderMethodsComparison(oldData, newData) {
   var allMethodsObj = {};
   (oldData ? oldData.methods : []).concat(newData ? newData.methods : []).forEach(function(m) { allMethodsObj[m] = true; });
 
-  var rows = '';
+  var html = '<div class="audit-comp-list">';
   Object.keys(allMethodsObj).forEach(function(m) {
     var inOld = oldData && oldData.methods.indexOf(m) >= 0;
     var inNew = newData && newData.methods.indexOf(m) >= 0;
     var wasRisky = oldRisky.indexOf(m) >= 0;
     var isRisky = newRisky.indexOf(m) >= 0;
-    var cls, status;
-    if (wasRisky && !isRisky && !inNew) { cls = 'diff-fixed'; status = 'Removed (risky)'; }
-    else if (!wasRisky && isRisky) { cls = 'diff-new-issue'; status = 'New risky method'; }
-    else if (!inOld && inNew) { cls = 'diff-changed'; status = 'Added'; }
-    else if (inOld && !inNew) { cls = 'diff-changed'; status = 'Removed'; }
-    else { cls = 'diff-same'; status = 'Same'; }
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(m) + '</td><td>' + (inOld ? 'Yes' : '-') + '</td><td>' + (inNew ? 'Yes' : '-') + '</td><td>' + status + '</td></tr>';
+    var status, detail;
+    if (wasRisky && !isRisky && !inNew) { status = 'fixed'; detail = 'Risky method removed'; }
+    else if (!wasRisky && isRisky) { status = 'new'; detail = 'New risky method'; }
+    else if (!inOld && inNew) { status = 'changed'; detail = 'Added'; }
+    else if (inOld && !inNew) { status = 'changed'; detail = 'Removed'; }
+    else { status = 'same'; detail = isRisky ? 'Risky' : 'Present'; }
+    var icon = status === 'fixed' ? '&#10003;' : status === 'new' ? '&#10007;' : status === 'changed' ? '&#9998;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(m) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(detail) + '</span>' +
+    '</div>';
   });
-  return '<table class="diff-table"><thead><tr><th>Method</th><th>Old</th><th>New</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  html += '</div>';
+  return html;
 }
 
 function renderSecHeadersComparison(oldData, newData) {
@@ -5060,7 +5113,7 @@ function renderSecHeadersComparison(oldData, newData) {
   newPresent.forEach(function(h) { allHeadersObj[h] = true; });
   (newData ? newData.missing : []).forEach(function(h) { allHeadersObj[h.toLowerCase()] = true; });
 
-  var rows = '';
+  var items = [];
   Object.keys(allHeadersObj).forEach(function(h) {
     var wasPresent = oldPresent.indexOf(h) >= 0;
     var isPresent = newPresent.indexOf(h) >= 0;
@@ -5073,15 +5126,35 @@ function renderSecHeadersComparison(oldData, newData) {
       var np = newData.present.filter(function(p) { return p.header.toLowerCase() === h; })[0];
       newVal = np ? np.value : '';
     }
-    var cls, status;
-    if (!wasPresent && isPresent) { cls = 'diff-fixed'; status = 'Added'; }
-    else if (wasPresent && !isPresent) { cls = 'diff-new-issue'; status = 'Removed'; }
-    else if (wasPresent && isPresent && oldVal !== newVal) { cls = 'diff-changed'; status = 'Changed'; }
-    else if (wasPresent && isPresent) { cls = 'diff-same'; status = 'Same'; }
-    else { cls = 'diff-same'; status = 'Missing'; }
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(h) + '</td><td>' + escapeHtml(oldVal || 'MISSING') + '</td><td>' + escapeHtml(newVal || 'MISSING') + '</td><td>' + status + '</td></tr>';
+    var status, detail;
+    if (!wasPresent && isPresent) { status = 'fixed'; detail = 'Added'; }
+    else if (wasPresent && !isPresent) { status = 'new'; detail = 'Removed'; }
+    else if (wasPresent && isPresent && oldVal !== newVal) { status = 'changed'; detail = oldVal + ' \u2192 ' + newVal; }
+    else if (wasPresent && isPresent) { status = 'same'; detail = newVal; }
+    else { status = 'same'; detail = 'Missing in both'; }
+    items.push({ header: h, status: status, detail: detail });
   });
-  return '<table class="diff-table"><thead><tr><th>Header</th><th>Old Value</th><th>New Value</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+  var order = { fixed: 0, 'new': 1, changed: 2, same: 3 };
+  items.sort(function(a, b) { return (order[a.status] || 3) - (order[b.status] || 3); });
+
+  var html = '<div class="audit-comp-list">';
+  var lastStatus = '';
+  items.forEach(function(item) {
+    if (item.status !== lastStatus) {
+      var label = item.status === 'fixed' ? 'Added (Good)' : item.status === 'new' ? 'Removed (Bad)' : item.status === 'changed' ? 'Changed' : 'Unchanged';
+      html += '<div class="audit-comp-group-label ' + item.status + '">' + label + '</div>';
+      lastStatus = item.status;
+    }
+    var icon = item.status === 'fixed' ? '&#10003;' : item.status === 'new' ? '&#10007;' : item.status === 'changed' ? '&#9998;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + item.status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(item.header) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(item.detail) + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function renderVulnComparison(oldData, newData) {
@@ -5091,18 +5164,38 @@ function renderVulnComparison(oldData, newData) {
   var allCVEsObj = {};
   oldCVEs.concat(newCVEs).forEach(function(c) { allCVEsObj[c] = true; });
 
-  var rows = '';
+  var items = [];
   Object.keys(allCVEsObj).forEach(function(cve) {
     var oldV = oldData ? oldData.vulns.filter(function(v) { return v.cve === cve; })[0] : null;
     var newV = newData ? newData.vulns.filter(function(v) { return v.cve === cve; })[0] : null;
-    var cls, status;
-    if (oldV && !newV) { cls = 'diff-fixed'; status = 'Fixed'; }
-    else if (!oldV && newV) { cls = 'diff-new-issue'; status = 'New'; }
-    else if (oldV && newV && oldV.score !== newV.score) { cls = 'diff-changed'; status = 'Score changed'; }
-    else { cls = 'diff-same'; status = 'Same'; }
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(cve) + '</td><td>' + (oldV ? oldV.score : '-') + '</td><td>' + (newV ? newV.score : '-') + '</td><td>' + status + '</td></tr>';
+    var status, detail;
+    if (oldV && !newV) { status = 'fixed'; detail = 'CVSS ' + oldV.score + ' \u2192 resolved'; }
+    else if (!oldV && newV) { status = 'new'; detail = 'CVSS ' + newV.score; }
+    else if (oldV && newV && oldV.score !== newV.score) { status = 'changed'; detail = 'CVSS ' + oldV.score + ' \u2192 ' + newV.score; }
+    else { status = 'same'; detail = 'CVSS ' + (newV || oldV).score; }
+    items.push({ cve: cve, status: status, detail: detail });
   });
-  return '<table class="diff-table"><thead><tr><th>CVE</th><th>Old Score</th><th>New Score</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+  var order = { fixed: 0, 'new': 1, changed: 2, same: 3 };
+  items.sort(function(a, b) { return (order[a.status] || 3) - (order[b.status] || 3); });
+
+  var html = '<div class="audit-comp-list">';
+  var lastStatus = '';
+  items.forEach(function(item) {
+    if (item.status !== lastStatus) {
+      var label = item.status === 'fixed' ? 'Fixed' : item.status === 'new' ? 'New Vulnerabilities' : item.status === 'changed' ? 'Score Changed' : 'Unchanged';
+      html += '<div class="audit-comp-group-label ' + item.status + '">' + label + '</div>';
+      lastStatus = item.status;
+    }
+    var icon = item.status === 'fixed' ? '&#10003;' : item.status === 'new' ? '&#10007;' : item.status === 'changed' ? '&#9998;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + item.status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(item.cve) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(item.detail) + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function renderHeaderComparison(oldParsed, newParsed) {
@@ -5111,7 +5204,11 @@ function renderHeaderComparison(oldParsed, newParsed) {
   var html = '';
 
   if (oldParsed.statusCode !== newParsed.statusCode) {
-    html += '<p style="margin-bottom:8px;"><span style="color:var(--accent-yellow);">Status code changed: ' + oldParsed.statusCode + ' &rarr; ' + newParsed.statusCode + '</span></p>';
+    html += '<div class="audit-comp-item changed" style="margin-bottom:12px;">' +
+      '<span class="audit-comp-icon">&#9998;</span>' +
+      '<span class="audit-comp-item-header">Status Code</span>' +
+      '<span class="audit-comp-item-detail">' + oldParsed.statusCode + ' \u2192 ' + newParsed.statusCode + '</span>' +
+    '</div>';
   }
 
   html += '<h4 style="color:var(--accent-cyan);margin:12px 0 8px;font-size:0.9rem;">Security Headers</h4>';
@@ -5124,17 +5221,31 @@ function renderHeaderComparison(oldParsed, newParsed) {
   oldHeaders.forEach(function(h) { allKeysObj[h.key] = true; });
   newHeaders.forEach(function(h) { allKeysObj[h.key] = true; });
 
-  var rows = '';
+  var items = [];
   Object.keys(allKeysObj).forEach(function(k) {
     var oldH = oldHeaders.filter(function(h) { return h.key === k; })[0];
     var newH = newHeaders.filter(function(h) { return h.key === k; })[0];
-    var cls;
-    if (!oldH || !newH) cls = 'diff-changed';
-    else if (oldH.value !== newH.value) cls = 'diff-changed';
-    else cls = 'diff-same';
-    rows += '<tr class="' + cls + '"><td>' + escapeHtml(k) + '</td><td>' + (oldH ? escapeHtml(oldH.value) : '-') + '</td><td>' + (newH ? escapeHtml(newH.value) : '-') + '</td></tr>';
+    var status, detail;
+    if (!oldH) { status = 'new'; detail = 'Added: ' + (newH ? newH.value : ''); }
+    else if (!newH) { status = 'fixed'; detail = 'Removed'; }
+    else if (oldH.value !== newH.value) { status = 'changed'; detail = oldH.value + ' \u2192 ' + newH.value; }
+    else { status = 'same'; detail = newH.value; }
+    items.push({ header: k, status: status, detail: detail });
   });
-  html += '<table class="diff-table"><thead><tr><th>Header</th><th>Old Value</th><th>New Value</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+  var order = { fixed: 0, 'new': 1, changed: 2, same: 3 };
+  items.sort(function(a, b) { return (order[a.status] || 3) - (order[b.status] || 3); });
+
+  html += '<div class="audit-comp-list">';
+  items.forEach(function(item) {
+    var icon = item.status === 'fixed' ? '&#10003;' : item.status === 'new' ? '&#10007;' : item.status === 'changed' ? '&#9998;' : '&#8212;';
+    html += '<div class="audit-comp-item ' + item.status + '">' +
+      '<span class="audit-comp-icon">' + icon + '</span>' +
+      '<span class="audit-comp-item-header">' + escapeHtml(item.header) + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(item.detail) + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
 
   return html;
 }

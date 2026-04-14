@@ -50,35 +50,18 @@ html, body {
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 0; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 mark {
   background: var(--mark-bg);
   color: inherit;
   padding: 1px 3px;
-  border-radius: 2px;
+  border-radius: 0;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
 
-/* Entrance animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 12px rgba(166, 226, 46, 0.15); }
-  50% { box-shadow: 0 0 20px rgba(166, 226, 46, 0.25); }
-}
 
 /* ===== Layout ===== */
 .app { display: flex; height: 100vh; overflow: hidden; }
@@ -107,7 +90,6 @@ mark {
   color: var(--accent-pink);
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 0 0 24px rgba(249, 38, 114, 0.3);
 }
 .sidebar-header .subtitle {
   font-size: 0.68rem;
@@ -121,16 +103,15 @@ mark {
   width: 100%;
   padding: 7px 11px;
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--input-bg);
   color: var(--text-primary);
   font-size: 0.82rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 .sidebar-search input:focus {
   border-color: var(--accent-pink);
-  box-shadow: 0 0 0 3px rgba(249, 38, 114, 0.1);
 }
 .sidebar-search input::placeholder { color: var(--text-muted); }
 
@@ -175,7 +156,7 @@ mark {
   background: rgba(249, 38, 114, 0.15);
   color: var(--accent-pink);
   padding: 1px 7px;
-  border-radius: 8px;
+  border-radius: 0;
   min-width: 20px;
   text-align: center;
 }
@@ -289,7 +270,7 @@ mark {
   z-index: 200;
   background: var(--sidebar-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 8px 10px;
   cursor: pointer;
   color: var(--text-primary);
@@ -315,7 +296,6 @@ mark {
     left: -270px;
     top: 0; bottom: 0;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow);
   }
   .sidebar.open { left: 0; }
   .sidebar-overlay.open { display: block; }
@@ -329,20 +309,9 @@ mark {
   padding: 28px 36px;
   position: relative;
 }
-/* Ambient gradient behind content */
-.main-content::before {
-  content: '';
-  position: fixed;
-  top: -30%; right: -20%;
-  width: 60%; height: 60%;
-  background: radial-gradient(ellipse, rgba(249, 38, 114, 0.03) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
 
 .section-header {
   margin-bottom: 24px;
-  animation: fadeInUp 0.35s ease-out;
   position: relative;
   z-index: 1;
 }
@@ -373,18 +342,10 @@ mark {
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   transition: border-color 0.15s;
-  animation: fadeInUp 0.15s ease-out both;
 }
-.card:nth-child(2) { animation-delay: 0.02s; }
-.card:nth-child(3) { animation-delay: 0.04s; }
-.card:nth-child(4) { animation-delay: 0.06s; }
-.card:nth-child(5) { animation-delay: 0.08s; }
-.card:nth-child(6) { animation-delay: 0.10s; }
-.card:nth-child(7) { animation-delay: 0.12s; }
-.card:nth-child(8) { animation-delay: 0.14s; }
 .card:hover { border-color: var(--card-hover-border); }
 
 .card-header {
@@ -414,7 +375,7 @@ mark {
 .tag-badge {
   font-size: 0.55rem;
   padding: 1px 6px;
-  border-radius: 3px;
+  border-radius: 0;
   background: rgba(174, 129, 255, 0.12);
   color: var(--accent-purple);
   font-weight: 600;
@@ -435,7 +396,7 @@ mark {
 .code-block {
   background: var(--code-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 11px 44px 11px 14px;
   font-family: inherit;
   font-size: 0.83rem;
@@ -450,7 +411,7 @@ mark {
   top: 7px; right: 7px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--text-muted);
   font-size: 0.68rem;
   padding: 3px 9px;
@@ -477,7 +438,6 @@ mark {
 .craft-container {
   position: relative;
   z-index: 1;
-  animation: fadeInUp 0.35s ease-out;
 }
 .craft-groups-grid {
   display: grid;
@@ -505,19 +465,18 @@ mark {
   background: var(--input-bg);
   color: var(--text-primary);
   border: 2px solid var(--accent-pink);
-  border-radius: 8px;
+  border-radius: 0;
   outline: none;
-  transition: box-shadow 0.3s;
+  transition: none;
 }
 .target-input::placeholder { color: var(--text-muted); }
 .target-input:focus {
-  box-shadow: 0 0 0 3px rgba(249, 38, 114, 0.12), var(--glow-pink);
 }
 
 .option-group {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   transition: border-color 0.15s;
 }
@@ -564,7 +523,7 @@ mark {
 .pill-btn {
   padding: 6px 14px;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.78rem;
@@ -582,7 +541,6 @@ mark {
   border-color: var(--accent-pink);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(249, 38, 114, 0.25);
 }
 
 .custom-input-wrapper {
@@ -597,15 +555,14 @@ mark {
   background: var(--input-bg);
   color: var(--text-primary);
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 0;
   outline: none;
   width: 100%;
   max-width: 300px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 .custom-input:focus {
   border-color: var(--accent-pink);
-  box-shadow: 0 0 0 2px rgba(249, 38, 114, 0.1);
 }
 
 .toggles-grid {
@@ -623,7 +580,7 @@ mark {
   padding: 8px 12px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   transition: border-color 0.2s, background 0.2s;
 }
 .toggle-item:hover { border-color: var(--card-hover-border); }
@@ -659,7 +616,7 @@ mark {
   position: absolute;
   inset: 0;
   background: var(--toggle-off-bg);
-  border-radius: 10px;
+  border-radius: 0;
   cursor: pointer;
   transition: background 0.25s;
 }
@@ -669,13 +626,11 @@ mark {
   top: 2px; left: 2px;
   width: 16px; height: 16px;
   background: #fff;
-  border-radius: 50%;
+  border-radius: 0;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .toggle-switch input:checked + .slider {
   background: var(--accent-green);
-  box-shadow: 0 0 8px rgba(166, 226, 46, 0.3);
 }
 .toggle-switch input:checked + .slider::after { transform: translateX(16px); }
 
@@ -690,13 +645,11 @@ mark {
 .crafted-output {
   background: var(--card-bg);
   border: 1px solid var(--accent-green);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 18px;
   margin-top: 20px;
   position: sticky;
   bottom: 16px;
-  box-shadow: var(--glow-green);
-  animation: pulseGlow 4s ease-in-out infinite;
 }
 .crafted-output-label {
   font-size: 0.65rem;
@@ -711,7 +664,7 @@ mark {
   font-size: 0.95rem;
   padding: 14px 16px;
   background: var(--code-bg);
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   overflow-x: auto;
   white-space: pre-wrap;
@@ -733,21 +686,18 @@ mark {
   font-weight: 700;
   font-size: 0.88rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
   letter-spacing: 0.5px;
 }
 .crafted-copy-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(166, 226, 46, 0.3);
 }
 
 /* ===== Docs Section ===== */
 .docs-container {
   position: relative;
   z-index: 1;
-  animation: fadeInUp 0.2s ease-out;
 }
 
 .back-link {
@@ -788,7 +738,7 @@ mark {
   background: rgba(174, 129, 255, 0.12);
   color: var(--accent-purple);
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .doc-entries-grid {
@@ -800,14 +750,10 @@ mark {
 .doc-entry {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   transition: border-color 0.15s;
-  animation: fadeInUp 0.15s ease-out both;
 }
-.doc-entry:nth-child(2) { animation-delay: 0.02s; }
-.doc-entry:nth-child(3) { animation-delay: 0.04s; }
-.doc-entry:nth-child(4) { animation-delay: 0.06s; }
 .doc-entry:hover { border-color: var(--card-hover-border); }
 .doc-entry-header {
   display: flex;
@@ -856,7 +802,7 @@ mark {
   margin-bottom: 6px;
   padding: 10px 12px;
   background: var(--code-bg);
-  border-radius: 6px;
+  border-radius: 0;
   border-left: 3px solid var(--accent-orange);
 }
 .platform-label {
@@ -882,7 +828,7 @@ mark {
   padding: 10px 12px;
   background: rgba(230, 219, 116, 0.06);
   border-left: 3px solid var(--accent-yellow);
-  border-radius: 6px;
+  border-radius: 0;
 }
 .doc-warnings-label {
   font-size: 0.65rem;
@@ -904,7 +850,7 @@ mark {
   padding: 10px 12px;
   background: rgba(102, 217, 239, 0.04);
   border-left: 3px solid var(--accent-cyan);
-  border-radius: 6px;
+  border-radius: 0;
 }
 .doc-tips-label {
   font-size: 0.65rem;
@@ -925,14 +871,13 @@ mark {
 .rescan-container {
   position: relative;
   z-index: 1;
-  animation: fadeInUp 0.35s ease-out;
 }
 
 .env-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
 .env-tab {
   padding: 7px 22px;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.82rem;
@@ -946,12 +891,11 @@ mark {
   border-color: var(--accent-pink);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(249, 38, 114, 0.25);
 }
 
 .drop-zone {
   border: 2px dashed var(--card-border);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 36px;
   text-align: center;
   color: var(--text-muted);
@@ -974,7 +918,7 @@ mark {
 .paste-btn {
   padding: 7px 18px;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.82rem;
@@ -993,7 +937,7 @@ mark {
   background: var(--input-bg);
   color: var(--text-primary);
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 0;
   resize: vertical;
   outline: none;
   transition: border-color 0.2s;
@@ -1008,11 +952,11 @@ mark {
   color: #0d0e0a;
   font-weight: 700;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.import-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(166, 226, 46, 0.3); }
+.import-btn:hover { }
 .import-btn.visible { display: inline-block; }
 
 /* Classify Modal */
@@ -1030,12 +974,10 @@ mark {
 .modal {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 28px;
   width: 90%;
   max-width: 480px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
-  animation: fadeInUp 0.3s ease-out;
 }
 .modal h3 {
   font-size: 1.05rem;
@@ -1059,7 +1001,7 @@ mark {
   background: var(--input-bg);
   color: var(--text-primary);
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 0.85rem;
   outline: none;
   transition: border-color 0.2s;
@@ -1071,7 +1013,7 @@ mark {
   padding: 8px 18px;
   background: transparent;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.2s;
@@ -1081,13 +1023,13 @@ mark {
   padding: 8px 18px;
   background: var(--accent-green);
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   color: #0d0e0a;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.modal-btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(166, 226, 46, 0.3); }
+.modal-btn-save:hover { }
 
 /* Scan Timeline */
 .scan-timeline { margin-top: 18px; }
@@ -1114,7 +1056,7 @@ mark {
   padding: 9px 14px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1123,7 +1065,7 @@ mark {
 .scan-entry-select {
   width: 18px; height: 18px;
   border: 2px solid var(--card-border);
-  border-radius: 3px;
+  border-radius: 0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1135,7 +1077,7 @@ mark {
 .scan-entry-type {
   font-size: 0.7rem;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(102, 217, 239, 0.15);
   color: var(--accent-cyan);
 }
@@ -1149,11 +1091,11 @@ mark {
   color: #fff;
   font-weight: 700;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.compare-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249, 38, 114, 0.3); }
+.compare-btn:hover { }
 .compare-btn.visible { display: inline-block; }
 
 /* Comparison View */
@@ -1175,7 +1117,7 @@ mark {
 .comparison-summary {
   font-size: 0.8rem;
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
 }
@@ -1224,7 +1166,7 @@ mark {
   font-size: 0.75rem;
   background: var(--code-bg);
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid var(--card-border);
   white-space: pre-wrap;
   word-break: break-all;
@@ -1247,7 +1189,6 @@ mark {
   text-align: center;
   padding: 80px 20px;
   color: var(--text-muted);
-  animation: fadeIn 0.5s ease-out;
 }
 .empty-state-icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.5; }
 .empty-state-text { font-size: 0.95rem; }
@@ -1256,7 +1197,6 @@ mark {
 /* ===== Search Results ===== */
 .search-results-section {
   margin-bottom: 28px;
-  animation: fadeInUp 0.35s ease-out;
   position: relative;
   z-index: 1;
 }
@@ -1295,7 +1235,7 @@ mark {
   background: var(--input-bg);
   color: var(--text-primary);
   border: 1px solid var(--input-border);
-  border-radius: 6px;
+  border-radius: 0;
   font-family: inherit;
   font-size: 0.8rem;
   resize: vertical;
@@ -1311,16 +1251,16 @@ mark {
   color: #fff;
   font-weight: 700;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.audit-btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249, 38, 114, 0.3); }
+.audit-btn-analyze:hover { }
 .audit-btn-clear {
   padding: 9px 18px;
   background: transparent;
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.2s;
@@ -1330,13 +1270,13 @@ mark {
   padding: 9px 18px;
   background: var(--accent-green);
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   color: #0d0e0a;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.audit-btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(166, 226, 46, 0.3); }
+.audit-btn-save:hover { }
 .audit-btn-compare {
   display: none;
   padding: 9px 22px;
@@ -1344,16 +1284,16 @@ mark {
   color: #0d0e0a;
   font-weight: 700;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
-.audit-btn-compare:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 217, 239, 0.3); }
+.audit-btn-compare:hover { }
 .audit-btn-compare.visible { display: inline-block; }
 
 .audit-drop-overlay {
   border: 2px dashed var(--card-border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 18px;
   text-align: center;
   color: var(--text-muted);
@@ -1371,7 +1311,7 @@ mark {
 .audit-report { margin-top: 20px; }
 .audit-section {
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   margin-bottom: 8px;
   overflow: hidden;
   transition: border-color 0.2s;
@@ -1403,7 +1343,7 @@ mark {
 .audit-section-count {
   font-size: 0.7rem;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 0;
   font-weight: 700;
 }
 .audit-section-count.red { background: rgba(249, 38, 114, 0.15); color: var(--accent-pink); }
@@ -1424,7 +1364,7 @@ mark {
   padding: 8px 10px;
   background: var(--code-bg);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 0.82rem;
 }
 .audit-finding-header {
@@ -1480,7 +1420,7 @@ mark {
   padding: 5px 12px;
   font-size: 0.72rem;
   font-weight: 600;
-  border-radius: 4px 4px 0 0;
+  border-radius: 0;
   cursor: pointer;
   color: var(--text-muted);
   background: transparent;
@@ -1510,10 +1450,9 @@ mark {
 .ha-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   transition: border-color 0.15s;
-  animation: fadeInUp 0.15s ease-out both;
 }
 .ha-card:hover { border-color: var(--card-hover-border); }
 .ha-card-header {
@@ -1545,7 +1484,7 @@ mark {
   color: var(--text-secondary);
   background: var(--code-bg);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 0;
   margin-top: 6px;
   word-break: break-all;
   line-height: 1.5;
@@ -1566,7 +1505,7 @@ mark {
   font-size: 0.55rem;
   font-weight: 700;
   padding: 2px 7px;
-  border-radius: 3px;
+  border-radius: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -1627,7 +1566,7 @@ mark {
   padding: 9px 14px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1636,7 +1575,7 @@ mark {
 .audit-entry-select {
   width: 18px; height: 18px;
   border: 2px solid var(--card-border);
-  border-radius: 3px;
+  border-radius: 0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1664,7 +1603,7 @@ mark {
   padding: 12px 16px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 0;
 }
 .audit-comp-label {
   font-size: 0.6rem;
@@ -1699,7 +1638,7 @@ mark {
   font-size: 0.75rem;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: 0;
 }
 .audit-comp-badge.fixed { background: rgba(166, 226, 46, 0.15); color: var(--accent-green); }
 .audit-comp-badge.new-issue { background: rgba(249, 38, 114, 0.15); color: var(--accent-pink); }
@@ -1754,7 +1693,7 @@ mark {
 .audit-comp-item-cat {
   font-size: 0.68rem;
   padding: 1px 7px;
-  border-radius: 8px;
+  border-radius: 0;
   background: rgba(102, 217, 239, 0.1);
   color: var(--accent-cyan);
   flex-shrink: 0;

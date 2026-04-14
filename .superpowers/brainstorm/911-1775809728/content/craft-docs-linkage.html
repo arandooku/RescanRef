@@ -1,0 +1,168 @@
+<h2>ScanRef — Craft + Docs Integration</h2>
+<p class="subtitle">How Craft links to Docs, and what the Docs section looks like</p>
+
+<div class="split" style="gap: 1.2rem; margin-bottom: 2rem;">
+
+  <!-- Left: Craft with links -->
+  <div class="mockup">
+    <div class="mockup-header">Craft — nmap (with doc links)</div>
+    <div class="mockup-body" style="padding: 16px; font-family: system-ui, sans-serif; font-size: 12px; background: #1e1f1c;">
+
+      <!-- Scan Type with links -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+        <div style="color: #f8f8f2; font-size: 12px; font-weight: 600; margin-bottom: 8px;">Scan Type</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+          <span style="background: #f92672; color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;">-sS SYN</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 5px 12px; border-radius: 20px; font-size: 11px;">-sT TCP</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 5px 12px; border-radius: 20px; font-size: 11px;">-sU UDP</span>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 6px;">
+          <a style="color: #66d9ef; font-size: 10px; text-decoration: underline; cursor: pointer;">What is -sS?</a>
+          <a style="color: #66d9ef; font-size: 10px; text-decoration: underline; cursor: pointer;">Compare scan types →</a>
+        </div>
+      </div>
+
+      <!-- Options with links -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+        <div style="color: #f8f8f2; font-size: 12px; font-weight: 600; margin-bottom: 8px;">Options</div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 7px 10px; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #ccc; font-size: 11px;">-O OS Detection</span>
+            <a style="color: #66d9ef; font-size: 10px; cursor: pointer;">ⓘ</a>
+          </div>
+          <div style="width: 32px; height: 18px; background: #a6e22e; border-radius: 9px; position: relative;">
+            <div style="width: 14px; height: 14px; background: #fff; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 7px 10px; margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #ccc; font-size: 11px;">-sV Service Version</span>
+            <a style="color: #66d9ef; font-size: 10px; cursor: pointer;">ⓘ</a>
+          </div>
+          <div style="width: 32px; height: 18px; background: #a6e22e; border-radius: 9px; position: relative;">
+            <div style="width: 14px; height: 14px; background: #fff; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 7px 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #ccc; font-size: 11px;">--script vuln</span>
+            <a style="color: #66d9ef; font-size: 10px; cursor: pointer;">ⓘ</a>
+          </div>
+          <div style="width: 32px; height: 18px; background: #49483e; border-radius: 9px; position: relative;">
+            <div style="width: 14px; height: 14px; background: #888; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div style="padding: 8px 0; display: flex; align-items: center; gap: 8px;">
+        <a style="color: #66d9ef; font-size: 10px;">ⓘ</a>
+        <span style="color: #75715e; font-size: 10px;">= click to jump to full docs for that flag</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Docs section -->
+  <div class="mockup">
+    <div class="mockup-header">Docs — nmap (linked from Craft)</div>
+    <div class="mockup-body" style="padding: 16px; font-family: system-ui, sans-serif; font-size: 12px; background: #1e1f1c; overflow-y: auto;">
+
+      <!-- Flag doc: -sS -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 14px; margin-bottom: 10px; border-left: 3px solid #f92672;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #f92672; font-family: monospace; font-size: 14px; font-weight: 700;">-sS</span>
+          <span style="background: #3e3d32; color: #aaa; font-size: 10px; padding: 2px 8px; border-radius: 10px;">Scan Type</span>
+        </div>
+        <div style="color: #f8f8f2; font-size: 12px; font-weight: 600; margin-bottom: 6px;">TCP SYN Stealth Scan</div>
+        <div style="color: #ccc; font-size: 11px; line-height: 1.7;">
+          The default and most popular scan. Sends a SYN packet (as if opening a connection) and waits for a response. SYN/ACK = open port, RST = closed. Never completes the TCP handshake, making it harder to detect in logs. Requires root/admin privileges. Faster than full TCP connect scan (-sT).
+        </div>
+        <div style="margin-top: 10px; background: #1a1b16; border-radius: 4px; padding: 8px 12px;">
+          <div style="color: #75715e; font-size: 10px; margin-bottom: 4px;">Example:</div>
+          <div style="color: #a6e22e; font-family: monospace; font-size: 11px;">nmap -sS 192.168.1.1</div>
+        </div>
+        <div style="margin-top: 8px; color: #e6db74; font-size: 10px;">⚠ Requires root/sudo privileges</div>
+      </div>
+
+      <!-- Flag doc: -O -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 14px; margin-bottom: 10px; border-left: 3px solid #e6db74;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #e6db74; font-family: monospace; font-size: 14px; font-weight: 700;">-O</span>
+          <span style="background: #3e3d32; color: #aaa; font-size: 10px; padding: 2px 8px; border-radius: 10px;">Option</span>
+        </div>
+        <div style="color: #f8f8f2; font-size: 12px; font-weight: 600; margin-bottom: 6px;">OS Detection</div>
+        <div style="color: #ccc; font-size: 11px; line-height: 1.7;">
+          Enables OS fingerprinting. Nmap sends TCP/UDP probes and analyzes responses to guess the target's operating system. Compares against a database of ~5,000 known OS fingerprints. Results include OS family, version, generation, and device type. Accuracy varies — works best when at least one open and one closed port are found.
+        </div>
+        <div style="margin-top: 10px; background: #1a1b16; border-radius: 4px; padding: 8px 12px;">
+          <div style="color: #75715e; font-size: 10px; margin-bottom: 4px;">Example:</div>
+          <div style="color: #a6e22e; font-family: monospace; font-size: 11px;">nmap -O --osscan-guess 192.168.1.1</div>
+        </div>
+        <div style="margin-top: 8px; color: #e6db74; font-size: 10px;">⚠ Requires root/sudo privileges</div>
+      </div>
+
+      <!-- Flag doc: --script vuln -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 14px; border-left: 3px solid #a6e22e;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #a6e22e; font-family: monospace; font-size: 14px; font-weight: 700;">--script vuln</span>
+          <span style="background: #3e3d32; color: #aaa; font-size: 10px; padding: 2px 8px; border-radius: 10px;">NSE Script</span>
+        </div>
+        <div style="color: #f8f8f2; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Vulnerability Scanning Scripts</div>
+        <div style="color: #ccc; font-size: 11px; line-height: 1.7;">
+          Runs all scripts in the "vuln" category from Nmap Scripting Engine (NSE). Checks for known vulnerabilities including Heartbleed, SMB exploits, shellshock, SSL/TLS issues, and more. Each script tests for specific CVEs and reports findings. Can be slow on large scans — consider targeting specific ports. Use --script=vulners for an alternative CVE lookup approach.
+        </div>
+        <div style="margin-top: 10px; background: #1a1b16; border-radius: 4px; padding: 8px 12px;">
+          <div style="color: #75715e; font-size: 10px; margin-bottom: 4px;">Example:</div>
+          <div style="color: #a6e22e; font-family: monospace; font-size: 11px;">nmap --script vuln -p 80,443 192.168.1.1</div>
+        </div>
+        <div style="margin-top: 8px; color: #75715e; font-size: 10px;">💡 Tip: Combine with -sV for better script detection</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar update -->
+<div class="section" style="margin-top: 1rem;">
+  <h3>Updated Sidebar Structure</h3>
+  <div style="display: flex; gap: 2rem;">
+    <div>
+      <div style="color: #75715e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Reference</div>
+      <ul style="color: #bbb; font-size: 13px; line-height: 2;">
+        <li>Git</li>
+        <li>Docker</li>
+        <li>PowerShell</li>
+        <li>SSH / Network</li>
+      </ul>
+    </div>
+    <div>
+      <div style="color: #75715e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Craft</div>
+      <ul style="color: #bbb; font-size: 13px; line-height: 2;">
+        <li>nmap</li>
+        <li>curl</li>
+      </ul>
+    </div>
+    <div>
+      <div style="color: #75715e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Docs</div>
+      <ul style="color: #bbb; font-size: 13px; line-height: 2;">
+        <li>nmap Reference</li>
+        <li>curl Reference</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Interaction flow -->
+<div class="section" style="margin-top: 1.5rem;">
+  <h3>Link Flow</h3>
+  <ol style="color: #bbb; font-size: 13px; line-height: 2.2;">
+    <li>User is in <strong>Craft → nmap</strong>, sees <span style="color: #66d9ef;">ⓘ</span> next to each toggle</li>
+    <li>Clicks <span style="color: #66d9ef;">ⓘ</span> next to "-O OS Detection"</li>
+    <li>App switches to <strong>Docs → nmap Reference</strong> and scrolls to the <code>-O</code> entry</li>
+    <li>User reads verbose docs, then clicks <strong>← Back to Craft</strong> button at the top</li>
+    <li>Returns to Craft with all their selections preserved</li>
+  </ol>
+</div>

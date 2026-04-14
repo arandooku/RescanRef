@@ -1,0 +1,67 @@
+<h2>ScanRef — 3 Approaches</h2>
+<p class="subtitle">Single offline HTML file for shell/terminal command reference with search</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Scroll Page + Sticky Search</h3>
+      <p>One long scrollable page. Sections are headings with command blocks underneath. A sticky search bar at the top filters commands in real-time. Sidebar nav links jump to sections.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Simplest to build and maintain</li>
+          <li>Easy to edit — just add HTML blocks</li>
+          <li>Familiar pattern (like a cheatsheet)</li>
+          <li>Ctrl+F also works as fallback</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Can feel long if sections grow</li>
+          <li>Less interactive feel</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Sidebar Tabs + Search</h3>
+      <p>Fixed sidebar listing tool categories (Git, Docker, etc.). Clicking a category shows only that section's commands in the main area. Search bar filters across all sections and highlights matches.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Clean — only shows one section at a time</li>
+          <li>Sidebar gives quick overview of all categories</li>
+          <li>Scales better if sections grow</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Slightly more JS complexity</li>
+          <li>Can't see commands across sections at once (except via search)</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Collapsible Accordion + Search</h3>
+      <p>All sections visible as collapsed headers. Click to expand/collapse. Search expands matching sections automatically. All on one page but compact.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Compact overview — see all categories at a glance</li>
+          <li>Expand only what you need</li>
+          <li>Middle ground between A and B</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Extra clicks to expand sections</li>
+          <li>State resets on page reload (no persistence)</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1.2rem; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+  <h3 style="margin-top:0;">My Recommendation: B — Sidebar Tabs</h3>
+  <p>For a command reference app you'll open daily, the sidebar gives you instant orientation — you can see all your categories and jump to any one. Search covers the "find anything fast" use case. It's the most app-like experience while still being a single HTML file. With under 50 commands and 5-10 sections, the sidebar won't feel overwhelming.</p>
+</div>

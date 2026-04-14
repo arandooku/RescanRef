@@ -39,7 +39,8 @@
 
 html, body {
   height: 100%;
-  font-family: 'Segoe UI', 'SF Pro Display', -apple-system, sans-serif;
+  font-family: 'OCR A Extended', 'OCR A Std', Consolas, monospace;
+  font-size: 13px;
   background: var(--main-bg);
   color: var(--text-primary);
   line-height: 1.55;
@@ -100,7 +101,7 @@ mark {
   border-bottom: 1px solid var(--sidebar-separator);
 }
 .sidebar-header h1 {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--accent-pink);
@@ -346,7 +347,7 @@ mark {
   z-index: 1;
 }
 .section-header h2 {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -436,7 +437,7 @@ mark {
   border: 1px solid var(--card-border);
   border-radius: 6px;
   padding: 11px 44px 11px 14px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.83rem;
   color: var(--accent-green);
   overflow-x: auto;
@@ -499,7 +500,7 @@ mark {
 .target-input {
   width: 100%;
   padding: 11px 16px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 1.05rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -591,7 +592,7 @@ mark {
 .custom-input-wrapper.visible { display: block; }
 .custom-input {
   padding: 7px 11px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.82rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -627,7 +628,7 @@ mark {
 }
 .toggle-item:hover { border-color: var(--card-hover-border); }
 .toggle-item .toggle-flag {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.78rem;
   color: var(--accent-pink);
   min-width: 60px;
@@ -706,7 +707,7 @@ mark {
   font-weight: 700;
 }
 .crafted-command {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.95rem;
   padding: 14px 16px;
   background: var(--code-bg);
@@ -825,7 +826,7 @@ mark {
 }
 .doc-entry.expanded .doc-entry-chevron { transform: rotate(90deg); }
 .doc-entry-flag {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.88rem;
   color: var(--accent-cyan);
   font-weight: 700;
@@ -987,7 +988,7 @@ mark {
   width: 100%;
   min-height: 150px;
   padding: 12px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.78rem;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -1098,7 +1099,7 @@ mark {
   align-items: start;
 }
 .target-group-header {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.9rem;
   color: var(--accent-cyan);
   font-weight: 600;
@@ -1202,7 +1203,7 @@ mark {
   padding: 8px 12px;
   font-size: 0.8rem;
   border-bottom: 1px solid var(--card-border);
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   transition: background 0.15s;
 }
 .diff-table tr.diff-fixed { background: rgba(166, 226, 46, 0.1); }
@@ -1219,7 +1220,7 @@ mark {
   overflow-x: auto;
 }
 .raw-diff-pane pre {
-  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.75rem;
   background: var(--code-bg);
   padding: 12px;
@@ -1260,7 +1261,7 @@ mark {
   z-index: 1;
 }
 .search-results-section h3 {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.95rem;
   color: var(--accent-pink);
   margin-bottom: 12px;
@@ -1295,7 +1296,7 @@ mark {
   color: var(--text-primary);
   border: 1px solid var(--input-border);
   border-radius: 6px;
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.8rem;
   resize: vertical;
   outline: none;
@@ -1429,7 +1430,7 @@ mark {
 .audit-finding-header {
   font-weight: 600;
   color: var(--accent-cyan);
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.8rem;
 }
 .audit-finding-detail {
@@ -1448,7 +1449,7 @@ mark {
   padding: 6px 10px;
 }
 .audit-finding-value {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 2px;
@@ -1526,7 +1527,7 @@ mark {
 .ha-card-icon { font-size: 0.9rem; flex-shrink: 0; line-height: 1.4; }
 .ha-card-main { flex: 1; min-width: 0; }
 .ha-card-name {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--accent-cyan);
@@ -1539,7 +1540,7 @@ mark {
   line-height: 1.4;
 }
 .ha-card-value {
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.7rem;
   color: var(--text-secondary);
   background: var(--code-bg);
@@ -1647,7 +1648,7 @@ mark {
 .audit-entry-summary {
   font-size: 0.7rem;
   color: var(--text-muted);
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
 }
 .audit-entry-date { font-size: 0.75rem; color: var(--text-muted); }
 
@@ -1746,7 +1747,7 @@ mark {
 .audit-comp-item-header {
   font-weight: 600;
   color: var(--accent-cyan);
-  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-family: inherit;
   font-size: 0.8rem;
   min-width: 180px;
 }

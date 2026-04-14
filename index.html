@@ -1,71 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ScanRef</title>
 <style>
 /* ===== CSS Custom Properties ===== */
-:root[data-theme="dark"] {
-  --sidebar-bg: #1c1d19;
-  --main-bg: #141510;
+:root {
+  --sidebar-bg: #0e100c;
+  --main-bg: #0a0c08;
   --accent-pink: #f92672;
   --accent-green: #a6e22e;
   --accent-cyan: #66d9ef;
   --accent-yellow: #e6db74;
   --accent-purple: #ae81ff;
   --accent-orange: #fd971f;
-  --text-primary: #f8f8f2;
-  --text-secondary: #b0b0a8;
-  --text-muted: #75715e;
-  --code-bg: #0d0e0a;
-  --card-bg: #1e1f1a;
-  --card-border: #2e2f2a;
-  --input-bg: #0d0e0a;
-  --input-border: #2e2f2a;
-  --toggle-off-bg: #3a3b36;
+  --text-primary: #e0e0d8;
+  --text-secondary: #8a8c84;
+  --text-muted: #4a4c44;
+  --code-bg: #0a0c08;
+  --card-bg: #0e100c;
+  --card-border: #1e201a;
+  --input-bg: #0a0c08;
+  --input-border: #1e201a;
+  --toggle-off-bg: #2a2c24;
   --toggle-on-bg: var(--accent-green);
-  --scrollbar-thumb: #3a3b36;
+  --scrollbar-thumb: #2a2c24;
   --scrollbar-track: transparent;
-  --mark-bg: rgba(230, 219, 116, 0.25);
-  --overlay-bg: rgba(0,0,0,0.75);
-  --shadow: 0 4px 24px rgba(0,0,0,0.5);
-  --glow-pink: 0 0 20px rgba(249, 38, 114, 0.15);
-  --glow-green: 0 0 20px rgba(166, 226, 46, 0.12);
-  --glow-cyan: 0 0 20px rgba(102, 217, 239, 0.12);
-  --card-hover-border: #4a4b44;
+  --mark-bg: rgba(230, 219, 116, 0.2);
+  --overlay-bg: rgba(0,0,0,0.8);
+  --shadow: none;
+  --card-hover-border: #3e403a;
   --sidebar-separator: rgba(255,255,255,0.04);
-}
-
-:root[data-theme="light"] {
-  --sidebar-bg: #e8e8e0;
-  --main-bg: #f2f2ea;
-  --accent-pink: #d32060;
-  --accent-green: #6a9418;
-  --accent-cyan: #2196b8;
-  --accent-yellow: #b8a020;
-  --accent-purple: #7c4cc8;
-  --accent-orange: #c86818;
-  --text-primary: #1e1f1c;
-  --text-secondary: #4a4b44;
-  --text-muted: #7a7b74;
-  --code-bg: #e0e0d8;
-  --card-bg: #f8f8f0;
-  --card-border: #d0d0c8;
-  --input-bg: #fff;
-  --input-border: #c0c0b8;
-  --toggle-off-bg: #b0b0a8;
-  --toggle-on-bg: var(--accent-green);
-  --scrollbar-thumb: #c0c0b8;
-  --scrollbar-track: transparent;
-  --mark-bg: rgba(184, 160, 32, 0.2);
-  --overlay-bg: rgba(0,0,0,0.4);
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  --glow-pink: none;
-  --glow-green: none;
-  --glow-cyan: none;
-  --card-hover-border: #b0b0a8;
-  --sidebar-separator: rgba(0,0,0,0.06);
 }
 
 /* ===== Reset & Base ===== */
@@ -214,41 +180,105 @@ mark {
 }
 .nav-item.active .match-count { background: rgba(249, 38, 114, 0.25); }
 
+/* ===== GitBook-style tree nav ===== */
+.nav-tree-parent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 18px 7px 26px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  border-left: 2px solid transparent;
+  margin: 1px 0;
+}
+.nav-tree-parent:hover {
+  background: rgba(249, 38, 114, 0.06);
+  color: var(--text-primary);
+  border-left-color: rgba(249, 38, 114, 0.3);
+}
+.nav-tree-parent.active {
+  background: linear-gradient(90deg, rgba(249, 38, 114, 0.15) 0%, transparent 100%);
+  color: var(--accent-pink);
+  font-weight: 600;
+  border-left-color: var(--accent-pink);
+}
+.nav-tree-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+.nav-tree-parent.expanded .nav-tree-chevron {
+  transform: rotate(90deg);
+}
+.nav-tree-parent-label {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.nav-tree-children {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-tree-children.expanded {
+  max-height: 600px;
+}
+.nav-tree-child {
+  display: flex;
+  align-items: center;
+  padding: 5px 18px 5px 44px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.nav-tree-child::before {
+  content: '';
+  position: absolute;
+  left: 33px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--card-border);
+}
+.nav-tree-child:hover {
+  background: rgba(249, 38, 114, 0.04);
+  color: var(--text-secondary);
+  border-left-color: rgba(249, 38, 114, 0.2);
+}
+.nav-tree-child.active {
+  color: var(--accent-pink);
+  font-weight: 600;
+  border-left-color: var(--accent-pink);
+  background: rgba(249, 38, 114, 0.08);
+}
+.nav-tree-child .tree-child-count {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  padding-left: 8px;
+  opacity: 0.6;
+}
+
 .sidebar-footer {
   padding: 14px 18px;
   border-top: 1px solid var(--sidebar-separator);
 }
 
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  user-select: none;
-  transition: color 0.2s;
-}
-.theme-toggle:hover { color: var(--text-secondary); }
-.theme-toggle-track {
-  width: 38px; height: 20px;
-  background: var(--toggle-off-bg);
-  border-radius: 10px;
-  position: relative;
-  transition: background 0.3s;
-}
-.theme-toggle-track::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-:root[data-theme="light"] .theme-toggle-track { background: var(--accent-cyan); }
-:root[data-theme="light"] .theme-toggle-track::after { transform: translateX(18px); }
 
 /* ===== Hamburger (mobile) ===== */
 .hamburger {
@@ -331,8 +361,9 @@ mark {
 /* ===== Reference Cards ===== */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 8px;
+  align-items: start;
   position: relative;
   z-index: 1;
 }
@@ -341,33 +372,47 @@ mark {
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 16px 18px;
-  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-  animation: fadeInUp 0.4s ease-out both;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  animation: fadeInUp 0.15s ease-out both;
 }
-.card:nth-child(2) { animation-delay: 0.04s; }
-.card:nth-child(3) { animation-delay: 0.08s; }
-.card:nth-child(4) { animation-delay: 0.12s; }
-.card:nth-child(5) { animation-delay: 0.16s; }
-.card:nth-child(6) { animation-delay: 0.20s; }
-.card:nth-child(7) { animation-delay: 0.24s; }
-.card:nth-child(8) { animation-delay: 0.28s; }
-.card:hover {
-  border-color: var(--card-hover-border);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
+.card:nth-child(2) { animation-delay: 0.02s; }
+.card:nth-child(3) { animation-delay: 0.04s; }
+.card:nth-child(4) { animation-delay: 0.06s; }
+.card:nth-child(5) { animation-delay: 0.08s; }
+.card:nth-child(6) { animation-delay: 0.10s; }
+.card:nth-child(7) { animation-delay: 0.12s; }
+.card:nth-child(8) { animation-delay: 0.14s; }
+.card:hover { border-color: var(--card-hover-border); }
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
 }
+.card-header-main { flex: 1; min-width: 0; }
+.card-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.card.expanded .card-chevron { transform: rotate(90deg); }
 
 .card-title {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
-.card-tags { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+.card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .tag-badge {
-  font-size: 0.6rem;
-  padding: 2px 8px;
+  font-size: 0.55rem;
+  padding: 1px 6px;
   border-radius: 3px;
   background: rgba(174, 129, 255, 0.12);
   color: var(--accent-purple);
@@ -376,9 +421,15 @@ mark {
   letter-spacing: 0.3px;
 }
 
+.card-body {
+  display: none;
+  padding: 0 14px 12px;
+}
+.card.expanded .card-body { display: block; }
+
 .code-block-wrapper {
   position: relative;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 .code-block {
   background: var(--code-bg);
@@ -423,10 +474,16 @@ mark {
 
 /* ===== Craft Section ===== */
 .craft-container {
-  max-width: 800px;
   position: relative;
   z-index: 1;
   animation: fadeInUp 0.35s ease-out;
+}
+.craft-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+  gap: 8px;
+  align-items: start;
+  max-width: 1100px;
 }
 
 .target-input-wrapper { margin-bottom: 22px; }
@@ -459,25 +516,39 @@ mark {
 .option-group {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  transition: border-color 0.2s;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s;
 }
 .option-group:hover { border-color: var(--card-hover-border); }
 .option-group-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
 }
+.option-group-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+  flex-shrink: 0;
+}
+.option-group.expanded .option-group-chevron { transform: rotate(90deg); }
 .option-group-label {
+  flex: 1;
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1.5px;
 }
+.option-group-body {
+  display: none;
+  padding: 0 14px 12px;
+}
+.option-group.expanded .option-group-body { display: block; }
 .compare-all-link {
   font-size: 0.68rem;
   color: var(--accent-cyan);
@@ -673,10 +744,9 @@ mark {
 
 /* ===== Docs Section ===== */
 .docs-container {
-  max-width: 800px;
   position: relative;
   z-index: 1;
-  animation: fadeInUp 0.35s ease-out;
+  animation: fadeInUp 0.2s ease-out;
 }
 
 .back-link {
@@ -692,43 +762,88 @@ mark {
 }
 .back-link:hover { text-decoration: underline; opacity: 1; }
 
+.doc-category-group {
+  margin-bottom: 28px;
+  scroll-margin-top: 20px;
+}
+.doc-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.doc-category-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.doc-category-count {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: rgba(174, 129, 255, 0.12);
+  color: var(--accent-purple);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.doc-entries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+  align-items: start;
+}
 .doc-entry {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 18px 20px;
-  margin-bottom: 14px;
-  transition: border-color 0.2s;
-  animation: fadeInUp 0.4s ease-out both;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  animation: fadeInUp 0.15s ease-out both;
 }
-.doc-entry:nth-child(2) { animation-delay: 0.03s; }
-.doc-entry:nth-child(3) { animation-delay: 0.06s; }
-.doc-entry:nth-child(4) { animation-delay: 0.09s; }
+.doc-entry:nth-child(2) { animation-delay: 0.02s; }
+.doc-entry:nth-child(3) { animation-delay: 0.04s; }
+.doc-entry:nth-child(4) { animation-delay: 0.06s; }
 .doc-entry:hover { border-color: var(--card-hover-border); }
+.doc-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.doc-entry-header-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.doc-entry-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+  flex-shrink: 0;
+}
+.doc-entry.expanded .doc-entry-chevron { transform: rotate(90deg); }
 .doc-entry-flag {
   font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-  font-size: 1.15rem;
+  font-size: 0.88rem;
   color: var(--accent-cyan);
   font-weight: 700;
-}
-.doc-entry-category {
-  display: inline-block;
-  font-size: 0.6rem;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: rgba(174, 129, 255, 0.12);
-  color: var(--accent-purple);
-  font-weight: 700;
-  margin-left: 10px;
-  vertical-align: middle;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  flex-shrink: 0;
 }
 .doc-entry-title {
-  font-size: 0.98rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  margin: 10px 0 6px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+.doc-entry-body {
+  display: none;
+  padding: 0 14px 12px 14px;
+}
+.doc-entry.expanded .doc-entry-body { display: block; }
 .doc-entry-desc {
   font-size: 0.83rem;
   color: var(--text-secondary);
@@ -807,7 +922,6 @@ mark {
 
 /* ===== Rescan History ===== */
 .rescan-container {
-  max-width: 900px;
   position: relative;
   z-index: 1;
   animation: fadeInUp 0.35s ease-out;
@@ -977,6 +1091,12 @@ mark {
 /* Scan Timeline */
 .scan-timeline { margin-top: 18px; }
 .target-group { margin-bottom: 22px; }
+.target-group-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 6px;
+  align-items: start;
+}
 .target-group-header {
   font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
   font-size: 0.9rem;
@@ -994,7 +1114,6 @@ mark {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 6px;
-  margin-bottom: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1166,7 +1285,7 @@ mark {
 .hidden { display: none !important; }
 
 /* ===== Header Audit ===== */
-.audit-container { max-width: 900px; }
+.audit-container { }
 .audit-input-zone { margin-bottom: 20px; }
 .audit-textarea {
   width: 100%;
@@ -1295,13 +1414,18 @@ mark {
   display: none;
   padding: 0 14px 12px;
 }
-.audit-section.expanded .audit-section-body { display: block; }
+.audit-section.expanded .audit-section-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 6px;
+}
 .audit-finding {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--card-border);
+  padding: 8px 10px;
+  background: var(--code-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
   font-size: 0.82rem;
 }
-.audit-finding:last-child { border-bottom: none; }
 .audit-finding-header {
   font-weight: 600;
   color: var(--accent-cyan);
@@ -1330,6 +1454,169 @@ mark {
   margin-top: 2px;
 }
 
+/* Header Analyzer */
+.header-analyzer { margin-top: 24px; margin-bottom: 24px; }
+.header-analyzer-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+.header-analyzer-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.header-analyzer-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 8px;
+}
+.ha-tab {
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.ha-tab:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+.ha-tab.active {
+  color: var(--accent-cyan);
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+.ha-tab-count {
+  font-size: 0.6rem;
+  margin-left: 4px;
+  opacity: 0.6;
+}
+.ha-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 6px;
+  align-items: start;
+}
+
+.ha-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+  animation: fadeInUp 0.15s ease-out both;
+}
+.ha-card:hover { border-color: var(--card-hover-border); }
+.ha-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.ha-card-icon { font-size: 0.9rem; flex-shrink: 0; line-height: 1.4; }
+.ha-card-main { flex: 1; min-width: 0; }
+.ha-card-name {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  word-break: break-all;
+}
+.ha-card-summary {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.ha-card-value {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--code-bg);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  word-break: break-all;
+  line-height: 1.5;
+  max-height: 60px;
+  overflow: hidden;
+  transition: max-height 0.15s ease;
+}
+.ha-card.expanded .ha-card-value { max-height: 400px; }
+.ha-card-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+.ha-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.ha-badge-category {
+  background: rgba(174, 129, 255, 0.12);
+  color: var(--accent-purple);
+}
+.ha-badge-ok { background: rgba(166, 226, 46, 0.12); color: var(--accent-green); }
+.ha-badge-warn { background: rgba(230, 219, 116, 0.15); color: var(--accent-yellow); }
+.ha-badge-danger { background: rgba(249, 38, 114, 0.15); color: var(--accent-pink); }
+.ha-badge-info { background: rgba(102, 217, 239, 0.1); color: var(--accent-cyan); }
+.ha-badge-depr { background: rgba(253, 151, 31, 0.15); color: #fd971f; }
+
+.ha-card-detail {
+  display: none;
+  padding: 0 14px 12px 38px;
+}
+.ha-card.expanded .ha-card-detail { display: block; }
+.ha-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ha-detail-list li {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding: 2px 0;
+  padding-left: 12px;
+  position: relative;
+}
+.ha-detail-list li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+.ha-detail-list li.ha-warning { color: var(--accent-yellow); }
+.ha-detail-list li.ha-warning::before { color: var(--accent-yellow); content: '!'; }
+
+.ha-card-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.12s ease;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.ha-card.expanded .ha-card-chevron { transform: rotate(90deg); }
+
 /* Audit timeline (saved audits) */
 .audit-timeline { margin-top: 20px; }
 .audit-entry {
@@ -1340,7 +1627,6 @@ mark {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 6px;
-  margin-bottom: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1500,10 +1786,7 @@ mark {
       <!-- Auto-generated from data -->
     </nav>
     <div class="sidebar-footer">
-      <div class="theme-toggle" id="themeToggle">
-        <div class="theme-toggle-track"></div>
-        <span id="themeLabel">Dark</span>
-      </div>
+      <span style="font-size:0.6rem; color:var(--text-muted); letter-spacing:1px;">SCANREF &middot; OFFLINE</span>
     </div>
   </aside>
 
@@ -1576,122 +1859,6 @@ mark {
    ================================================================ */
 
 const commands = [
-  // Git
-  {
-    section: "Git",
-    title: "Undo last commit (keep changes)",
-    cmd: "git reset --soft HEAD~1",
-    notes: "Moves HEAD back one commit but leaves all changes staged. Safe way to uncommit without losing work.",
-    tags: ["undo", "reset", "commit"]
-  },
-  {
-    section: "Git",
-    title: "Undo last commit (discard changes)",
-    cmd: "git reset --hard HEAD~1",
-    notes: "Permanently discards the last commit and all its changes. Cannot be undone unless you have the hash.",
-    tags: ["undo", "reset", "destructive"]
-  },
-  {
-    section: "Git",
-    title: "Cherry-pick a commit",
-    cmd: "git cherry-pick <hash>",
-    notes: "Applies a single commit from another branch onto the current branch. Replace <hash> with the commit SHA.",
-    tags: ["cherry-pick", "merge", "commit"]
-  },
-  {
-    section: "Git",
-    title: "Stash changes",
-    cmd: "git stash",
-    notes: "Saves all uncommitted changes to a temporary stack so you can switch branches cleanly.",
-    tags: ["stash", "save"]
-  },
-  {
-    section: "Git",
-    title: "Restore stashed changes",
-    cmd: "git stash pop",
-    notes: "Applies the most recent stash and removes it from the stash stack.",
-    tags: ["stash", "restore"]
-  },
-  {
-    section: "Git",
-    title: "Interactive rebase",
-    cmd: "git rebase -i HEAD~<n>",
-    notes: "Opens an editor to squash, reorder, or edit the last <n> commits. Replace <n> with a number.",
-    tags: ["rebase", "squash", "history"]
-  },
-  {
-    section: "Git",
-    title: "Diff staged changes",
-    cmd: "git diff --cached",
-    notes: "Shows the diff between the staging area and the last commit. Useful before committing.",
-    tags: ["diff", "staged", "review"]
-  },
-  {
-    section: "Git",
-    title: "Bisect to find bad commit",
-    cmd: "git bisect start && git bisect bad && git bisect good <hash>",
-    notes: "Starts a binary search through commit history to find which commit introduced a bug. Replace <hash> with a known good commit.",
-    tags: ["bisect", "debug", "history"]
-  },
-
-  // Docker
-  {
-    section: "Docker",
-    title: "List running containers",
-    cmd: "docker ps",
-    notes: "Shows all currently running containers with their IDs, names, ports, and status.",
-    tags: ["list", "status"]
-  },
-  {
-    section: "Docker",
-    title: "List all containers",
-    cmd: "docker ps -a",
-    notes: "Shows all containers including stopped ones. Useful for finding exited containers.",
-    tags: ["list", "status", "stopped"]
-  },
-  {
-    section: "Docker",
-    title: "Stop all running containers",
-    cmd: "docker stop $(docker ps -q)",
-    notes: "Gracefully stops every running container. Uses a subshell to get all running container IDs.",
-    tags: ["stop", "bulk"]
-  },
-  {
-    section: "Docker",
-    title: "Prune stopped containers",
-    cmd: "docker container prune -f",
-    notes: "Removes all stopped containers without prompting. -f skips the confirmation dialog.",
-    tags: ["prune", "cleanup"]
-  },
-  {
-    section: "Docker",
-    title: "Prune unused images",
-    cmd: "docker image prune -a -f",
-    notes: "Removes all images not used by any container. -a includes non-dangling images too.",
-    tags: ["prune", "cleanup", "images"]
-  },
-  {
-    section: "Docker",
-    title: "Follow container logs",
-    cmd: "docker logs -f <container>",
-    notes: "Streams live logs from a container. Replace <container> with a name or ID. Ctrl+C to stop.",
-    tags: ["logs", "debug", "monitor"]
-  },
-  {
-    section: "Docker",
-    title: "Exec into container shell",
-    cmd: "docker exec -it <container> /bin/bash",
-    notes: "Opens an interactive bash shell inside a running container. Try /bin/sh if bash is unavailable.",
-    tags: ["exec", "shell", "debug"]
-  },
-  {
-    section: "Docker",
-    title: "Build image from Dockerfile",
-    cmd: "docker build -t <name>:<tag> .",
-    notes: "Builds a Docker image from the Dockerfile in the current directory. Replace <name> and <tag> with your values.",
-    tags: ["build", "image"]
-  },
-
   // PowerShell
   {
     section: "PowerShell",
@@ -1780,56 +1947,6 @@ const commands = [
     tags: ["traceroute", "network", "debug"]
   },
 
-  // npm / Node
-  {
-    section: "npm / Node",
-    title: "Init new project",
-    cmd: "npm init -y",
-    notes: "Creates a package.json with defaults, skipping all prompts. Good for quick project scaffolding.",
-    tags: ["init", "setup"]
-  },
-  {
-    section: "npm / Node",
-    title: "Check outdated packages",
-    cmd: "npm outdated",
-    notes: "Lists all installed packages that have newer versions available in the registry.",
-    tags: ["outdated", "update", "audit"]
-  },
-  {
-    section: "npm / Node",
-    title: "Audit for vulnerabilities",
-    cmd: "npm audit",
-    notes: "Scans installed packages for known security vulnerabilities and suggests fixes.",
-    tags: ["audit", "security"]
-  },
-  {
-    section: "npm / Node",
-    title: "Run a package script",
-    cmd: "npm run <script-name>",
-    notes: "Executes a script defined in the scripts section of package.json. E.g. npm run build.",
-    tags: ["run", "script"]
-  },
-  {
-    section: "npm / Node",
-    title: "Install dev dependency",
-    cmd: "npm install --save-dev <package>",
-    notes: "Installs a package and saves it under devDependencies. Use for tools like linters and bundlers.",
-    tags: ["install", "dev", "dependency"]
-  },
-  {
-    section: "npm / Node",
-    title: "Clean npm cache",
-    cmd: "npm cache clean --force",
-    notes: "Clears the local npm cache. Useful when packages fail to install due to cache corruption.",
-    tags: ["cache", "clean"]
-  },
-  {
-    section: "npm / Node",
-    title: "List global packages",
-    cmd: "npm list -g --depth=0",
-    notes: "Shows all globally installed npm packages at the top level (no nested dependencies).",
-    tags: ["list", "global"]
-  }
 ];
 
 const craftTools = {
@@ -3550,6 +3667,353 @@ var HEADER_RULES = {
 };
 
 /* ================================================================
+   HEADER KNOWLEDGE BASE
+   ================================================================ */
+
+var HEADER_KNOWLEDGE = {
+  // Security
+  'strict-transport-security': { category: 'Security', icon: '🔒', summary: 'Forces browsers to use HTTPS only', explain: function(v) {
+    var parts = []; var m = v.match(/max-age\s*=\s*(\d+)/i);
+    if (m) { var y = (parseInt(m[1]) / 31536000).toFixed(1); parts.push('Browser remembers HTTPS-only for ' + y + ' year(s)'); }
+    if (/includeSubDomains/i.test(v)) parts.push('Applies to all subdomains');
+    if (/preload/i.test(v)) parts.push('Eligible for browser preload list');
+    return parts.length ? parts : ['Enforces HTTPS connections'];
+  }},
+  'content-security-policy': { category: 'Security', icon: '🛡️', summary: 'Controls which resources the page can load', explain: function(v) {
+    var parts = []; var directives = v.split(';').map(function(d) { return d.trim(); }).filter(Boolean);
+    directives.forEach(function(d) {
+      var tokens = d.split(/\s+/); var name = tokens[0]; var vals = tokens.slice(1).join(' ');
+      if (name === 'default-src') parts.push('Default policy: ' + vals);
+      else if (name === 'script-src') parts.push('Scripts allowed from: ' + vals);
+      else if (name === 'style-src') parts.push('Styles allowed from: ' + vals);
+      else if (name === 'img-src') parts.push('Images allowed from: ' + vals);
+      else if (name === 'connect-src') parts.push('XHR/fetch allowed to: ' + vals);
+      else if (name === 'frame-ancestors') parts.push('Can be embedded by: ' + vals);
+      else if (name === 'base-uri') parts.push('Base URL restricted to: ' + vals);
+      else if (name === 'form-action') parts.push('Forms can submit to: ' + vals);
+      else if (name === 'upgrade-insecure-requests') parts.push('Upgrades HTTP resources to HTTPS');
+      else if (name === 'block-all-mixed-content') parts.push('Blocks all HTTP content on HTTPS pages');
+      else if (name === 'report-uri' || name === 'report-to') parts.push('Violations reported to: ' + vals);
+      else parts.push(name + ': ' + vals);
+    });
+    return parts.length ? parts : ['Defines a content security policy'];
+  }},
+  'content-security-policy-report-only': { category: 'Security', icon: '🛡️', summary: 'CSP in report-only mode (not enforced)', explain: function(v) {
+    return ['Policy is monitored but not enforced — violations are logged, not blocked'];
+  }},
+  'x-frame-options': { category: 'Security', icon: '🖼️', summary: 'Controls whether page can be embedded in iframes', explain: function(v) {
+    var val = v.toUpperCase().trim();
+    if (val === 'DENY') return ['Page cannot be displayed in any iframe — strongest clickjacking protection'];
+    if (val === 'SAMEORIGIN') return ['Page can only be iframed by pages from the same origin'];
+    if (val.indexOf('ALLOW-FROM') === 0) return ['Page can be iframed only by: ' + v.replace(/allow-from\s*/i, '') + ' (deprecated directive)'];
+    return ['Controls iframe embedding behavior'];
+  }},
+  'x-content-type-options': { category: 'Security', icon: '📄', summary: 'Prevents MIME type sniffing', explain: function(v) {
+    if (v.toLowerCase().trim() === 'nosniff') return ['Browser trusts the declared Content-Type and won\'t try to guess — prevents attacks where a malicious file is disguised as a different type'];
+    return ['Expected value: nosniff'];
+  }},
+  'referrer-policy': { category: 'Security', icon: '🔗', summary: 'Controls how much URL info is sent to other sites', explain: function(v) {
+    var policies = {
+      'no-referrer': 'No referrer information sent — maximum privacy',
+      'no-referrer-when-downgrade': 'Full URL sent on HTTPS→HTTPS, nothing on HTTPS→HTTP (insecure default)',
+      'origin': 'Only the origin (domain) is sent, not the full path',
+      'origin-when-cross-origin': 'Full URL for same-origin requests, just domain for cross-origin',
+      'same-origin': 'Referrer sent only for same-origin requests',
+      'strict-origin': 'Origin only, and nothing on HTTPS→HTTP downgrade',
+      'strict-origin-when-cross-origin': 'Full URL same-origin, origin-only cross-origin, nothing on downgrade (recommended)',
+      'unsafe-url': 'Full URL always sent everywhere — leaks paths and query strings'
+    };
+    return [policies[v.toLowerCase().trim()] || 'Controls referrer information sharing: ' + v];
+  }},
+  'permissions-policy': { category: 'Security', icon: '⚙️', summary: 'Controls which browser features the page can use', explain: function(v) {
+    var parts = []; var features = v.split(',').map(function(f) { return f.trim(); }).filter(Boolean);
+    features.forEach(function(f) {
+      var m = f.match(/^([a-z-]+)\s*=\s*(.+)$/i);
+      if (m) {
+        var name = m[1]; var val = m[2].trim();
+        if (val === '()') parts.push(name + ' — disabled for all origins');
+        else if (val === '*' || val === '(*)') parts.push(name + ' — allowed for ALL origins (permissive)');
+        else if (val === '(self)' || val === 'self') parts.push(name + ' — allowed for this site only');
+        else parts.push(name + ' — allowed for: ' + val);
+      }
+    });
+    return parts.length ? parts : ['Defines browser feature permissions'];
+  }},
+  'cross-origin-embedder-policy': { category: 'Security', icon: '📦', summary: 'Controls cross-origin resource embedding', explain: function(v) {
+    if (v.toLowerCase().trim() === 'require-corp') return ['All cross-origin resources must explicitly grant permission via CORP or CORS'];
+    if (v.toLowerCase().trim() === 'unsafe-none') return ['No restrictions on cross-origin embedding (default)'];
+    if (v.toLowerCase().trim() === 'credentialless') return ['Cross-origin requests omit credentials unless resource explicitly allows it'];
+    return ['Controls cross-origin resource loading: ' + v];
+  }},
+  'cross-origin-opener-policy': { category: 'Security', icon: '🪟', summary: 'Isolates browsing context from cross-origin popups', explain: function(v) {
+    if (v.toLowerCase().trim() === 'same-origin') return ['Page is fully isolated — cross-origin windows cannot interact with this page'];
+    if (v.toLowerCase().trim() === 'same-origin-allow-popups') return ['Page is isolated but its popups can still communicate back'];
+    if (v.toLowerCase().trim() === 'unsafe-none') return ['No isolation — any window can interact (default)'];
+    return ['Controls cross-origin window interactions: ' + v];
+  }},
+  'cross-origin-resource-policy': { category: 'Security', icon: '📂', summary: 'Controls who can load this resource', explain: function(v) {
+    if (v.toLowerCase().trim() === 'same-origin') return ['Only pages from the exact same origin can load this resource'];
+    if (v.toLowerCase().trim() === 'same-site') return ['Pages from the same site (including subdomains) can load this'];
+    if (v.toLowerCase().trim() === 'cross-origin') return ['Any origin can load this resource'];
+    return ['Resource sharing policy: ' + v];
+  }},
+  'x-permitted-cross-domain-policies': { category: 'Security', icon: '🚫', summary: 'Controls Adobe cross-domain policy files', explain: function(v) {
+    if (v.toLowerCase().trim() === 'none') return ['No cross-domain policy files are allowed — prevents Flash/PDF abuse'];
+    return ['Adobe cross-domain policy: ' + v];
+  }},
+  'x-xss-protection': { category: 'Deprecated', icon: '⚠️', summary: 'Legacy XSS filter (deprecated)', explain: function(v) {
+    return ['This header is deprecated and can actually introduce vulnerabilities in older browsers. Use Content-Security-Policy instead'];
+  }},
+
+  // Caching
+  'cache-control': { category: 'Caching', icon: '💾', summary: 'Controls how and where responses are cached', explain: function(v) {
+    var parts = []; var directives = v.toLowerCase().split(',').map(function(d) { return d.trim(); });
+    directives.forEach(function(d) {
+      if (d === 'no-store') parts.push('Never cache this response anywhere');
+      else if (d === 'no-cache') parts.push('Cache but revalidate with server before each use');
+      else if (d === 'private') parts.push('Only browser can cache — not CDNs/proxies');
+      else if (d === 'public') parts.push('Any cache (CDN, proxy, browser) may store this');
+      else if (d === 'must-revalidate') parts.push('Must check with server once cached copy expires');
+      else if (d === 'immutable') parts.push('Content never changes — browser skips revalidation');
+      else if (d.indexOf('max-age') === 0) {
+        var s = d.replace(/max-age\s*=\s*/, ''); var sec = parseInt(s);
+        if (sec < 60) parts.push('Cached for ' + sec + ' seconds');
+        else if (sec < 3600) parts.push('Cached for ' + Math.round(sec / 60) + ' minute(s)');
+        else if (sec < 86400) parts.push('Cached for ' + Math.round(sec / 3600) + ' hour(s)');
+        else parts.push('Cached for ' + Math.round(sec / 86400) + ' day(s)');
+      }
+      else if (d.indexOf('s-maxage') === 0) { parts.push('Shared caches (CDN): ' + d); }
+      else if (d === 'no-transform') parts.push('Proxies must not modify the response body');
+      else if (d === 'stale-while-revalidate') parts.push('Serve stale while fetching fresh in background');
+      else if (d) parts.push(d);
+    });
+    return parts.length ? parts : ['Controls caching behavior'];
+  }},
+  'etag': { category: 'Caching', icon: '🏷️', summary: 'Fingerprint for cache validation', explain: function(v) {
+    var weak = v.indexOf('W/') === 0;
+    return [weak ? 'Weak ETag — content is semantically equivalent but may differ byte-for-byte' :
+      'Strong ETag — exact byte-for-byte match required for cache validation'];
+  }},
+  'last-modified': { category: 'Caching', icon: '📅', summary: 'When the resource was last changed', explain: function(v) {
+    try { var d = new Date(v); return ['Resource last modified: ' + d.toLocaleString()]; } catch(e) { return [v]; }
+  }},
+  'age': { category: 'Caching', icon: '⏱️', summary: 'How long this response has been in a shared cache', explain: function(v) {
+    var sec = parseInt(v);
+    if (sec < 60) return ['In cache for ' + sec + ' seconds — very fresh'];
+    if (sec < 3600) return ['In cache for ' + Math.round(sec / 60) + ' minutes'];
+    if (sec < 86400) return ['In cache for ' + Math.round(sec / 3600) + ' hours'];
+    return ['In cache for ' + Math.round(sec / 86400) + ' days'];
+  }},
+  'expires': { category: 'Caching', icon: '⏰', summary: 'When the cached response expires', explain: function(v) {
+    if (v === '0' || v === '-1') return ['Response is marked as already expired — not cacheable'];
+    try { var d = new Date(v); var now = new Date(); return [d > now ? 'Expires: ' + d.toLocaleString() + ' (still fresh)' : 'Expired: ' + d.toLocaleString() + ' (stale)']; } catch(e) { return [v]; }
+  }},
+  'vary': { category: 'Caching', icon: '🔀', summary: 'Cache varies by these request headers', explain: function(v) {
+    var headers = v.split(',').map(function(h) { return h.trim(); });
+    var parts = ['Cache stores separate versions based on:'];
+    headers.forEach(function(h) {
+      if (h.toLowerCase() === 'accept-encoding') parts.push('• Compression format (gzip, br, etc.)');
+      else if (h.toLowerCase() === 'accept-language') parts.push('• Browser language preference');
+      else if (h.toLowerCase() === 'user-agent') parts.push('• Browser/device type (can reduce cache efficiency)');
+      else if (h.toLowerCase() === 'accept') parts.push('• Requested content type');
+      else if (h.toLowerCase() === 'origin') parts.push('• Request origin (for CORS)');
+      else parts.push('• ' + h);
+    });
+    return parts;
+  }},
+
+  // Content
+  'content-type': { category: 'Content', icon: '📝', summary: 'The format/encoding of the response body', explain: function(v) {
+    var parts = [];
+    var m = v.match(/^([^;]+)/); var type = m ? m[1].trim().toLowerCase() : v;
+    var types = {
+      'text/html': 'HTML web page', 'text/css': 'CSS stylesheet', 'text/plain': 'Plain text',
+      'text/javascript': 'JavaScript', 'application/javascript': 'JavaScript',
+      'application/json': 'JSON data', 'application/xml': 'XML document',
+      'application/pdf': 'PDF document', 'image/png': 'PNG image', 'image/jpeg': 'JPEG image',
+      'image/svg+xml': 'SVG image', 'image/webp': 'WebP image',
+      'application/octet-stream': 'Binary file download',
+      'multipart/form-data': 'Form with file upload',
+      'application/x-www-form-urlencoded': 'Form data'
+    };
+    parts.push('Format: ' + (types[type] || type));
+    if (/charset\s*=\s*utf-8/i.test(v)) parts.push('Encoding: UTF-8 (standard Unicode)');
+    else if (/charset/i.test(v)) { var cm = v.match(/charset\s*=\s*([^\s;]+)/i); if (cm) parts.push('Encoding: ' + cm[1]); }
+    return parts;
+  }},
+  'content-length': { category: 'Content', icon: '📏', summary: 'Size of the response body in bytes', explain: function(v) {
+    var bytes = parseInt(v);
+    if (bytes < 1024) return ['Size: ' + bytes + ' bytes'];
+    if (bytes < 1048576) return ['Size: ' + (bytes / 1024).toFixed(1) + ' KB'];
+    return ['Size: ' + (bytes / 1048576).toFixed(2) + ' MB'];
+  }},
+  'content-encoding': { category: 'Content', icon: '🗜️', summary: 'Compression applied to the response', explain: function(v) {
+    var enc = v.toLowerCase().trim();
+    if (enc === 'gzip') return ['Compressed with gzip — widely supported, good compression'];
+    if (enc === 'br') return ['Compressed with Brotli — best compression ratio for web content'];
+    if (enc === 'deflate') return ['Compressed with deflate — older, less efficient than gzip'];
+    if (enc === 'zstd') return ['Compressed with Zstandard — fast, modern compression'];
+    return ['Compression: ' + v];
+  }},
+  'content-language': { category: 'Content', icon: '🌐', summary: 'Language of the response content', explain: function(v) { return ['Content language: ' + v]; }},
+  'content-disposition': { category: 'Content', icon: '📥', summary: 'How the browser should handle this response', explain: function(v) {
+    if (/attachment/i.test(v)) { var fm = v.match(/filename\s*=\s*"?([^";]+)/i); return ['Browser will download this as a file' + (fm ? ': ' + fm[1] : '')]; }
+    if (/inline/i.test(v)) return ['Browser will display this content inline'];
+    return ['Content handling: ' + v];
+  }},
+  'transfer-encoding': { category: 'Content', icon: '📡', summary: 'How the response body is transferred', explain: function(v) {
+    if (v.toLowerCase().trim() === 'chunked') return ['Response is sent in chunks — server doesn\'t know the total size upfront'];
+    return ['Transfer method: ' + v];
+  }},
+
+  // CORS
+  'access-control-allow-origin': { category: 'CORS', icon: '🌍', summary: 'Which origins can access this resource', explain: function(v) {
+    if (v.trim() === '*') return ['Any website can access this resource — fully open (risky for sensitive data)'];
+    return ['Only ' + v + ' can access this resource via JavaScript'];
+  }},
+  'access-control-allow-methods': { category: 'CORS', icon: '🌍', summary: 'Allowed HTTP methods for cross-origin requests', explain: function(v) {
+    return ['Cross-origin requests can use: ' + v];
+  }},
+  'access-control-allow-headers': { category: 'CORS', icon: '🌍', summary: 'Allowed request headers for cross-origin requests', explain: function(v) {
+    return ['Cross-origin requests can include headers: ' + v];
+  }},
+  'access-control-allow-credentials': { category: 'CORS', icon: '🌍', summary: 'Whether cross-origin requests can include cookies', explain: function(v) {
+    if (v.toLowerCase().trim() === 'true') return ['Cookies and auth credentials ARE sent with cross-origin requests — ensure allow-origin is not *'];
+    return ['Cookies are not sent with cross-origin requests'];
+  }},
+  'access-control-max-age': { category: 'CORS', icon: '🌍', summary: 'How long CORS preflight results are cached', explain: function(v) {
+    var sec = parseInt(v);
+    if (sec < 60) return ['Preflight cached for ' + sec + ' seconds — browser will re-check often'];
+    if (sec < 3600) return ['Preflight cached for ' + Math.round(sec / 60) + ' minutes'];
+    return ['Preflight cached for ' + Math.round(sec / 3600) + ' hours'];
+  }},
+  'access-control-expose-headers': { category: 'CORS', icon: '🌍', summary: 'Extra headers JavaScript can read', explain: function(v) {
+    return ['JavaScript can access these response headers: ' + v];
+  }},
+
+  // Server identity
+  'server': { category: 'Server', icon: '🖥️', summary: 'Server software identity', explain: function(v) {
+    return ['Server identifies as: ' + v, 'Security tip: consider removing or minimizing this header to reduce information leakage'];
+  }},
+  'x-powered-by': { category: 'Server', icon: '⚡', summary: 'Backend technology disclosure', explain: function(v) {
+    return ['Backend technology: ' + v, 'Security tip: remove this header — it helps attackers identify vulnerabilities'];
+  }},
+  'via': { category: 'Server', icon: '🔄', summary: 'Intermediate proxies in the request chain', explain: function(v) {
+    return ['Request passed through proxy/gateway: ' + v];
+  }},
+  'x-request-id': { category: 'Server', icon: '🆔', summary: 'Unique request identifier for tracing', explain: function(v) {
+    return ['Request trace ID: ' + v, 'Useful for debugging — correlate logs across services'];
+  }},
+  'x-correlation-id': { category: 'Server', icon: '🆔', summary: 'Correlation ID for distributed tracing', explain: function(v) {
+    return ['Correlation ID: ' + v];
+  }},
+  'server-timing': { category: 'Server', icon: '⏱️', summary: 'Server performance metrics', explain: function(v) {
+    var parts = ['Server-side timing breakdown:'];
+    v.split(',').forEach(function(metric) {
+      var m = metric.trim(); if (m) parts.push('• ' + m);
+    });
+    return parts;
+  }},
+
+  // Cookies
+  'set-cookie': { category: 'Cookies', icon: '🍪', summary: 'Sets a cookie in the browser', explain: function(v) {
+    var parts = [];
+    var nameVal = v.split(';')[0]; parts.push('Cookie: ' + nameVal.split('=')[0].trim());
+    if (/httponly/i.test(v)) parts.push('HttpOnly — not accessible via JavaScript (XSS protection)');
+    else parts.push('⚠ No HttpOnly flag — JavaScript can read this cookie');
+    if (/secure/i.test(v)) parts.push('Secure — only sent over HTTPS');
+    else parts.push('⚠ No Secure flag — sent over HTTP too');
+    var sm = v.match(/samesite\s*=\s*(\w+)/i);
+    if (sm) {
+      var ss = sm[1].toLowerCase();
+      if (ss === 'strict') parts.push('SameSite=Strict — cookie never sent cross-site');
+      else if (ss === 'lax') parts.push('SameSite=Lax — sent on top-level navigations only');
+      else if (ss === 'none') parts.push('SameSite=None — sent on all cross-site requests (requires Secure)');
+    } else parts.push('⚠ No SameSite attribute — browser defaults apply');
+    var maxAge = v.match(/max-age\s*=\s*(\d+)/i);
+    var exp = v.match(/expires\s*=\s*([^;]+)/i);
+    if (maxAge) { var s = parseInt(maxAge[1]); parts.push(s === 0 ? 'Expires immediately (deletion)' : 'Expires in ' + Math.round(s / 86400) + ' day(s)'); }
+    else if (exp) parts.push('Expires: ' + exp[1].trim());
+    else parts.push('Session cookie — deleted when browser closes');
+    return parts;
+  }},
+
+  // Connection
+  'connection': { category: 'Connection', icon: '🔌', summary: 'Connection management', explain: function(v) {
+    if (v.toLowerCase().trim() === 'keep-alive') return ['Connection stays open for additional requests — faster page loads'];
+    if (v.toLowerCase().trim() === 'close') return ['Connection closes after this response'];
+    return ['Connection: ' + v];
+  }},
+  'keep-alive': { category: 'Connection', icon: '🔌', summary: 'Keep-alive connection parameters', explain: function(v) {
+    var parts = [];
+    var tm = v.match(/timeout\s*=\s*(\d+)/i); if (tm) parts.push('Connection stays open for ' + tm[1] + ' seconds of inactivity');
+    var mm = v.match(/max\s*=\s*(\d+)/i); if (mm) parts.push('Maximum ' + mm[1] + ' requests per connection');
+    return parts.length ? parts : ['Keep-alive parameters: ' + v];
+  }},
+
+  // Redirect / Location
+  'location': { category: 'Redirect', icon: '↗️', summary: 'Redirect destination URL', explain: function(v) {
+    return ['Browser is being redirected to: ' + v];
+  }},
+
+  // Date
+  'date': { category: 'Info', icon: '📅', summary: 'When the server generated this response', explain: function(v) {
+    try { return ['Response generated: ' + new Date(v).toLocaleString()]; } catch(e) { return [v]; }
+  }},
+
+  // CDN / Edge
+  'x-cache': { category: 'CDN', icon: '⚡', summary: 'CDN cache hit/miss status', explain: function(v) {
+    if (/hit/i.test(v)) return ['Served from CDN cache — fast, no origin server request'];
+    if (/miss/i.test(v)) return ['CDN cache miss — fetched from origin server'];
+    return ['CDN cache status: ' + v];
+  }},
+  'cf-ray': { category: 'CDN', icon: '☁️', summary: 'Cloudflare request identifier', explain: function(v) {
+    var dc = v.split('-'); return ['Cloudflare request ID' + (dc.length > 1 ? ' — served from data center: ' + dc[dc.length - 1] : '')];
+  }},
+  'cf-cache-status': { category: 'CDN', icon: '☁️', summary: 'Cloudflare cache status', explain: function(v) {
+    var statuses = { 'HIT': 'Served from Cloudflare cache', 'MISS': 'Not in cache — fetched from origin', 'EXPIRED': 'Cache entry expired — refetched',
+      'BYPASS': 'Cache bypassed (by rule or header)', 'DYNAMIC': 'Not eligible for caching', 'REVALIDATED': 'Cache revalidated with origin' };
+    return [statuses[v.toUpperCase()] || 'Cloudflare cache: ' + v];
+  }},
+  'x-served-by': { category: 'CDN', icon: '🌐', summary: 'Which CDN/server node handled the request', explain: function(v) {
+    return ['Served by node: ' + v];
+  }},
+  'x-cdn': { category: 'CDN', icon: '🌐', summary: 'CDN identifier', explain: function(v) { return ['CDN: ' + v]; }},
+  'x-amz-cf-id': { category: 'CDN', icon: '☁️', summary: 'AWS CloudFront request ID', explain: function(v) { return ['CloudFront request ID for debugging']; }},
+  'x-amz-cf-pop': { category: 'CDN', icon: '☁️', summary: 'AWS CloudFront edge location', explain: function(v) { return ['Served from CloudFront edge: ' + v]; }},
+
+  // Auth
+  'www-authenticate': { category: 'Auth', icon: '🔐', summary: 'Authentication method required', explain: function(v) {
+    if (/bearer/i.test(v)) return ['Requires a Bearer token (typically JWT/OAuth2)'];
+    if (/basic/i.test(v)) return ['Requires Basic authentication (username:password, base64 encoded) — only safe over HTTPS'];
+    if (/negotiate/i.test(v)) return ['Requires Windows/Kerberos authentication'];
+    return ['Authentication required: ' + v];
+  }},
+
+  // Rate limiting
+  'x-ratelimit-limit': { category: 'Rate Limit', icon: '🚦', summary: 'Maximum requests allowed', explain: function(v) { return ['Rate limit: ' + v + ' requests per window']; }},
+  'x-ratelimit-remaining': { category: 'Rate Limit', icon: '🚦', summary: 'Requests remaining in current window', explain: function(v) {
+    var n = parseInt(v); if (n === 0) return ['No requests remaining — next request may be throttled'];
+    return [n + ' requests remaining in current window'];
+  }},
+  'x-ratelimit-reset': { category: 'Rate Limit', icon: '🚦', summary: 'When the rate limit window resets', explain: function(v) {
+    var ts = parseInt(v);
+    if (ts > 1e9) { try { return ['Resets at: ' + new Date(ts * 1000).toLocaleString()]; } catch(e) {} }
+    return ['Resets in ' + v + ' seconds'];
+  }},
+  'retry-after': { category: 'Rate Limit', icon: '🚦', summary: 'How long to wait before retrying', explain: function(v) {
+    var sec = parseInt(v);
+    if (!isNaN(sec)) return ['Wait ' + sec + ' seconds before retrying'];
+    return ['Retry after: ' + v];
+  }},
+
+  // Reporting
+  'nel': { category: 'Reporting', icon: '📊', summary: 'Network Error Logging configuration', explain: function(v) { return ['Configures browser to report network errors to a server endpoint']; }},
+  'reporting-endpoints': { category: 'Reporting', icon: '📊', summary: 'Where to send violation/error reports', explain: function(v) { return ['Report endpoints: ' + v]; }},
+  'report-to': { category: 'Deprecated', icon: '⚠️', summary: 'Reporting endpoint (deprecated)', explain: function(v) { return ['Deprecated — use Reporting-Endpoints instead']; }}
+};
+
+/* ================================================================
    UTILITY FUNCTIONS
    ================================================================ */
 
@@ -3621,27 +4085,9 @@ function formatDate(iso) {
    THEME
    ================================================================ */
 
-function initTheme() {
-  var saved = localStorage.getItem('scanref-theme');
-  var theme = saved || 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
-  updateThemeLabel();
-}
-
-function toggleTheme() {
-  var current = document.documentElement.getAttribute('data-theme');
-  var next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('scanref-theme', next);
-  updateThemeLabel();
-}
-
-function updateThemeLabel() {
-  var label = document.getElementById('themeLabel');
-  if (label) {
-    label.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Dark' : 'Light';
-  }
-}
+function initTheme() {}
+function toggleTheme() {}
+function updateThemeLabel() {}
 
 /* ================================================================
    SIDEBAR NAVIGATION
@@ -3674,13 +4120,30 @@ function buildSidebar() {
     });
   }
 
-  // Docs
+  // Docs (expandable tree)
   var docKeys = Object.keys(docs);
   if (docKeys.length > 0) {
     html += '<div class="nav-group-label">Docs</div>';
     docKeys.forEach(function(k) {
-      html += '<div class="nav-item" data-type="docs" data-key="' + escapeHtml(k) + '">' +
-        '<span class="nav-item-label">' + escapeHtml(k) + ' Reference</span></div>';
+      // Extract unique categories in order
+      var cats = [];
+      var catCounts = {};
+      docs[k].forEach(function(e) {
+        var cat = e.category || 'Other';
+        if (cats.indexOf(cat) === -1) cats.push(cat);
+        catCounts[cat] = (catCounts[cat] || 0) + 1;
+      });
+      html += '<div class="nav-tree-parent" data-type="docs" data-key="' + escapeHtml(k) + '">' +
+        '<span class="nav-tree-parent-label"><span class="nav-tree-chevron">&#9654;</span>' +
+        escapeHtml(k) + ' Reference</span></div>';
+      html += '<div class="nav-tree-children" data-parent="' + escapeHtml(k) + '">';
+      cats.forEach(function(cat) {
+        html += '<div class="nav-tree-child" data-type="docs" data-key="' + escapeHtml(k) +
+          '" data-category="' + escapeHtml(cat) + '">' +
+          '<span>' + escapeHtml(cat) + '</span>' +
+          '<span class="tree-child-count">' + catCounts[cat] + '</span></div>';
+      });
+      html += '</div>';
     });
   }
 
@@ -3696,7 +4159,7 @@ function buildSidebar() {
 
   nav.innerHTML = html;
 
-  // Attach click handlers
+  // Attach click handlers for flat nav items
   var items = nav.querySelectorAll('.nav-item');
   for (var i = 0; i < items.length; i++) {
     (function(item) {
@@ -3707,6 +4170,41 @@ function buildSidebar() {
         closeMobileSidebar();
       });
     })(items[i]);
+  }
+
+  // Attach tree parent toggle + navigation
+  var treeParents = nav.querySelectorAll('.nav-tree-parent');
+  for (var tp = 0; tp < treeParents.length; tp++) {
+    (function(parent) {
+      parent.addEventListener('click', function() {
+        var key = parent.getAttribute('data-key');
+        var children = nav.querySelector('.nav-tree-children[data-parent="' + key + '"]');
+        var isExpanded = parent.classList.contains('expanded');
+        if (isExpanded) {
+          parent.classList.remove('expanded');
+          children.classList.remove('expanded');
+        } else {
+          parent.classList.add('expanded');
+          children.classList.add('expanded');
+        }
+        // Also navigate to the docs page
+        navigateTo({ type: parent.getAttribute('data-type'), key: key });
+      });
+    })(treeParents[tp]);
+  }
+
+  // Attach tree child click → navigate + scroll to category
+  var treeChildren = nav.querySelectorAll('.nav-tree-child');
+  for (var tc = 0; tc < treeChildren.length; tc++) {
+    (function(child) {
+      child.addEventListener('click', function() {
+        var type = child.getAttribute('data-type');
+        var key = child.getAttribute('data-key');
+        var cat = child.getAttribute('data-category');
+        navigateTo({ type: type, key: key }, 'doc-cat-' + key + '-' + cat.replace(/[^a-zA-Z0-9]/g, '-'));
+        closeMobileSidebar();
+      });
+    })(treeChildren[tc]);
   }
 }
 
@@ -3720,10 +4218,27 @@ function updateSidebarActive() {
     if (isActive) item.classList.add('active');
     else item.classList.remove('active');
   }
+  // Tree parents
+  var treeParents = document.querySelectorAll('.nav-tree-parent');
+  for (var tp = 0; tp < treeParents.length; tp++) {
+    var p = treeParents[tp];
+    var pType = p.getAttribute('data-type');
+    var pKey = p.getAttribute('data-key');
+    var pActive = activeSection && activeSection.type === pType && activeSection.key === pKey;
+    if (pActive) {
+      p.classList.add('active');
+      // Auto-expand when active
+      p.classList.add('expanded');
+      var children = document.querySelector('.nav-tree-children[data-parent="' + pKey + '"]');
+      if (children) children.classList.add('expanded');
+    } else {
+      p.classList.remove('active');
+    }
+  }
 }
 
 function updateSidebarMatchCounts(counts) {
-  var items = document.querySelectorAll('.nav-item');
+  var items = document.querySelectorAll('.nav-item, .nav-tree-parent');
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
     var type = item.getAttribute('data-type');
@@ -3817,6 +4332,16 @@ function renderReferenceSection(container, sectionName) {
   html += '</div>';
   container.innerHTML = html;
   attachCopyHandlers(container);
+  // Card expand/collapse handlers
+  var cards = container.querySelectorAll('.card');
+  for (var ci = 0; ci < cards.length; ci++) {
+    (function(card) {
+      var header = card.querySelector('.card-header');
+      if (header) {
+        header.addEventListener('click', function() { card.classList.toggle('expanded'); });
+      }
+    })(cards[ci]);
+  }
 }
 
 function renderCommandCard(cmd, idx) {
@@ -3827,14 +4352,19 @@ function renderCommandCard(cmd, idx) {
   });
 
   return '<div class="card">' +
+    '<div class="card-header">' +
+    '<span class="card-chevron">&#9654;</span>' +
+    '<div class="card-header-main">' +
     '<div class="card-title">' + highlightText(cmd.title, q) + '</div>' +
     '<div class="card-tags"><span class="tag-badge">' + escapeHtml(cmd.section) + '</span>' + tagsHtml + '</div>' +
+    '</div></div>' +
+    '<div class="card-body">' +
     '<div class="code-block-wrapper">' +
     '<pre class="code-block">' + highlightText(cmd.cmd, q) + '</pre>' +
     '<button class="copy-btn" data-copy="' + escapeHtml(cmd.cmd) + '">Copy</button>' +
     '</div>' +
     (cmd.notes ? '<div class="card-notes">' + highlightText(cmd.notes, q) + '</div>' : '') +
-    '</div>';
+    '</div></div>';
 }
 
 function attachCopyHandlers(container) {
@@ -3977,12 +4507,14 @@ function renderCraftSection(container, toolKey) {
     '</div>';
 
   // Option groups
+  html += '<div class="craft-groups-grid">';
   (tool.groups || []).forEach(function(g, gi) {
     html += '<div class="option-group">' +
       '<div class="option-group-header">' +
+      '<span class="option-group-chevron">&#9654;</span>' +
       '<span class="option-group-label">' + escapeHtml(g.name) + '</span>' +
       '<span class="compare-all-link" data-tool="' + escapeHtml(toolKey) + '" data-group="' + escapeHtml(g.name) + '">Compare all &rarr;</span>' +
-      '</div><div class="pill-group">';
+      '</div><div class="option-group-body"><div class="pill-group">';
 
     g.options.forEach(function(opt, oi) {
       var isActive = state.groups[g.name] === oi;
@@ -4003,13 +4535,16 @@ function renderCraftSection(container, toolKey) {
           '</div>';
       }
     });
-    html += '</div>';
+    html += '</div></div>';
   });
 
   // Toggles
   if ((tool.toggles || []).length > 0) {
-    html += '<div class="option-group"><div class="option-group-header"><span class="option-group-label">Options</span></div>' +
-      '<div class="toggles-grid">';
+    html += '<div class="option-group">' +
+      '<div class="option-group-header">' +
+      '<span class="option-group-chevron">&#9654;</span>' +
+      '<span class="option-group-label">Options</span></div>' +
+      '<div class="option-group-body"><div class="toggles-grid">';
     tool.toggles.forEach(function(t, ti) {
       var isOn = state.toggles[t.flag];
       html += '<div class="toggle-item">' +
@@ -4026,8 +4561,9 @@ function renderCraftSection(container, toolKey) {
           '" value="' + escapeHtml(state.customInputs[t.flag] || '') + '"></div>';
       }
     });
-    html += '</div></div>';
+    html += '</div></div></div>';
   }
+  html += '</div>'; // .craft-groups-grid
 
   // Crafted command output
   html += '<div class="crafted-output">' +
@@ -4044,6 +4580,20 @@ function renderCraftSection(container, toolKey) {
 function attachCraftHandlers(container, toolKey) {
   var tool = craftTools[toolKey];
   var state = getCraftState(toolKey);
+
+  // Option group expand/collapse handlers
+  var optGroups = container.querySelectorAll('.option-group');
+  for (var og = 0; og < optGroups.length; og++) {
+    (function(group) {
+      var header = group.querySelector('.option-group-header');
+      if (header) {
+        header.addEventListener('click', function(e) {
+          if (e.target.classList.contains('compare-all-link')) return;
+          group.classList.toggle('expanded');
+        });
+      }
+    })(optGroups[og]);
+  }
 
   function updateOutput() {
     var preview = document.getElementById('craftedPreview');
@@ -4160,6 +4710,18 @@ function renderDocsSection(container, toolKey, scrollToId) {
     return;
   }
 
+  // Group entries by category (preserve order)
+  var catOrder = [];
+  var catMap = {};
+  entries.forEach(function(e) {
+    var cat = e.category || 'Other';
+    if (!catMap[cat]) {
+      catOrder.push(cat);
+      catMap[cat] = [];
+    }
+    catMap[cat].push(e);
+  });
+
   var q = searchQuery;
   var html = '<div class="docs-container">';
 
@@ -4170,54 +4732,71 @@ function renderDocsSection(container, toolKey, scrollToId) {
   }
 
   html += '<div class="section-header"><h2>' + escapeHtml(toolKey) + ' Reference</h2>' +
-    '<p>' + entries.length + ' entries</p></div>';
+    '<p>' + entries.length + ' entries across ' + catOrder.length + ' categories</p></div>';
 
-  entries.forEach(function(entry) {
-    html += '<div class="doc-entry" id="' + escapeHtml(entry.id || '') + '">' +
-      '<span class="doc-entry-flag">' + highlightText(entry.flag, q) + '</span>' +
-      (entry.category ? '<span class="doc-entry-category">' + escapeHtml(entry.category) + '</span>' : '') +
-      '<div class="doc-entry-title">' + highlightText(entry.title, q) + '</div>' +
-      '<div class="doc-entry-desc">' + highlightText(entry.description || '', q) + '</div>';
+  // Render grouped by category
+  catOrder.forEach(function(cat) {
+    var catId = 'doc-cat-' + toolKey + '-' + cat.replace(/[^a-zA-Z0-9]/g, '-');
+    html += '<div class="doc-category-group" id="' + escapeHtml(catId) + '">';
+    html += '<div class="doc-category-header">' +
+      '<span class="doc-category-title">' + escapeHtml(cat) + '</span>' +
+      '<span class="doc-category-count">' + catMap[cat].length + '</span></div>';
 
-    // Platform blocks
-    if (entry.platforms) {
-      if (entry.platforms.linux) {
-        html += '<div class="platform-block"><div class="platform-label">Linux</div>' +
-          '<div class="platform-text">' + highlightText(entry.platforms.linux, q) + '</div></div>';
+    html += '<div class="doc-entries-grid">';
+    catMap[cat].forEach(function(entry) {
+      html += '<div class="doc-entry" id="' + escapeHtml(entry.id || '') + '">' +
+        '<div class="doc-entry-header">' +
+        '<span class="doc-entry-chevron">&#9654;</span>' +
+        '<div class="doc-entry-header-main">' +
+        '<span class="doc-entry-flag">' + highlightText(entry.flag, q) + '</span>' +
+        '<span class="doc-entry-title">' + highlightText(entry.title, q) + '</span>' +
+        '</div></div>' +
+        '<div class="doc-entry-body">' +
+        '<div class="doc-entry-desc">' + highlightText(entry.description || '', q) + '</div>';
+
+      // Platform blocks
+      if (entry.platforms) {
+        if (entry.platforms.linux) {
+          html += '<div class="platform-block"><div class="platform-label">Linux</div>' +
+            '<div class="platform-text">' + highlightText(entry.platforms.linux, q) + '</div></div>';
+        }
+        if (entry.platforms.windows) {
+          html += '<div class="platform-block"><div class="platform-label">Windows CMD</div>' +
+            '<div class="platform-text">' + highlightText(entry.platforms.windows, q) + '</div></div>';
+        }
+        if (entry.platforms.powershell) {
+          html += '<div class="platform-block"><div class="platform-label">PowerShell</div>' +
+            '<div class="platform-text">' + highlightText(entry.platforms.powershell, q) + '</div></div>';
+        }
       }
-      if (entry.platforms.windows) {
-        html += '<div class="platform-block"><div class="platform-label">Windows CMD</div>' +
-          '<div class="platform-text">' + highlightText(entry.platforms.windows, q) + '</div></div>';
+
+      // Example
+      if (entry.example) {
+        html += '<div class="doc-example"><div class="code-block-wrapper">' +
+          '<pre class="code-block">' + highlightText(entry.example, q) + '</pre>' +
+          '<button class="copy-btn" data-copy="' + escapeHtml(entry.example) + '">Copy</button>' +
+          '</div></div>';
       }
-      if (entry.platforms.powershell) {
-        html += '<div class="platform-block"><div class="platform-label">PowerShell</div>' +
-          '<div class="platform-text">' + highlightText(entry.platforms.powershell, q) + '</div></div>';
+
+      // Warnings
+      if (entry.warnings && entry.warnings.length > 0) {
+        html += '<div class="doc-warnings"><div class="doc-warnings-label">Warnings</div><ul>';
+        entry.warnings.forEach(function(w) { html += '<li>' + highlightText(w, q) + '</li>'; });
+        html += '</ul></div>';
       }
-    }
 
-    // Example
-    if (entry.example) {
-      html += '<div class="doc-example"><div class="code-block-wrapper">' +
-        '<pre class="code-block">' + highlightText(entry.example, q) + '</pre>' +
-        '<button class="copy-btn" data-copy="' + escapeHtml(entry.example) + '">Copy</button>' +
-        '</div></div>';
-    }
+      // Tips
+      if (entry.tips && entry.tips.length > 0) {
+        html += '<div class="doc-tips"><div class="doc-tips-label">Tips</div><ul>';
+        entry.tips.forEach(function(t) { html += '<li>' + highlightText(t, q) + '</li>'; });
+        html += '</ul></div>';
+      }
 
-    // Warnings
-    if (entry.warnings && entry.warnings.length > 0) {
-      html += '<div class="doc-warnings"><div class="doc-warnings-label">Warnings</div><ul>';
-      entry.warnings.forEach(function(w) { html += '<li>' + highlightText(w, q) + '</li>'; });
-      html += '</ul></div>';
-    }
+      html += '</div></div>'; // .doc-entry-body + .doc-entry
+    });
 
-    // Tips
-    if (entry.tips && entry.tips.length > 0) {
-      html += '<div class="doc-tips"><div class="doc-tips-label">Tips</div><ul>';
-      entry.tips.forEach(function(t) { html += '<li>' + highlightText(t, q) + '</li>'; });
-      html += '</ul></div>';
-    }
-
-    html += '</div>';
+    html += '</div>'; // .doc-entries-grid
+    html += '</div>'; // .doc-category-group
   });
 
   html += '</div>';
@@ -4232,6 +4811,29 @@ function renderDocsSection(container, toolKey, scrollToId) {
   }
 
   attachCopyHandlers(container);
+
+  // Doc entry expand/collapse handlers
+  var docEntries = container.querySelectorAll('.doc-entry');
+  for (var di = 0; di < docEntries.length; di++) {
+    (function(entry) {
+      var header = entry.querySelector('.doc-entry-header');
+      if (header) {
+        header.addEventListener('click', function() { entry.classList.toggle('expanded'); });
+      }
+    })(docEntries[di]);
+  }
+
+  // Scroll to category anchor and expand its entries if requested
+  if (scrollToId) {
+    var target = document.getElementById(scrollToId);
+    if (target) {
+      var entries = target.querySelectorAll('.doc-entry');
+      for (var ei = 0; ei < entries.length; ei++) {
+        entries[ei].classList.add('expanded');
+      }
+      setTimeout(function() { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 10);
+    }
+  }
 }
 
 /* ================================================================
@@ -4312,7 +4914,8 @@ function renderScanTimeline() {
   Object.keys(groups).forEach(function(target) {
     var scans = groups[target];
     html += '<div class="target-group">' +
-      '<div class="target-group-header">' + escapeHtml(target) + '</div>';
+      '<div class="target-group-header">' + escapeHtml(target) + '</div>' +
+      '<div class="target-group-entries">';
     scans.forEach(function(scan) {
       var selected = rescanSelected.indexOf(scan.id) >= 0;
       html += '<div class="scan-entry' + (selected ? ' selected' : '') + '" data-id="' + escapeHtml(scan.id) + '">' +
@@ -4322,7 +4925,7 @@ function renderScanTimeline() {
         '<span class="scan-entry-date">' + formatDate(scan.timestamp) + '</span>' +
         '</div>';
     });
-    html += '</div>';
+    html += '</div></div>';
   });
   html += '</div>';
   return html;
@@ -5515,6 +6118,16 @@ function renderSearchResults(results) {
 
   main.innerHTML = html;
   attachCopyHandlers(main);
+  // Card expand/collapse handlers for search results
+  var srCards = main.querySelectorAll('.card');
+  for (var si = 0; si < srCards.length; si++) {
+    (function(card) {
+      var header = card.querySelector('.card-header');
+      if (header) {
+        header.addEventListener('click', function() { card.classList.toggle('expanded'); });
+      }
+    })(srCards[si]);
+  }
 }
 
 /* ================================================================
@@ -5587,11 +6200,6 @@ function closeMobileSidebar() {
   sidebarOverlay.classList.remove('open');
 }
 
-/* ================================================================
-   THEME TOGGLE
-   ================================================================ */
-
-document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
 /* ================================================================
    INIT
@@ -5629,6 +6237,7 @@ function renderAuditSection(container) {
 
     if (currentAuditResult) {
       html += renderAuditReport(currentAuditResult);
+      html += renderHeaderAnalyzer(currentAuditResult);
     }
 
     if (auditEntries.length > 0) {
@@ -5639,6 +6248,7 @@ function renderAuditSection(container) {
   html += '</div>';
   container.innerHTML = html;
   attachAuditHandlers(container);
+  if (currentAuditResult) attachHeaderAnalyzerHandlers(container);
 }
 
 function renderAuditReport(result) {
@@ -5726,6 +6336,138 @@ function renderAuditFindingSection(title, items, count, colorClass, renderItem) 
   return html;
 }
 
+function renderHeaderAnalyzer(result) {
+  if (!result || !result.headers) return '';
+  var headers = result.headers;
+  var keys = Object.keys(headers);
+  if (keys.length === 0) return '';
+
+  // Build status map from findings
+  var statusMap = {};
+  (result.findings.enabled || []).forEach(function(f) { statusMap[f.header.toLowerCase()] = 'ok'; });
+  (result.findings.insecure || []).forEach(function(f) { statusMap[f.header.toLowerCase()] = 'insecure'; });
+  (result.findings.deprecated || []).forEach(function(f) { statusMap[f.header.toLowerCase()] = 'deprecated'; });
+  (result.findings.fingerprint || []).forEach(function(f) { statusMap[f.header.toLowerCase()] = 'fingerprint'; });
+  (result.findings.empty || []).forEach(function(f) { statusMap[f.header.toLowerCase()] = 'empty'; });
+
+  // Group by category
+  var groups = {};
+  var groupOrder = [];
+  keys.forEach(function(key) {
+    var knowledge = HEADER_KNOWLEDGE[key];
+    var cat = knowledge ? knowledge.category : 'Other';
+    if (!groups[cat]) { groups[cat] = []; groupOrder.push(cat); }
+    groups[cat].push(key);
+  });
+
+  // Sort: prioritize Security, Caching, Content, CORS, then alphabetical
+  var catPriority = ['Security', 'Caching', 'Content', 'CORS', 'Cookies', 'Server', 'CDN', 'Rate Limit', 'Auth', 'Connection', 'Redirect', 'Reporting', 'Info', 'Deprecated', 'Other'];
+  groupOrder.sort(function(a, b) {
+    var ai = catPriority.indexOf(a); var bi = catPriority.indexOf(b);
+    if (ai === -1) ai = 99; if (bi === -1) bi = 99;
+    return ai - bi;
+  });
+
+  var html = '<div class="header-analyzer">';
+  html += '<div class="header-analyzer-title">Header Analyzer</div>';
+  html += '<div class="header-analyzer-subtitle">' + keys.length + ' headers received — click any header to see what it means</div>';
+
+  // Category tabs
+  html += '<div class="header-analyzer-tabs">';
+  html += '<div class="ha-tab active" data-ha-cat="all">All<span class="ha-tab-count">' + keys.length + '</span></div>';
+  groupOrder.forEach(function(cat) {
+    html += '<div class="ha-tab" data-ha-cat="' + escapeHtml(cat) + '">' + escapeHtml(cat) + '<span class="ha-tab-count">' + groups[cat].length + '</span></div>';
+  });
+  html += '</div>';
+
+  // Render all cards
+  html += '<div class="ha-cards" id="haCards">';
+  groupOrder.forEach(function(cat) {
+    groups[cat].forEach(function(key) {
+      var h = headers[key];
+      var name = h.original || key;
+      var value = h.value || '';
+      var knowledge = HEADER_KNOWLEDGE[key];
+      var status = statusMap[key] || '';
+
+      html += '<div class="ha-card" data-ha-cat="' + escapeHtml(knowledge ? knowledge.category : 'Other') + '">';
+      html += '<div class="ha-card-header">';
+      html += '<span class="ha-card-icon">' + (knowledge ? knowledge.icon : '📋') + '</span>';
+      html += '<div class="ha-card-main">';
+      html += '<div class="ha-card-name">' + escapeHtml(name) + '</div>';
+      html += '<div class="ha-card-summary">' + escapeHtml(knowledge ? knowledge.summary : 'HTTP response header') + '</div>';
+      if (value) html += '<div class="ha-card-value">' + escapeHtml(value) + '</div>';
+      html += '</div>';
+      html += '<div class="ha-card-badges">';
+      if (knowledge) html += '<span class="ha-badge ha-badge-category">' + escapeHtml(knowledge.category) + '</span>';
+      if (status === 'ok') html += '<span class="ha-badge ha-badge-ok">secure</span>';
+      else if (status === 'insecure') html += '<span class="ha-badge ha-badge-danger">insecure</span>';
+      else if (status === 'deprecated') html += '<span class="ha-badge ha-badge-depr">deprecated</span>';
+      else if (status === 'fingerprint') html += '<span class="ha-badge ha-badge-warn">leaks info</span>';
+      else if (status === 'empty') html += '<span class="ha-badge ha-badge-warn">empty</span>';
+      html += '</div>';
+      html += '<span class="ha-card-chevron">&#9654;</span>';
+      html += '</div>'; // .ha-card-header
+
+      // Expandable detail
+      html += '<div class="ha-card-detail">';
+      if (knowledge && knowledge.explain && value) {
+        var explanations = knowledge.explain(value);
+        html += '<ul class="ha-detail-list">';
+        explanations.forEach(function(line) {
+          var isWarning = line.indexOf('\u26A0') >= 0 || line.indexOf('Security tip') >= 0;
+          html += '<li' + (isWarning ? ' class="ha-warning"' : '') + '>' + escapeHtml(line) + '</li>';
+        });
+        html += '</ul>';
+      } else if (value) {
+        html += '<ul class="ha-detail-list"><li>Value: ' + escapeHtml(value) + '</li></ul>';
+      } else {
+        html += '<ul class="ha-detail-list"><li class="ha-warning">Header is present but has no value</li></ul>';
+      }
+      html += '</div>'; // .ha-card-detail
+      html += '</div>'; // .ha-card
+    });
+  });
+  html += '</div>'; // .ha-cards
+  html += '</div>'; // .header-analyzer
+  return html;
+}
+
+function attachHeaderAnalyzerHandlers(container) {
+  // Tab filtering
+  var tabs = container.querySelectorAll('.ha-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    (function(tab) {
+      tab.addEventListener('click', function() {
+        var cat = tab.getAttribute('data-ha-cat');
+        // Update active tab
+        var allTabs = container.querySelectorAll('.ha-tab');
+        for (var t = 0; t < allTabs.length; t++) allTabs[t].classList.remove('active');
+        tab.classList.add('active');
+        // Filter cards
+        var cards = container.querySelectorAll('.ha-card');
+        for (var c = 0; c < cards.length; c++) {
+          if (cat === 'all' || cards[c].getAttribute('data-ha-cat') === cat) {
+            cards[c].style.display = '';
+          } else {
+            cards[c].style.display = 'none';
+          }
+        }
+      });
+    })(tabs[i]);
+  }
+
+  // Card expand/collapse
+  var cardHeaders = container.querySelectorAll('.ha-card-header');
+  for (var j = 0; j < cardHeaders.length; j++) {
+    (function(header) {
+      header.addEventListener('click', function() {
+        header.parentElement.classList.toggle('expanded');
+      });
+    })(cardHeaders[j]);
+  }
+}
+
 function renderAuditTimeline() {
   var html = '<div class="audit-timeline">';
   html += '<h3 style="color:var(--accent-cyan);font-size:0.9rem;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--card-border);">Saved Audits</h3>';
@@ -5740,7 +6482,8 @@ function renderAuditTimeline() {
   Object.keys(groups).forEach(function(target) {
     var audits = groups[target];
     audits.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
-    html += '<div class="target-group"><div class="target-group-header">' + escapeHtml(target) + '</div>';
+    html += '<div class="target-group"><div class="target-group-header">' + escapeHtml(target) + '</div>' +
+      '<div class="target-group-entries">';
     audits.forEach(function(audit) {
       var selected = auditSelected.indexOf(audit.id) >= 0;
       var summary = audit.counts.missing + 'M ' + audit.counts.deprecated + 'D ' +
@@ -5752,7 +6495,7 @@ function renderAuditTimeline() {
         '<span class="audit-entry-date">' + formatDate(audit.timestamp) + '</span>' +
         '</div>';
     });
-    html += '</div>';
+    html += '</div></div>';
   });
 
   html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;">';
@@ -5777,6 +6520,7 @@ function attachAuditHandlers(container) {
         rawInput: raw,
         inputType: normalized.meta.source,
         meta: normalized.meta,
+        headers: normalized.headers,
         findings: result.findings,
         counts: result.counts
       };

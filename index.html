@@ -316,17 +316,28 @@ mark {
   z-index: 1;
 }
 .section-header h2 {
-  font-family: inherit;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-green);
   letter-spacing: 0.5px;
+  display: inline-block;
+  border: 1px solid rgba(166, 226, 46, 0.3);
+  padding: 2px 10px;
 }
 .section-header p {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 5px;
 }
+.section-prompt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+.section-prompt .cmd { color: var(--accent-green); font-weight: 700; }
+.section-prompt .flag { color: var(--accent-cyan); }
+.section-prompt .arg { color: var(--accent-yellow); }
 
 /* ===== Reference Cards ===== */
 .cards-grid {
@@ -4259,13 +4270,12 @@ function renderEmptyState(text, sub) {
 function renderReferenceSection(container, sectionName) {
   var items = commands.filter(function(c) { return c.section === sectionName; });
   if (items.length === 0) {
-    container.innerHTML = '<div class="section-header"><h2>' + escapeHtml(sectionName) +
-      '</h2><p>No commands yet. Add entries to the commands array.</p></div>' +
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--section</span> <span class="arg">' + escapeHtml(sectionName.toLowerCase().replace(/\s+/g, '-')) + '</span> <span class="flag">--count</span> <span class="arg">0</span></div><h2>' + escapeHtml(sectionName) + '</h2><p>No commands yet. Add entries to the commands array.</p></div>' +
       renderEmptyState('No commands in this section');
     return;
   }
 
-  var html = '<div class="section-header"><h2>' + escapeHtml(sectionName) + '</h2><p>' +
+  var html = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--section</span> <span class="arg">' + escapeHtml(sectionName.toLowerCase().replace(/\s+/g, '-')) + '</span> <span class="flag">--count</span> <span class="arg">' + items.length + '</span></div><h2>' + escapeHtml(sectionName) + '</h2><p>' +
     items.length + ' command' + (items.length !== 1 ? 's' : '') + '</p></div>';
   html += '<div class="cards-grid">';
   items.forEach(function(cmd, i) { html += renderCommandCard(cmd, i); });
@@ -4429,14 +4439,13 @@ function colorCodeCommand(toolKey) {
 function renderCraftSection(container, toolKey) {
   var tool = craftTools[toolKey];
   if (!tool) {
-    container.innerHTML = '<div class="section-header"><h2>Craft: ' + escapeHtml(toolKey) +
-      '</h2><p>Tool not configured yet.</p></div>' + renderEmptyState('Add this tool to craftTools object');
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--craft</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>Craft: ' + escapeHtml(toolKey) + '</h2><p>Tool not configured yet.</p></div>' + renderEmptyState('Add this tool to craftTools object');
     return;
   }
 
   var state = getCraftState(toolKey);
   var html = '<div class="craft-container">';
-  html += '<div class="section-header"><h2>' + escapeHtml(tool.name || toolKey) + '</h2>' +
+  html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--craft</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(tool.name || toolKey) + '</h2>' +
     '<p>' + escapeHtml(tool.description || '') + '</p></div>';
 
   // Target input
@@ -4645,8 +4654,7 @@ function attachCraftHandlers(container, toolKey) {
 function renderDocsSection(container, toolKey, scrollToId) {
   var entries = docs[toolKey];
   if (!entries || entries.length === 0) {
-    container.innerHTML = '<div class="section-header"><h2>' + escapeHtml(toolKey) +
-      ' Reference</h2><p>No documentation yet.</p></div>' + renderEmptyState('Add entries to the docs object');
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--docs</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(toolKey) + ' Reference</h2><p>No documentation yet.</p></div>' + renderEmptyState('Add entries to the docs object');
     return;
   }
 
@@ -4671,7 +4679,7 @@ function renderDocsSection(container, toolKey, scrollToId) {
       '">&larr; Back to ' + escapeHtml(toolKey) + ' Craft</span>';
   }
 
-  html += '<div class="section-header"><h2>' + escapeHtml(toolKey) + ' Reference</h2>' +
+  html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--docs</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(toolKey) + ' Reference</h2>' +
     '<p>' + entries.length + ' entries across ' + catOrder.length + ' categories</p></div>';
 
   // Render grouped by category
@@ -4782,7 +4790,7 @@ function renderDocsSection(container, toolKey, scrollToId) {
 
 function renderRescanSection(container) {
   var html = '<div class="rescan-container">';
-  html += '<div class="section-header"><h2>Rescan History</h2>' +
+  html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--history</span></div><h2>Rescan History</h2>' +
     '<p>Track scan results over time and compare changes</p></div>';
 
   // Env tabs
@@ -6028,11 +6036,11 @@ function matchesSearch(cmd, q) {
 function renderSearchResults(results) {
   var main = document.getElementById('mainContent');
   if (results.length === 0) {
-    main.innerHTML = '<div class="section-header"><h2>Search Results</h2><p>No matches found for "' + escapeHtml(searchQuery) + '"</p></div>';
+    main.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--search</span> <span class="arg">"' + escapeHtml(searchQuery) + '"</span></div><h2>Search Results</h2><p>No matches found for "' + escapeHtml(searchQuery) + '"</p></div>';
     return;
   }
 
-  var html = '<div class="section-header"><h2>Search Results</h2><p>Matches for "' + escapeHtml(searchQuery) + '"</p></div>';
+  var html = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--search</span> <span class="arg">"' + escapeHtml(searchQuery) + '"</span></div><h2>Search Results</h2><p>Matches for "' + escapeHtml(searchQuery) + '"</p></div>';
 
   results.forEach(function(group) {
     html += '<div class="search-results-section">';
@@ -6153,7 +6161,7 @@ var currentAuditResult = null;
 
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
-  html += '<div class="section-header"><h2>Header Audit</h2>' +
+  html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +
     '<p>Analyze HTTP response headers for security issues</p></div>';
 
   if (auditComparing && auditSelected.length === 2) {

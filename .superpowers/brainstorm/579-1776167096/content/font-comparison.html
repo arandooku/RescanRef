@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Font Comparison - Terminal Style</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0c08;
+  color: #e0e0d8;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 32px;
+  font-family: monospace;
+}
+
+h1 {
+  font-size: 13px;
+  color: #75715e;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.subtitle {
+  text-align: center;
+  font-size: 11px;
+  color: #4a4c44;
+  margin-bottom: 32px;
+}
+
+.font-option {
+  background: #0e100c;
+  border: 2px solid #1e201a;
+  margin-bottom: 16px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.font-option:hover {
+  border-color: #3e403a;
+}
+.font-option.selected {
+  border-color: #a6e22e;
+  background: rgba(166, 226, 46, 0.03);
+}
+
+.font-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.font-label .letter {
+  background: #1e201a;
+  color: #f92672;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: monospace;
+}
+.font-label .name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e0e0d8;
+}
+.font-label .meta {
+  font-size: 10px;
+  color: #4a4c44;
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.font-sample {
+  padding: 14px 16px;
+  background: #0a0c08;
+  border: 1px solid #1a1c16;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.g { color: #a6e22e; }
+.c { color: #66d9ef; }
+.y { color: #e6db74; }
+.p { color: #ae81ff; }
+.r { color: #f92672; }
+.o { color: #fd971f; }
+.d { color: #75715e; }
+
+/* Font families */
+.font-a .font-sample { font-family: Consolas, monospace; }
+.font-b .font-sample { font-family: 'Cascadia Code', 'Cascadia Mono', monospace; }
+.font-c .font-sample { font-family: 'Lucida Console', Monaco, monospace; }
+.font-d .font-sample { font-family: 'Courier New', Courier, monospace; }
+.font-e .font-sample { font-family: 'OCR A Std', 'OCR A Extended', 'OCRA', monospace; }
+.font-f .font-sample { font-family: 'Terminal', 'Fixedsys', monospace; }
+
+.note {
+  font-size: 10px;
+  color: #4a4c44;
+  margin-top: 4px;
+  padding-left: 40px;
+}
+</style>
+</head>
+<body>
+
+<h1>Which font feels most like <span style="color: #f92672;">htrace.sh</span>?</h1>
+<p class="subtitle">all samples show the same htrace-style output &middot; click to select</p>
+
+<!-- A: Consolas -->
+<div class="font-option font-a" onclick="select(this)" data-choice="a">
+  <div class="font-label">
+    <div class="letter">A</div>
+    <div class="name">Consolas</div>
+    <div class="meta">Windows system font &middot; current default</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Clean, readable. Standard Windows terminal font since Vista.</div>
+</div>
+
+<!-- B: Cascadia Code -->
+<div class="font-option font-b" onclick="select(this)" data-choice="b">
+  <div class="font-label">
+    <div class="letter">B</div>
+    <div class="name">Cascadia Code / Cascadia Mono</div>
+    <div class="meta">Windows Terminal default &middot; ligatures</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Modern, slightly rounder. Supports ligatures (=> becomes arrow). Ships with Windows Terminal.</div>
+</div>
+
+<!-- C: Lucida Console -->
+<div class="font-option font-c" onclick="select(this)" data-choice="c">
+  <div class="font-label">
+    <div class="letter">C</div>
+    <div class="name">Lucida Console</div>
+    <div class="meta">Classic Windows &middot; compact &middot; retro</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Tighter, more compact. Classic cmd.exe feel. Very 90s-2000s terminal energy.</div>
+</div>
+
+<!-- D: Courier New -->
+<div class="font-option font-d" onclick="select(this)" data-choice="d">
+  <div class="font-label">
+    <div class="letter">D</div>
+    <div class="name">Courier New</div>
+    <div class="meta">Universal &middot; typewriter style &middot; widest</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Wider glyphs, slab-serif. Typewriter DNA. Available everywhere but feels heavier.</div>
+</div>
+
+<!-- E: OCR-A -->
+<div class="font-option font-e" onclick="select(this)" data-choice="e">
+  <div class="font-label">
+    <div class="letter">E</div>
+    <div class="name">OCR A Extended</div>
+    <div class="meta">Machine-readable &middot; sci-fi aesthetic &middot; may not be installed</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Distinctive machine-readable look. Sci-fi hacker vibes. Falls back to monospace if not installed.</div>
+</div>
+
+<!-- F: Fixedsys / Terminal -->
+<div class="font-option font-f" onclick="select(this)" data-choice="f">
+  <div class="font-label">
+    <div class="letter">F</div>
+    <div class="name">Terminal / Fixedsys</div>
+    <div class="meta">Bitmap-era &middot; DOS nostalgia &middot; pixel-sharp</div>
+  </div>
+  <div class="font-sample">
+<span class="d"># htrace.sh -u</span> <span class="c">https://badssl.com</span> <span class="d">--ssl --headers</span>
+  <span class="g">htrace.sh v1.1.7</span> <span class="d">(openssl 1.1.1g : </span><span class="g">ok</span><span class="d">)</span>
+
+<span class="r">&bull;</span>  <span class="p">1</span>    <span class="p">0.554759</span>    xxx.xxx.xxx.xxx:34506  <span class="y">104.154.89.105:443</span>   US   <span class="c">https</span>  <span class="g">200</span>
+ssl: on, version(<span class="g">TLSv1.2</span>), cipher(<span class="o">ECDHE-RSA-AES128-GCM-SHA256</span>)
+  <span class="d">&raquo;</span> <span class="c">Server:</span> nginx/1.10.3 (Ubuntu)
+  <span class="d">&raquo;</span> <span class="c">Cache-Control:</span> <span class="y">no-store</span>
+  <span class="d">&raquo;</span> <span class="c">Content-Encoding:</span> gzip
+  </div>
+  <div class="note">Old-school bitmap terminal font. Pixel-perfect at specific sizes. Maximum retro authenticity.</div>
+</div>
+
+<script>
+function select(el) {
+  document.querySelectorAll('.font-option').forEach(o => o.classList.remove('selected'));
+  el.classList.toggle('selected');
+  if (window.toggleSelect) window.toggleSelect(el);
+}
+</script>
+
+</body>
+</html>

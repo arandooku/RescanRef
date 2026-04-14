@@ -1,0 +1,152 @@
+<h2>ScanRef — Craft Section Mockup</h2>
+<p class="subtitle">Interactive command builder with target input, toggles, and one-click copy</p>
+
+<div class="mockup" style="margin-bottom: 2rem;">
+  <div class="mockup-header">Craft — nmap builder</div>
+  <div class="mockup-body" style="padding: 0; min-height: 520px; display: flex; font-family: system-ui, sans-serif; font-size: 13px;">
+
+    <!-- Sidebar -->
+    <div style="width: 220px; background: #272822; border-right: 1px solid #49483e; display: flex; flex-direction: column; flex-shrink: 0;">
+      <div style="padding: 16px 16px 12px; border-bottom: 1px solid #49483e;">
+        <div style="font-size: 16px; font-weight: 700; color: #f8f8f2;">ScanRef</div>
+      </div>
+      <div style="padding: 12px;">
+        <div style="background: #3e3d32; border: 1px solid #49483e; border-radius: 4px; padding: 6px 8px; color: #75715e; font-size: 11px;">Search...</div>
+      </div>
+      <div style="padding: 4px 8px;">
+        <div style="padding: 6px 10px; color: #75715e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Reference</div>
+        <div style="padding: 5px 10px; color: #aaa; font-size: 12px; margin-bottom: 2px; border-radius: 4px;">Git</div>
+        <div style="padding: 5px 10px; color: #aaa; font-size: 12px; margin-bottom: 2px; border-radius: 4px;">Docker</div>
+        <div style="padding: 5px 10px; color: #aaa; font-size: 12px; margin-bottom: 8px; border-radius: 4px;">PowerShell</div>
+        <div style="padding: 6px 10px; color: #75715e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Craft</div>
+        <div style="padding: 5px 10px; background: #3e3d32; border-radius: 4px; color: #f92672; font-size: 12px; font-weight: 600; margin-bottom: 2px;">nmap</div>
+        <div style="padding: 5px 10px; color: #aaa; font-size: 12px; border-radius: 4px;">curl</div>
+      </div>
+    </div>
+
+    <!-- Main content: nmap crafter -->
+    <div style="flex: 1; background: #1e1f1c; padding: 24px; overflow-y: auto;">
+
+      <!-- Target input -->
+      <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0 0 4px; color: #f8f8f2; font-size: 20px;">nmap Crafter</h2>
+        <p style="margin: 0 0 14px; color: #75715e; font-size: 12px;">Build nmap commands with toggles, copy and run</p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label style="color: #aaa; font-size: 12px; font-weight: 600; white-space: nowrap;">Target:</label>
+          <div style="flex: 1; background: #272822; border: 2px solid #f92672; border-radius: 6px; padding: 10px 14px; color: #a6e22e; font-family: monospace; font-size: 14px;">192.168.1.100</div>
+        </div>
+      </div>
+
+      <!-- Scan Type -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <div style="color: #f8f8f2; font-size: 13px; font-weight: 600; margin-bottom: 10px;">Scan Type</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span style="background: #f92672; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer;">-sS SYN Stealth</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;">-sT TCP Connect</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;">-sU UDP</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;">-sA ACK</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;">-sV Version</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;">-sn Ping Sweep</span>
+        </div>
+      </div>
+
+      <!-- Port options -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <div style="color: #f8f8f2; font-size: 13px; font-weight: 600; margin-bottom: 10px;">Ports</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+          <span style="background: #f92672; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;">Top 1000 (default)</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px;">-p- All Ports</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px;">--top-ports 100</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 12px;">Custom range</span>
+        </div>
+        <div style="display: none; background: #3e3d32; border: 1px solid #49483e; border-radius: 4px; padding: 8px 12px; color: #75715e; font-size: 12px;">-p 80,443,8080</div>
+      </div>
+
+      <!-- Toggleable flags -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+        <div style="color: #f8f8f2; font-size: 13px; font-weight: 600; margin-bottom: 10px;">Options</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">-O OS Detection</span>
+            <div style="width: 36px; height: 20px; background: #a6e22e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">-sV Service Version</span>
+            <div style="width: 36px; height: 20px; background: #a6e22e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; right: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">-A Aggressive</span>
+            <div style="width: 36px; height: 20px; background: #49483e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #888; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">-v Verbose</span>
+            <div style="width: 36px; height: 20px; background: #49483e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #888; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">-Pn Skip host discovery</span>
+            <div style="width: 36px; height: 20px; background: #49483e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #888; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #3e3d32; border-radius: 6px; padding: 8px 12px;">
+            <span style="color: #ccc; font-size: 12px;">--script vuln</span>
+            <div style="width: 36px; height: 20px; background: #49483e; border-radius: 10px; position: relative;">
+              <div style="width: 16px; height: 16px; background: #888; border-radius: 50%; position: absolute; left: 2px; top: 2px;"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Timing -->
+      <div style="background: #272822; border: 1px solid #49483e; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+        <div style="color: #f8f8f2; font-size: 13px; font-weight: 600; margin-bottom: 10px;">Timing</div>
+        <div style="display: flex; gap: 6px;">
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 12px;">T0 Paranoid</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 12px;">T1 Sneaky</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 12px;">T2 Polite</span>
+          <span style="background: #f92672; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">T3 Normal</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 12px;">T4 Aggressive</span>
+          <span style="background: #3e3d32; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 12px;">T5 Insane</span>
+        </div>
+      </div>
+
+      <!-- Output: the crafted command -->
+      <div style="background: #272822; border: 2px solid #a6e22e; border-radius: 8px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="color: #a6e22e; font-size: 13px; font-weight: 700;">Crafted Command</span>
+          <span style="background: #a6e22e; color: #272822; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">📋 Copy</span>
+        </div>
+        <div style="background: #1a1b16; border-radius: 6px; padding: 12px 16px; font-family: 'Cascadia Code', 'Fira Code', monospace; color: #f8f8f2; font-size: 14px; line-height: 1.6; word-break: break-all;">
+          nmap <span style="color: #f92672;">-sS</span> <span style="color: #e6db74;">-O</span> <span style="color: #e6db74;">-sV</span> <span style="color: #66d9ef;">-T3</span> <span style="color: #a6e22e;">192.168.1.100</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem;">
+  <h3>How It Works</h3>
+  <ul style="color: #bbb; line-height: 1.9;">
+    <li><strong>Target input</strong> — type host/IP at the top, all crafted commands update live</li>
+    <li><strong>Pill buttons</strong> (single-select) — scan type, ports, timing — pick one per group</li>
+    <li><strong>Toggle switches</strong> (multi-select) — flags like -O, -sV, -A, -v, -Pn, scripts</li>
+    <li><strong>Crafted command</strong> — live preview at bottom, color-coded, prominent copy button</li>
+    <li><strong>Custom input</strong> — port range shows a text field when "Custom range" is selected</li>
+  </ul>
+</div>

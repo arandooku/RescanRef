@@ -1,0 +1,96 @@
+<h2>ScanRef — Layout Design</h2>
+<p class="subtitle">Sidebar Tabs + Search — overall structure</p>
+
+<div class="mockup" style="margin-bottom: 2rem;">
+  <div class="mockup-header">ScanRef Layout</div>
+  <div class="mockup-body" style="padding: 0; min-height: 400px; display: flex; font-family: system-ui, sans-serif; font-size: 13px;">
+
+    <!-- Sidebar -->
+    <div style="width: 220px; background: #1a1a2e; border-right: 1px solid #333; display: flex; flex-direction: column; flex-shrink: 0;">
+      <!-- App title -->
+      <div style="padding: 16px 16px 12px; border-bottom: 1px solid #333;">
+        <div style="font-size: 16px; font-weight: 700; color: #e0e0e0; letter-spacing: 0.5px;">ScanRef</div>
+        <div style="font-size: 11px; color: #888; margin-top: 2px;">Command Reference</div>
+      </div>
+
+      <!-- Search -->
+      <div style="padding: 12px;">
+        <div style="background: #16213e; border: 1px solid #444; border-radius: 6px; padding: 8px 10px; color: #888; font-size: 12px;">
+          🔍 Search commands...
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div style="flex: 1; padding: 4px 8px;">
+        <div style="padding: 8px 12px; background: #0f3460; border-radius: 6px; color: #e94560; font-weight: 600; margin-bottom: 4px;">Git</div>
+        <div style="padding: 8px 12px; color: #aaa; margin-bottom: 2px; border-radius: 6px;">Docker</div>
+        <div style="padding: 8px 12px; color: #aaa; margin-bottom: 2px; border-radius: 6px;">PowerShell</div>
+        <div style="padding: 8px 12px; color: #aaa; margin-bottom: 2px; border-radius: 6px;">SSH / Network</div>
+        <div style="padding: 8px 12px; color: #aaa; margin-bottom: 2px; border-radius: 6px;">npm / Node</div>
+      </div>
+
+      <!-- Theme toggle -->
+      <div style="padding: 12px; border-top: 1px solid #333; text-align: center;">
+        <span style="font-size: 11px; color: #888;">🌙 Dark &nbsp;|&nbsp; ☀️ Light</span>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div style="flex: 1; background: #16213e; padding: 24px; overflow-y: auto;">
+      <!-- Section header -->
+      <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #e0e0e0; font-size: 20px;">Git</h2>
+        <p style="margin: 4px 0 0; color: #888; font-size: 12px;">Version control commands</p>
+      </div>
+
+      <!-- Command card 1 -->
+      <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-weight: 600; font-size: 13px;">Undo last commit (keep changes)</span>
+          <span style="background: #0f3460; color: #e94560; font-size: 10px; padding: 2px 8px; border-radius: 10px;">git</span>
+        </div>
+        <div style="background: #0a0a1a; border-radius: 6px; padding: 10px 14px; font-family: 'Cascadia Code', 'Fira Code', monospace; color: #4ecca3; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+          <code>git reset --soft HEAD~1</code>
+          <span style="background: #1a1a2e; color: #aaa; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: system-ui;">📋 Copy</span>
+        </div>
+        <div style="margin-top: 8px; color: #777; font-size: 11px;">Moves HEAD back one commit but keeps your changes staged</div>
+      </div>
+
+      <!-- Command card 2 -->
+      <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-weight: 600; font-size: 13px;">Interactive rebase last N commits</span>
+          <span style="background: #0f3460; color: #e94560; font-size: 10px; padding: 2px 8px; border-radius: 10px;">git</span>
+        </div>
+        <div style="background: #0a0a1a; border-radius: 6px; padding: 10px 14px; font-family: 'Cascadia Code', 'Fira Code', monospace; color: #4ecca3; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+          <code>git rebase -i HEAD~N</code>
+          <span style="background: #1a1a2e; color: #aaa; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: system-ui;">📋 Copy</span>
+        </div>
+        <div style="margin-top: 8px; color: #777; font-size: 11px;">Replace N with number of commits to rebase</div>
+      </div>
+
+      <!-- Command card 3 -->
+      <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-weight: 600; font-size: 13px;">Show file changes in commit</span>
+          <span style="background: #0f3460; color: #e94560; font-size: 10px; padding: 2px 8px; border-radius: 10px;">git</span>
+        </div>
+        <div style="background: #0a0a1a; border-radius: 6px; padding: 10px 14px; font-family: 'Cascadia Code', 'Fira Code', monospace; color: #4ecca3; font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
+          <code>git show --stat &lt;commit-hash&gt;</code>
+          <span style="background: #1a1a2e; color: #aaa; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-family: system-ui;">📋 Copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key Elements</h3>
+  <ul style="color: #bbb; line-height: 1.8;">
+    <li><strong>Sidebar</strong> — app title, search bar, category list, light/dark toggle at bottom</li>
+    <li><strong>Main area</strong> — section title + description, then command cards</li>
+    <li><strong>Command card</strong> — title, tag badge, code block with one-click copy button, optional description</li>
+    <li><strong>Search</strong> — filters across ALL sections, matches title + command text + description</li>
+    <li><strong>Copy button</strong> — click to copy command to clipboard, brief "Copied!" feedback</li>
+  </ul>
+</div>

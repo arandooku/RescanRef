@@ -1,0 +1,110 @@
+<h2>ScanRef — Visual Style</h2>
+<p class="subtitle">Pick the color vibe for the dark theme (light theme will be auto-derived)</p>
+
+<div class="cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+
+  <!-- Option A: Midnight Blue -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)" style="overflow: hidden;">
+    <div class="card-image" style="padding: 0; min-height: 200px; display: flex; font-size: 12px;">
+      <div style="width: 35%; background: #1a1a2e; border-right: 1px solid #333; padding: 12px;">
+        <div style="font-weight: 700; color: #e0e0e0; font-size: 13px; margin-bottom: 8px;">ScanRef</div>
+        <div style="background: #16213e; border: 1px solid #444; border-radius: 4px; padding: 6px; color: #666; font-size: 10px; margin-bottom: 10px;">Search...</div>
+        <div style="padding: 5px 8px; background: #0f3460; border-radius: 4px; color: #e94560; font-size: 11px; font-weight: 600; margin-bottom: 3px;">Git</div>
+        <div style="padding: 5px 8px; color: #888; font-size: 11px;">Docker</div>
+      </div>
+      <div style="flex: 1; background: #16213e; padding: 12px;">
+        <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+          <div style="color: #ccc; font-size: 11px; margin-bottom: 6px;">Undo last commit</div>
+          <div style="background: #0a0a1a; border-radius: 4px; padding: 6px 8px; color: #4ecca3; font-family: monospace; font-size: 11px;">git reset --soft HEAD~1</div>
+        </div>
+        <div style="background: #1a1a2e; border: 1px solid #333; border-radius: 6px; padding: 10px;">
+          <div style="color: #ccc; font-size: 11px; margin-bottom: 6px;">Interactive rebase</div>
+          <div style="background: #0a0a1a; border-radius: 4px; padding: 6px 8px; color: #4ecca3; font-family: monospace; font-size: 11px;">git rebase -i HEAD~N</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Midnight Blue</h3>
+      <p>Deep navy backgrounds, coral/red accents, green command text. Feels like a polished terminal IDE.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Charcoal -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)" style="overflow: hidden;">
+    <div class="card-image" style="padding: 0; min-height: 200px; display: flex; font-size: 12px;">
+      <div style="width: 35%; background: #1e1e1e; border-right: 1px solid #3a3a3a; padding: 12px;">
+        <div style="font-weight: 700; color: #e0e0e0; font-size: 13px; margin-bottom: 8px;">ScanRef</div>
+        <div style="background: #2d2d2d; border: 1px solid #444; border-radius: 4px; padding: 6px; color: #666; font-size: 10px; margin-bottom: 10px;">Search...</div>
+        <div style="padding: 5px 8px; background: #333; border-radius: 4px; color: #569cd6; font-size: 11px; font-weight: 600; margin-bottom: 3px;">Git</div>
+        <div style="padding: 5px 8px; color: #888; font-size: 11px;">Docker</div>
+      </div>
+      <div style="flex: 1; background: #252526; padding: 12px;">
+        <div style="background: #1e1e1e; border: 1px solid #3a3a3a; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+          <div style="color: #ccc; font-size: 11px; margin-bottom: 6px;">Undo last commit</div>
+          <div style="background: #111; border-radius: 4px; padding: 6px 8px; color: #6a9955; font-family: monospace; font-size: 11px;">git reset --soft HEAD~1</div>
+        </div>
+        <div style="background: #1e1e1e; border: 1px solid #3a3a3a; border-radius: 6px; padding: 10px;">
+          <div style="color: #ccc; font-size: 11px; margin-bottom: 6px;">Interactive rebase</div>
+          <div style="background: #111; border-radius: 4px; padding: 6px 8px; color: #6a9955; font-family: monospace; font-size: 11px;">git rebase -i HEAD~N</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Charcoal (VS Code)</h3>
+      <p>Neutral dark grays, blue accents, green code. Familiar VS Code aesthetic — comfortable if you use it daily.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Nord-inspired -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)" style="overflow: hidden;">
+    <div class="card-image" style="padding: 0; min-height: 200px; display: flex; font-size: 12px;">
+      <div style="width: 35%; background: #2e3440; border-right: 1px solid #4c566a; padding: 12px;">
+        <div style="font-weight: 700; color: #eceff4; font-size: 13px; margin-bottom: 8px;">ScanRef</div>
+        <div style="background: #3b4252; border: 1px solid #4c566a; border-radius: 4px; padding: 6px; color: #6a7a8a; font-size: 10px; margin-bottom: 10px;">Search...</div>
+        <div style="padding: 5px 8px; background: #3b4252; border-radius: 4px; color: #88c0d0; font-size: 11px; font-weight: 600; margin-bottom: 3px;">Git</div>
+        <div style="padding: 5px 8px; color: #7a8a9a; font-size: 11px;">Docker</div>
+      </div>
+      <div style="flex: 1; background: #3b4252; padding: 12px;">
+        <div style="background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+          <div style="color: #d8dee9; font-size: 11px; margin-bottom: 6px;">Undo last commit</div>
+          <div style="background: #242933; border-radius: 4px; padding: 6px 8px; color: #a3be8c; font-family: monospace; font-size: 11px;">git reset --soft HEAD~1</div>
+        </div>
+        <div style="background: #2e3440; border: 1px solid #4c566a; border-radius: 6px; padding: 10px;">
+          <div style="color: #d8dee9; font-size: 11px; margin-bottom: 6px;">Interactive rebase</div>
+          <div style="background: #242933; border-radius: 4px; padding: 6px 8px; color: #a3be8c; font-family: monospace; font-size: 11px;">git rebase -i HEAD~N</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Nord</h3>
+      <p>Soft blue-gray palette, muted teal accents, gentle green code. Easy on the eyes for long sessions.</p>
+    </div>
+  </div>
+
+  <!-- Option D: Monokai-inspired -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)" style="overflow: hidden;">
+    <div class="card-image" style="padding: 0; min-height: 200px; display: flex; font-size: 12px;">
+      <div style="width: 35%; background: #272822; border-right: 1px solid #49483e; padding: 12px;">
+        <div style="font-weight: 700; color: #f8f8f2; font-size: 13px; margin-bottom: 8px;">ScanRef</div>
+        <div style="background: #3e3d32; border: 1px solid #49483e; border-radius: 4px; padding: 6px; color: #75715e; font-size: 10px; margin-bottom: 10px;">Search...</div>
+        <div style="padding: 5px 8px; background: #3e3d32; border-radius: 4px; color: #f92672; font-size: 11px; font-weight: 600; margin-bottom: 3px;">Git</div>
+        <div style="padding: 5px 8px; color: #75715e; font-size: 11px;">Docker</div>
+      </div>
+      <div style="flex: 1; background: #1e1f1c; padding: 12px;">
+        <div style="background: #272822; border: 1px solid #49483e; border-radius: 6px; padding: 10px; margin-bottom: 8px;">
+          <div style="color: #f8f8f2; font-size: 11px; margin-bottom: 6px;">Undo last commit</div>
+          <div style="background: #1a1b16; border-radius: 4px; padding: 6px 8px; color: #a6e22e; font-family: monospace; font-size: 11px;">git reset --soft HEAD~1</div>
+        </div>
+        <div style="background: #272822; border: 1px solid #49483e; border-radius: 6px; padding: 10px;">
+          <div style="color: #f8f8f2; font-size: 11px; margin-bottom: 6px;">Interactive rebase</div>
+          <div style="background: #1a1b16; border-radius: 4px; padding: 6px 8px; color: #a6e22e; font-family: monospace; font-size: 11px;">git rebase -i HEAD~N</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D — Monokai</h3>
+      <p>Warm olive-brown tones, hot pink accents, vivid green code. High contrast, classic hacker vibe.</p>
+    </div>
+  </div>
+
+</div>

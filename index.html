@@ -439,6 +439,17 @@ mark {
   margin-top: 6px;
   line-height: 1.5;
 }
+.card-doc-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--accent-cyan);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.card-doc-link:hover {
+  text-decoration: underline;
+}
 
 /* ===== Craft Section ===== */
 .craft-container {
@@ -1824,93 +1835,6 @@ mark {
    ================================================================ */
 
 const commands = [
-  // PowerShell
-  {
-    section: "PowerShell",
-    title: "Find files recursively",
-    cmd: "Get-ChildItem -Recurse -Filter '*.log'",
-    notes: "Recursively searches the current directory for files matching the filter pattern. Change *.log to any pattern.",
-    tags: ["search", "files", "recurse"]
-  },
-  {
-    section: "PowerShell",
-    title: "Check service status",
-    cmd: "Get-Service -Name <ServiceName>",
-    notes: "Retrieves the status of a Windows service. Replace <ServiceName> with the actual service name.",
-    tags: ["service", "status", "windows"]
-  },
-  {
-    section: "PowerShell",
-    title: "Kill a process by name",
-    cmd: "Stop-Process -Name <ProcessName> -Force",
-    notes: "Forcibly terminates all processes matching the given name. Replace <ProcessName> (e.g. notepad).",
-    tags: ["kill", "process", "force"]
-  },
-  {
-    section: "PowerShell",
-    title: "Test TCP connection",
-    cmd: "Test-NetConnection -ComputerName <host> -Port <port>",
-    notes: "Checks if a TCP port is reachable on the target host. Useful for firewall and connectivity debugging.",
-    tags: ["network", "tcp", "test"]
-  },
-  {
-    section: "PowerShell",
-    title: "List established TCP connections",
-    cmd: "Get-NetTCPConnection | Where-Object State -eq 'Established'",
-    notes: "Filters current TCP connections to show only established (active) ones. Useful for spotting unexpected connections.",
-    tags: ["network", "tcp", "connections"]
-  },
-  {
-    section: "PowerShell",
-    title: "Export process list to CSV",
-    cmd: "Get-Process | Export-Csv -Path processes.csv -NoTypeInformation",
-    notes: "Dumps the current process list to a CSV file without the PowerShell type header row.",
-    tags: ["export", "csv", "process"]
-  },
-
-  // SSH / Network
-  {
-    section: "SSH / Network",
-    title: "SSH with identity key",
-    cmd: "ssh -i ~/.ssh/id_rsa user@host",
-    notes: "Connects to a remote host using a specific private key file. Replace user and host accordingly.",
-    tags: ["ssh", "key", "connect"]
-  },
-  {
-    section: "SSH / Network",
-    title: "SSH local port tunnel",
-    cmd: "ssh -L <local-port>:<remote-host>:<remote-port> user@jump-host",
-    notes: "Forwards a local port through the jump host to a remote host and port. Useful for accessing internal services.",
-    tags: ["ssh", "tunnel", "port-forward"]
-  },
-  {
-    section: "SSH / Network",
-    title: "SCP remote to local",
-    cmd: "scp user@host:/remote/path /local/path",
-    notes: "Securely copies a file from a remote host to the local machine over SSH.",
-    tags: ["scp", "copy", "transfer"]
-  },
-  {
-    section: "SSH / Network",
-    title: "nmap TCP connect scan",
-    cmd: "nmap -sT <host>",
-    notes: "Performs a full TCP connect scan on a host. Does not require root. Replace <host> with IP or hostname.",
-    tags: ["nmap", "scan", "network"]
-  },
-  {
-    section: "SSH / Network",
-    title: "DNS lookup",
-    cmd: "nslookup <domain>",
-    notes: "Queries the default DNS server for the given domain's A record and other DNS info.",
-    tags: ["dns", "lookup", "network"]
-  },
-  {
-    section: "SSH / Network",
-    title: "Trace network route",
-    cmd: "traceroute <host>",
-    notes: "Shows each hop a packet takes to reach the destination. Use tracert on Windows.",
-    tags: ["traceroute", "network", "debug"]
-  },
 
 ];
 
@@ -2033,6 +1957,7 @@ const docs = {
       flag: "-sS",
       category: "Scan Type",
       title: "TCP SYN Stealth Scan",
+      docUrl: "https://nmap.org/book/man-port-scanning-techniques.html",
       description: "Sends SYN packets and waits for SYN/ACK or RST responses without completing the three-way handshake. Because the connection is never fully established, many older intrusion detection systems and application-layer logs do not record it. This is nmap's default scan when run with root/admin privileges and is the fastest reliable TCP scan method. Use it as your primary port discovery technique on any network where you have appropriate authorization.",
       example: "nmap -sS 192.168.1.1",
       platforms: {
@@ -2056,6 +1981,7 @@ const docs = {
       flag: "-sT",
       category: "Scan Type",
       title: "TCP Connect Scan",
+      docUrl: "https://nmap.org/book/man-port-scanning-techniques.html",
       description: "Performs a full TCP three-way handshake for each probed port using the OS's connect() system call. Because the connection completes, it is reliably logged by target services and firewalls. This is nmap's default scan when run without root/admin privileges. It is slower than -sS but works without special privileges and through some proxies.",
       example: "nmap -sT 192.168.1.1",
       platforms: {
@@ -2079,6 +2005,7 @@ const docs = {
       flag: "-sU",
       category: "Scan Type",
       title: "UDP Scan",
+      docUrl: "https://nmap.org/book/man-port-scanning-techniques.html",
       description: "Probes UDP ports by sending UDP packets and analyzing ICMP port-unreachable responses (port closed) or application responses (port open). UDP scanning is inherently slower and less reliable than TCP because UDP is connectionless and many hosts rate-limit ICMP responses. Critical services like DNS (53), SNMP (161), and DHCP (67/68) run over UDP and are often missed when only TCP is scanned.",
       example: "nmap -sU -p 53,67,68,161,123 192.168.1.1",
       platforms: {
@@ -2103,6 +2030,7 @@ const docs = {
       flag: "-sA",
       category: "Scan Type",
       title: "TCP ACK Scan",
+      docUrl: "https://nmap.org/book/man-port-scanning-techniques.html",
       description: "Sends TCP ACK packets (without a preceding SYN) to determine firewall rule sets rather than open ports. Hosts behind stateful firewalls drop or ignore unsolicited ACK packets (filtered), while unfiltered hosts return RST. This scan does not reveal open vs. closed ports — it maps firewall behavior and identifies unfiltered ports that can be reached for further scanning.",
       example: "nmap -sA 192.168.1.1",
       platforms: {
@@ -2126,6 +2054,7 @@ const docs = {
       flag: "-sV",
       category: "Scan Type",
       title: "Service/Version Detection",
+      docUrl: "https://nmap.org/book/man-version-detection.html",
       description: "After discovering open ports, sends probes designed to elicit banner or protocol-specific responses to identify the service name, version number, and sometimes OS details running on each port. Version detection significantly increases scan time but provides critical information for vulnerability assessment. The intensity of probing can be tuned with --version-intensity (0–9).",
       example: "nmap -sV 192.168.1.1",
       platforms: {
@@ -2149,6 +2078,7 @@ const docs = {
       flag: "-sn",
       category: "Scan Type",
       title: "Ping Scan (No Port Scan)",
+      docUrl: "https://nmap.org/book/man-host-discovery.html",
       description: "Performs host discovery without port scanning. Nmap sends ICMP echo, TCP SYN to port 443, TCP ACK to port 80, and ICMP timestamp requests to determine if hosts are up. This is the fastest way to discover live hosts on a network and is useful as the first step in a multi-phase assessment. Formerly called -sP.",
       example: "nmap -sn 192.168.1.0/24",
       platforms: {
@@ -2174,6 +2104,7 @@ const docs = {
       flag: "(default ports)",
       category: "Ports",
       title: "Default Port Scan (Top 1000)",
+      docUrl: "https://nmap.org/book/man-port-specification.html",
       description: "When no -p flag is specified, nmap scans the 1000 most commonly used TCP (or UDP with -sU) ports as ranked by frequency in the nmap-services file. This covers the vast majority of services encountered in practice and completes quickly. For most assessments the default port list is an excellent starting point before expanding to a full -p- scan.",
       example: "nmap 192.168.1.1",
       platforms: {
@@ -2196,6 +2127,7 @@ const docs = {
       flag: "-p-",
       category: "Ports",
       title: "Scan All 65535 Ports",
+      docUrl: "https://nmap.org/book/man-port-specification.html",
       description: "Instructs nmap to scan every TCP port from 1 to 65535 (or every UDP port with -sU). This catches services running on non-standard ports that the default top-1000 scan would miss. Full scans take significantly longer — from minutes to hours depending on timing template, target responsiveness, and network conditions.",
       example: "nmap -p- -T4 192.168.1.1",
       platforms: {
@@ -2219,6 +2151,7 @@ const docs = {
       flag: "--top-ports",
       category: "Ports",
       title: "Top N Ports",
+      docUrl: "https://nmap.org/book/man-port-specification.html",
       description: "Scans the N most frequently seen ports according to the nmap-services frequency data. Useful when the default 1000 ports is too broad for time constraints, or when you want to expand beyond 1000 without a full -p- scan. For example, --top-ports 100 gives a fast sweep; --top-ports 5000 catches more obscure services.",
       example: "nmap --top-ports 100 192.168.1.1",
       platforms: {
@@ -2241,6 +2174,7 @@ const docs = {
       flag: "-p <ports>",
       category: "Ports",
       title: "Custom Port Specification",
+      docUrl: "https://nmap.org/book/man-port-specification.html",
       description: "Specifies exactly which ports or port ranges to scan. Accepts individual ports (80), comma-separated lists (22,80,443), ranges (1-1024), protocol prefixes (T:80,U:53), and combinations. This gives precise control over scan scope and is useful for targeted testing of specific services or for reducing scan time on large networks.",
       example: "nmap -p 22,80,443,8080-8090 192.168.1.1",
       platforms: {
@@ -2265,6 +2199,7 @@ const docs = {
       flag: "-T0",
       category: "Timing",
       title: "Paranoid Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       description: "The slowest timing template, serializing probes with a 5-minute delay between each. Designed to evade IDS systems that use time-based correlation to detect port scans. At this speed, a full scan of even a single host's top 1000 ports takes many hours. Rarely practical outside of highly targeted, extremely covert operations.",
       example: "nmap -T0 -p 22,80,443 192.168.1.1",
       platforms: {
@@ -2287,6 +2222,7 @@ const docs = {
       id: "nmap-T1",
       flag: "-T1",
       category: "Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       title: "Sneaky Timing",
       description: "Very slow timing with 15-second delays between probes. Intended to slip under the radar of IDS systems that detect scan activity based on packet rate thresholds. Practical for small, targeted port lists on critical or well-monitored hosts where stealth is required but -T0's extreme delay is unnecessary.",
       example: "nmap -T1 -p 22,80,443 192.168.1.1",
@@ -2310,6 +2246,7 @@ const docs = {
       id: "nmap-T2",
       flag: "-T2",
       category: "Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       title: "Polite Timing",
       description: "Slows probing to reduce bandwidth consumption and lower the chance of impacting the target host. Uses 0.4-second delays between probes. Suitable for scanning production systems during business hours when service disruption risk must be minimized, or when operating over low-bandwidth connections.",
       example: "nmap -T2 192.168.1.1",
@@ -2332,6 +2269,7 @@ const docs = {
       id: "nmap-T3",
       flag: "-T3",
       category: "Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       title: "Normal Timing (Default)",
       description: "The default timing template when -T is not specified. Balances speed and reliability with adaptive algorithms that increase or decrease probe rate based on network responsiveness. Suitable for most general-purpose scans on modern networks. No special tuning is needed — this is the safe, sensible default.",
       example: "nmap -T3 192.168.1.1",
@@ -2354,6 +2292,7 @@ const docs = {
       id: "nmap-T4",
       flag: "-T4",
       category: "Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       title: "Aggressive Timing",
       description: "Speeds up scans by reducing timeouts and increasing parallelism. Assumes a fast, reliable network — typically a wired LAN or fast VPN. Missed ports or inaccurate results are possible on slow or lossy networks because nmap gives up on slow responses faster. The go-to timing template for internal assessments on well-connected infrastructure.",
       example: "nmap -T4 192.168.1.0/24",
@@ -2377,6 +2316,7 @@ const docs = {
       id: "nmap-T5",
       flag: "-T5",
       category: "Timing",
+      docUrl: "https://nmap.org/book/man-performance.html",
       title: "Insane Timing",
       description: "The fastest timing template, sacrificing accuracy for speed. Drastically reduces timeouts and maximizes parallelism. Suitable only for extremely fast networks (gigabit LAN) where missing some ports is acceptable. In practice, -T4 is preferred for most engagements because -T5 can miss significant numbers of open ports on any network with latency.",
       example: "nmap -T5 192.168.1.0/24",
@@ -2403,6 +2343,7 @@ const docs = {
       flag: "-O",
       category: "Option",
       title: "OS Detection",
+      docUrl: "https://nmap.org/book/man-os-detection.html",
       description: "Attempts to determine the operating system of the target by analyzing TCP/IP stack behavior — including initial TTL, window size, IP options, and other protocol fingerprints. Results include a confidence percentage and often a list of possible OS matches. Requires at least one open and one closed port to produce reliable results.",
       example: "nmap -O 192.168.1.1",
       platforms: {
@@ -2426,6 +2367,7 @@ const docs = {
       flag: "-sV",
       category: "Option",
       title: "Version Detection Toggle",
+      docUrl: "https://nmap.org/book/man-version-detection.html",
       description: "Enables service and version detection as a standalone toggle when combined with other scan types. After port discovery, nmap sends service-specific probes to each open port and matches responses against its version detection database (nmap-service-probes). Results typically include service name, version number, and extrainfo such as protocol variant or configuration details.",
       example: "nmap -sS -sV -p 22,80,443,8080 192.168.1.1",
       platforms: {
@@ -2449,6 +2391,7 @@ const docs = {
       flag: "-A",
       category: "Option",
       title: "Aggressive Scan (OS + Version + Scripts + Traceroute)",
+      docUrl: "https://nmap.org/book/man.html",
       description: "Enables a combination of -O (OS detection), -sV (version detection), -sC (default NSE scripts), and --traceroute in a single flag. This is the most comprehensive single-flag option for host profiling. It is intentionally noisy and slow — use it when you want maximum information and are not concerned about detection.",
       example: "nmap -A 192.168.1.1",
       platforms: {
@@ -2472,6 +2415,7 @@ const docs = {
       flag: "-v",
       category: "Option",
       title: "Verbose Output",
+      docUrl: "https://nmap.org/book/man-output.html",
       description: "Increases output verbosity so nmap prints open ports as they are discovered, rather than waiting until the scan completes. Also shows additional information about scan phases, timing, and host states. Particularly useful for long-running scans where you want to see progress and act on findings incrementally.",
       example: "nmap -v -sS 192.168.1.0/24",
       platforms: {
@@ -2494,6 +2438,7 @@ const docs = {
       flag: "-vv",
       category: "Option",
       title: "Very Verbose Output",
+      docUrl: "https://nmap.org/book/man-output.html",
       description: "Sets verbosity to level 2, providing even more detail than -v. Shows reason codes for each port state (e.g., syn-ack, reset, no-response), additional timing information, and more detailed NSE script output. Useful for understanding exactly how nmap is interpreting responses and for debugging unexpected results.",
       example: "nmap -vv -sS 192.168.1.1",
       platforms: {
@@ -2516,6 +2461,7 @@ const docs = {
       flag: "-Pn",
       category: "Option",
       title: "Skip Host Discovery (Treat All Hosts as Up)",
+      docUrl: "https://nmap.org/book/man-host-discovery.html",
       description: "Disables host discovery (ping probes) and assumes all specified hosts are online, proceeding directly to port scanning. Essential when targets block ICMP and common TCP/UDP ping probes, causing nmap to incorrectly mark them as down. Use this flag whenever you know a host exists but normal ping-based discovery fails.",
       example: "nmap -Pn 192.168.1.1",
       platforms: {
@@ -2539,6 +2485,7 @@ const docs = {
       flag: "-n",
       category: "Option",
       title: "No DNS Resolution",
+      docUrl: "https://nmap.org/book/man-host-discovery.html",
       description: "Disables reverse DNS resolution for discovered IP addresses. By default, nmap attempts to resolve every IP to a hostname, which adds latency (especially for non-responding DNS servers) and can leak information about the scan via DNS queries. Disabling resolution speeds up scans and prevents DNS-based detection of scanning activity.",
       example: "nmap -n -sS 192.168.1.0/24",
       platforms: {
@@ -2561,6 +2508,7 @@ const docs = {
       flag: "--script=vuln",
       category: "NSE Script",
       title: "Vulnerability Detection Scripts",
+      docUrl: "https://nmap.org/nsedoc/categories/vuln.html",
       description: "Runs nmap's built-in vulnerability detection NSE scripts against discovered open ports. These scripts check for known CVEs, misconfigured services, weak credentials, and common vulnerabilities such as MS17-010 (EternalBlue), Heartbleed, shellshock, and more. Results provide actionable vulnerability findings directly in the nmap output.",
       example: "nmap -sV --script=vuln 192.168.1.1",
       platforms: {
@@ -2585,6 +2533,7 @@ const docs = {
       flag: "--script=default",
       category: "NSE Script",
       title: "Default NSE Scripts (-sC)",
+      docUrl: "https://nmap.org/nsedoc/categories/default.html",
       description: "Runs the collection of NSE scripts tagged 'default' — a curated set designed to be safe, useful, and non-intrusive. These scripts gather service information (HTTP titles, SSH host keys, SSL certificates, SMB shares, FTP banners) that version detection alone does not capture. Equivalent to -sC shorthand.",
       example: "nmap -sV --script=default 192.168.1.1",
       platforms: {
@@ -2608,6 +2557,7 @@ const docs = {
       flag: "-oN",
       category: "Output",
       title: "Normal Output to File",
+      docUrl: "https://nmap.org/book/man-output.html",
       description: "Saves scan results in nmap's human-readable 'normal' format to the specified file. The file format matches what would be displayed on screen. Useful for keeping records, sharing results with team members, or parsing with basic text tools. Use -oA to save in all three formats simultaneously.",
       example: "nmap -sS -sV -oN scan_results.txt 192.168.1.1",
       platforms: {
@@ -2630,6 +2580,7 @@ const docs = {
       flag: "-oX",
       category: "Output",
       title: "XML Output to File",
+      docUrl: "https://nmap.org/book/man-output.html",
       description: "Saves scan results in XML format, which is machine-parseable and supported by many security tools including Metasploit, Faraday, Dradis, and custom scripts. XML output preserves all scan data including timing, host states, port details, script output, and OS detection results. The preferred format for tool-chain integration and automated processing.",
       example: "nmap -sS -sV -oX scan_results.xml 192.168.1.1",
       platforms: {
@@ -2653,6 +2604,7 @@ const docs = {
       flag: "--reason",
       category: "Option",
       title: "Show Port State Reasons",
+      docUrl: "https://nmap.org/book/man-output.html",
       description: "Displays the reason nmap assigned each port its state — for example, 'syn-ack' for open, 'reset' for closed, 'no-response' or 'admin-prohibited' for filtered. This is invaluable for understanding scan results, debugging unexpected port states, and determining whether filtering is stateless (RST) or stateful (silence/ICMP unreachable).",
       example: "nmap --reason 192.168.1.1",
       platforms: {
@@ -2677,6 +2629,7 @@ const docs = {
       flag: "--script ssl-cert",
       category: "NSE Script",
       title: "SSL/TLS Certificate Information",
+      docUrl: "https://nmap.org/nsedoc/scripts/ssl-cert.html",
       description: "Retrieves and displays the SSL/TLS certificate from a target port. Shows the subject (Common Name), issuer, validity dates (Not Before / Not After), Subject Alternative Names (SANs), public key algorithm and size, and signature algorithm. Essential for verifying certificate expiry, detecting self-signed certificates, checking SAN coverage, and identifying outdated signature algorithms like SHA-1.",
       example: "nmap -p 443 --script ssl-cert 192.168.1.1",
       platforms: {
@@ -2700,6 +2653,7 @@ const docs = {
       flag: "--script ssl-enum-ciphers",
       category: "NSE Script",
       title: "Enumerate SSL/TLS Cipher Suites",
+      docUrl: "https://nmap.org/nsedoc/scripts/ssl-enum-ciphers.html",
       description: "Enumerates all supported SSL/TLS protocol versions and cipher suites on a target port. For each protocol version (SSLv3, TLSv1.0, TLSv1.1, TLSv1.2, TLSv1.3), lists every accepted cipher suite with a strength rating (A through F). Identifies weak protocols (SSLv3, TLSv1.0, TLSv1.1) and weak ciphers (RC4, DES, NULL, EXPORT, CBC in older TLS). Critical for compliance audits (PCI DSS, HIPAA) and hardening TLS configurations.",
       example: "nmap -p 443 --script ssl-enum-ciphers 192.168.1.1",
       platforms: {
@@ -2724,6 +2678,7 @@ const docs = {
       flag: "--script http-methods",
       category: "NSE Script",
       title: "HTTP Methods Enumeration",
+      docUrl: "https://nmap.org/nsedoc/scripts/http-methods.html",
       description: "Queries a web server to discover which HTTP methods are supported (GET, POST, PUT, DELETE, OPTIONS, TRACE, CONNECT, PATCH, etc.) and flags potentially risky methods. TRACE enables cross-site tracing (XST) attacks, PUT/DELETE may allow unauthorized file modification, and CONNECT can be abused for proxying. This script sends an OPTIONS request and parses the Allow header.",
       example: "nmap -p 80,443 --script http-methods 192.168.1.1",
       platforms: {
@@ -2747,6 +2702,7 @@ const docs = {
       flag: "--script http-security-headers",
       category: "NSE Script",
       title: "HTTP Security Headers Audit",
+      docUrl: "https://nmap.org/nsedoc/scripts/http-security-headers.html",
       description: "Checks HTTP responses for the presence and values of security-related headers: Strict-Transport-Security (HSTS), Content-Security-Policy (CSP), X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy, and others. Reports missing headers as findings. Essential for web application security assessments and compliance checks.",
       example: "nmap -p 443 --script http-security-headers 192.168.1.1",
       platforms: {
@@ -2770,6 +2726,7 @@ const docs = {
       flag: "--script ssh2-enum-algos",
       category: "NSE Script",
       title: "SSH Algorithm Enumeration",
+      docUrl: "https://nmap.org/nsedoc/scripts/ssh2-enum-algos.html",
       description: "Enumerates the key exchange algorithms, encryption ciphers, MAC algorithms, and compression methods supported by an SSH server. Identifies weak or deprecated algorithms: diffie-hellman-group1-sha1 (1024-bit DH), diffie-hellman-group-exchange-sha1, arcfour/RC4 ciphers, MD5/SHA-96 MACs, and CBC-mode ciphers vulnerable to the Terrapin attack. Essential for SSH hardening assessments and compliance audits.",
       example: "nmap -p 22 --script ssh2-enum-algos 192.168.1.1",
       platforms: {
@@ -2793,6 +2750,7 @@ const docs = {
       flag: "--script ssh-auth-methods",
       category: "NSE Script",
       title: "SSH Authentication Methods",
+      docUrl: "https://nmap.org/nsedoc/scripts/ssh-auth-methods.html",
       description: "Queries an SSH server to determine which authentication methods it accepts: password, publickey, keyboard-interactive, hostbased, gssapi-with-mic, etc. Reveals whether password authentication is enabled (a common finding — key-based auth is preferred), whether keyboard-interactive is available (used by PAM/2FA), and whether less common methods like hostbased auth are permitted.",
       example: "nmap -p 22 --script ssh-auth-methods 192.168.1.1",
       platforms: {
@@ -2816,6 +2774,7 @@ const docs = {
       flag: "--script http-headers",
       category: "NSE Script",
       title: "HTTP Response Headers",
+      docUrl: "https://nmap.org/nsedoc/scripts/http-headers.html",
       description: "Retrieves and displays all HTTP response headers from a web server. Unlike http-security-headers which focuses on security-specific headers, this script shows every header including Server (version disclosure), X-Powered-By (technology disclosure), Set-Cookie (cookie flags), Cache-Control, and custom application headers. Useful for fingerprinting web server technology and identifying information disclosure.",
       example: "nmap -p 80 --script http-headers 192.168.1.1",
       platforms: {
@@ -2838,6 +2797,7 @@ const docs = {
       flag: "--script banner",
       category: "NSE Script",
       title: "Service Banner Grabbing",
+      docUrl: "https://nmap.org/nsedoc/scripts/banner.html",
       description: "Connects to open ports and retrieves the initial service banner — the text a service sends upon connection. Captures SSH version strings, SMTP greetings, FTP banners, database welcome messages, and any other service that sends data first. Banners often reveal software name, version, OS hints, and sometimes hostname or organization details. Faster and lighter than -sV for quick reconnaissance.",
       example: "nmap -p 22,25,21 --script banner 192.168.1.1",
       platforms: {
@@ -2865,6 +2825,7 @@ const docs = {
       flag: "-X GET",
       category: "Method",
       title: "GET Request",
+      docUrl: "https://curl.se/docs/manpage.html#-X",
       description: "Sends an HTTP GET request to the specified URL. GET is curl's default method, so -X GET is technically optional but makes the intent explicit in scripts and documentation. Use it to retrieve resources, query APIs, or fetch web pages. GET requests should not have a body — pass query parameters in the URL instead.",
       example: "curl -X GET https://api.example.com/users",
       platforms: {
@@ -2884,6 +2845,7 @@ const docs = {
       flag: "-X POST",
       category: "Method",
       title: "POST Request",
+      docUrl: "https://curl.se/docs/manpage.html#-X",
       description: "Sends an HTTP POST request, typically used to create resources or submit data to a server. POST requires a body — use -d for raw data or form fields, or -F for multipart form uploads. Without a body flag, curl sends an empty POST which many APIs reject. Always pair -X POST with an appropriate Content-Type header.",
       example: "curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{\"name\":\"Alice\"}'",
       platforms: {
@@ -2905,6 +2867,7 @@ const docs = {
       flag: "-X PUT",
       category: "Method",
       title: "PUT Request",
+      docUrl: "https://curl.se/docs/manpage.html#-X",
       description: "Sends an HTTP PUT request, conventionally used to replace an entire resource at a known URL. Unlike PATCH, PUT is expected to send the complete updated representation of the resource. Always include a Content-Type header and a body. Many REST APIs require PUT for full-object updates.",
       example: "curl -X PUT https://api.example.com/users/42 -H 'Content-Type: application/json' -d '{\"name\":\"Bob\",\"email\":\"bob@example.com\"}'",
       platforms: {
@@ -2925,6 +2888,7 @@ const docs = {
       flag: "-X DELETE",
       category: "Method",
       title: "DELETE Request",
+      docUrl: "https://curl.se/docs/manpage.html#-X",
       description: "Sends an HTTP DELETE request to remove a resource at the specified URL. Most DELETE endpoints require authentication via a token or session cookie. Some APIs accept a request body with DELETE to specify additional parameters, though this is non-standard. Always double-check the target URL before sending a DELETE in production.",
       example: "curl -X DELETE https://api.example.com/users/42 -H 'Authorization: Bearer YOUR_TOKEN'",
       platforms: {
@@ -2946,6 +2910,7 @@ const docs = {
       flag: "-X PATCH",
       category: "Method",
       title: "PATCH Request",
+      docUrl: "https://curl.se/docs/manpage.html#-X",
       description: "Sends an HTTP PATCH request, used to apply partial updates to a resource. Unlike PUT, you only send the fields you want to change. PATCH is supported by most modern REST APIs. Always include a Content-Type header and a JSON body with only the fields to update.",
       example: "curl -X PATCH https://api.example.com/users/42 -H 'Content-Type: application/json' -d '{\"email\":\"newemail@example.com\"}'",
       platforms: {
@@ -2966,6 +2931,7 @@ const docs = {
       flag: "-X HEAD",
       category: "Method",
       title: "HEAD Request",
+      docUrl: "https://curl.se/docs/manpage.html#-I",
       description: "Sends an HTTP HEAD request, which returns only the response headers with no body. This is useful for checking if a resource exists, reading metadata like Content-Length or Last-Modified, or testing if an endpoint is reachable without downloading data. Note: curl has a dedicated -I flag that does the same thing more cleanly.",
       example: "curl -X HEAD -I https://example.com",
       platforms: {
@@ -2988,6 +2954,7 @@ const docs = {
       flag: "--no-body",
       category: "Data/Body",
       title: "Suppress Response Body",
+      docUrl: "https://curl.se/docs/manpage.html#-o",
       description: "Tells curl to discard the response body and only display headers when combined with -v or -i. This is useful when you care only about status codes, headers, or timing. It can also be used to avoid printing binary bodies that would corrupt your terminal. Equivalent to sending a HEAD-style response display without changing the HTTP method.",
       example: "curl -s -o /dev/null -w '%{http_code}' https://example.com",
       platforms: {
@@ -3006,6 +2973,7 @@ const docs = {
       flag: "-d",
       category: "Data/Body",
       title: "Send Raw Data / JSON Body",
+      docUrl: "https://curl.se/docs/manpage.html#-d",
       description: "Sends the specified string as the HTTP request body. By default curl uses POST when -d is provided, so -X POST is optional. When sending JSON, you must set Content-Type: application/json explicitly — curl does not infer it. You can also pass a filename prefixed with @ to read the body from a file: -d '@data.json'.",
       example: "curl -d '{\"username\":\"alice\",\"password\":\"secret\"}' -H 'Content-Type: application/json' https://api.example.com/login",
       platforms: {
@@ -3026,6 +2994,7 @@ const docs = {
       flag: "-d (form encoded)",
       category: "Data/Body",
       title: "Send Form-Encoded Data",
+      docUrl: "https://curl.se/docs/manpage.html#-d",
       description: "Sends URL-encoded form data as the request body, mimicking an HTML form submission. curl automatically sets Content-Type: application/x-www-form-urlencoded when -d is used. Separate multiple fields with &. This is the correct format for OAuth token endpoints and many legacy APIs. Do not use for file uploads — use -F for multipart form data.",
       example: "curl -d 'grant_type=client_credentials&client_id=myapp&client_secret=topsecret' https://auth.example.com/token",
       platforms: {
@@ -3046,6 +3015,7 @@ const docs = {
       flag: "-F",
       category: "Data/Body",
       title: "Multipart Form Upload",
+      docUrl: "https://curl.se/docs/manpage.html#-F",
       description: "Sends a multipart/form-data request, required for file uploads and HTML forms that include files. Each -F argument defines a field; prefix the value with @ to specify a file path. curl automatically sets the correct Content-Type header including the boundary. You can mix file fields and regular text fields in the same request.",
       example: "curl -F 'file=@/path/to/report.pdf' -F 'title=Monthly Report' https://api.example.com/upload",
       platforms: {
@@ -3068,6 +3038,7 @@ const docs = {
       flag: "-H 'Content-Type: application/json'",
       category: "Header",
       title: "Set JSON Content-Type",
+      docUrl: "https://curl.se/docs/manpage.html#-H",
       description: "Sets the Content-Type request header to application/json, telling the server that the request body contains JSON. Without this header, many APIs will reject the request or misparse the body. Always include this header when sending JSON with -d. It does not affect response format — use Accept: application/json for that.",
       example: "curl -X POST https://api.example.com/items -H 'Content-Type: application/json' -d '{\"name\":\"widget\"}'",
       platforms: {
@@ -3086,6 +3057,7 @@ const docs = {
       flag: "-H 'Content-Type: application/x-www-form-urlencoded'",
       category: "Header",
       title: "Set Form Content-Type",
+      docUrl: "https://curl.se/docs/manpage.html#-H",
       description: "Explicitly sets the Content-Type header to application/x-www-form-urlencoded. curl sets this automatically when you use -d with a plain string, but specifying it explicitly makes the intent clear in scripts. Use this for OAuth endpoints, legacy login forms, and any API that expects key=value pairs in the body.",
       example: "curl -X POST https://auth.example.com/token -H 'Content-Type: application/x-www-form-urlencoded' -d 'grant_type=password&username=alice&password=secret'",
       platforms: {
@@ -3106,6 +3078,7 @@ const docs = {
       flag: "-H 'Authorization: Bearer TOKEN'",
       category: "Header",
       title: "Bearer Token Authentication",
+      docUrl: "https://curl.se/docs/manpage.html#-H",
       description: "Sends a Bearer token in the Authorization header, which is the standard authentication mechanism for OAuth 2.0 and most modern REST APIs. Replace TOKEN with your actual access token. The token is sent as a plain header, so always use HTTPS — never send tokens over unencrypted HTTP. Tokens are typically short-lived and may need to be refreshed.",
       example: "curl -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...' https://api.example.com/profile",
       platforms: {
@@ -3128,6 +3101,7 @@ const docs = {
       flag: "-H 'Accept: application/json'",
       category: "Header",
       title: "Request JSON Response",
+      docUrl: "https://curl.se/docs/manpage.html#-H",
       description: "Sets the Accept header to tell the server that the client prefers a JSON response. Servers that support content negotiation will return JSON instead of HTML or XML when this header is present. This is useful when an API serves multiple formats. Combine with Content-Type: application/json when also sending a JSON body.",
       example: "curl -H 'Accept: application/json' https://api.example.com/status",
       platforms: {
@@ -3147,6 +3121,7 @@ const docs = {
       flag: "-H 'Header: Value'",
       category: "Header",
       title: "Custom Request Header",
+      docUrl: "https://curl.se/docs/manpage.html#-H",
       description: "Adds any arbitrary HTTP header to the request. Use this for API keys, correlation IDs, custom auth schemes, versioning headers, or any header required by the target service. You can use multiple -H flags in one command to send multiple headers. To remove a header that curl sends by default, pass -H 'Header:' with an empty value.",
       example: "curl -H 'X-API-Key: abc123' -H 'X-Request-ID: req-001' https://api.example.com/data",
       platforms: {
@@ -3170,6 +3145,7 @@ const docs = {
       flag: "-v",
       category: "Option",
       title: "Verbose Output",
+      docUrl: "https://curl.se/docs/manpage.html#-v",
       description: "Enables verbose mode, printing the full request including method, URL, headers sent, headers received, and TLS handshake details. Lines prefixed with > are sent headers, < are received headers, and * are informational curl messages. This is the first flag to add when debugging any curl issue. Combine with -s to suppress progress output but keep verbose info.",
       example: "curl -v https://api.example.com/health",
       platforms: {
@@ -3191,6 +3167,7 @@ const docs = {
       flag: "-s",
       category: "Option",
       title: "Silent Mode",
+      docUrl: "https://curl.se/docs/manpage.html#-s",
       description: "Suppresses curl's progress meter and error messages, making it suitable for use in scripts where extra output would interfere with parsing results. When -s is used, curl no longer shows transfer statistics. Combine with -S (--show-error) if you still want error messages suppressed progress: -sS.",
       example: "curl -s https://api.example.com/status | jq .status",
       platforms: {
@@ -3210,6 +3187,7 @@ const docs = {
       flag: "-L",
       category: "Option",
       title: "Follow Redirects",
+      docUrl: "https://curl.se/docs/manpage.html#-L",
       description: "Tells curl to follow HTTP redirects (3xx responses) automatically. By default, curl stops at the first redirect and shows the redirect response. With -L, curl will keep following until it reaches a non-redirect response or hits the redirect limit (30 by default). Use this when accessing URLs that redirect to HTTPS, CDN endpoints, or canonical URLs.",
       example: "curl -L http://example.com",
       platforms: {
@@ -3232,6 +3210,7 @@ const docs = {
       flag: "-k",
       category: "Option",
       title: "Skip TLS Verification",
+      docUrl: "https://curl.se/docs/manpage.html#-k",
       description: "Disables SSL/TLS certificate verification, allowing curl to connect to HTTPS endpoints with self-signed, expired, or hostname-mismatched certificates. This is commonly used in development and testing environments where proper certificates are not set up. Never use -k in production scripts or with sensitive data — it completely removes the protection TLS provides.",
       example: "curl -k https://dev-server.local/api/status",
       platforms: {
@@ -3254,6 +3233,7 @@ const docs = {
       flag: "-o",
       category: "Option",
       title: "Save Output to File",
+      docUrl: "https://curl.se/docs/manpage.html#-o",
       description: "Writes the response body to the specified file instead of stdout. This is the standard way to download files with curl. You can combine -o with -# to show a progress bar or with -s to suppress all output. For downloading with the original remote filename, use -O (uppercase) instead.",
       example: "curl -o /tmp/report.json https://api.example.com/reports/latest",
       platforms: {
@@ -3275,6 +3255,7 @@ const docs = {
       flag: "-I",
       category: "Option",
       title: "Fetch Headers Only (HEAD)",
+      docUrl: "https://curl.se/docs/manpage.html#-I",
       description: "Sends an HTTP HEAD request and displays only the response headers. This is useful for inspecting metadata — Content-Type, Content-Length, Last-Modified, cache headers, server version — without downloading the body. Equivalent to -X HEAD but cleaner. Some servers do not correctly implement HEAD, in which case -v with a GET may be more reliable.",
       example: "curl -I https://example.com",
       platforms: {
@@ -3296,6 +3277,7 @@ const docs = {
       flag: "-w",
       category: "Option",
       title: "Write-Out Formatting",
+      docUrl: "https://curl.se/docs/manpage.html#-w",
       description: "Outputs custom information after a request completes, using format variables like %{http_code}, %{time_total}, %{size_download}, and %{url_effective}. This is invaluable for scripting health checks, benchmarking, and validating responses without parsing headers manually. The format string is printed after the response body — use -o /dev/null to suppress the body.",
       example: "curl -s -o /dev/null -w 'Status: %{http_code}\\nTime: %{time_total}s\\n' https://api.example.com/health",
       platforms: {
@@ -3315,6 +3297,7 @@ const docs = {
       flag: "--max-time",
       category: "Option",
       title: "Request Timeout",
+      docUrl: "https://curl.se/docs/manpage.html#--max-time",
       description: "Sets the maximum total time in seconds that curl will wait for the entire operation to complete, including connection, data transfer, and response. If the request takes longer, curl aborts it and exits with error code 28. Use --connect-timeout to limit only the connection phase. Always set a timeout in automated scripts to prevent hanging indefinitely.",
       example: "curl --max-time 10 https://api.example.com/slow-endpoint",
       platforms: {
@@ -3336,6 +3319,7 @@ const docs = {
       flag: "--proxy",
       category: "Option",
       title: "Use HTTP Proxy",
+      docUrl: "https://curl.se/docs/manpage.html#-x",
       description: "Routes the curl request through the specified HTTP or SOCKS proxy. The proxy address format is [protocol://]host[:port]. Supports http://, https://, socks4://, socks5://, and socks5h:// (SOCKS5 with remote DNS resolution). Proxies are commonly used in corporate environments, for debugging with tools like Burp Suite or mitmproxy, or for routing through an SSH tunnel.",
       example: "curl --proxy http://127.0.0.1:8080 https://api.example.com/test",
       platforms: {
@@ -4328,6 +4312,7 @@ function renderCommandCard(cmd, idx) {
     '<button class="copy-btn" data-copy="' + escapeHtml(cmd.cmd) + '">Copy</button>' +
     '</div>' +
     (cmd.notes ? '<div class="card-notes">' + highlightText(cmd.notes, q) + '</div>' : '') +
+    (cmd.docUrl ? '<a class="card-doc-link" href="' + escapeHtml(cmd.docUrl) + '" target="_blank" rel="noopener">&#9656; official docs</a>' : '') +
     '</div></div>';
 }
 
@@ -4754,6 +4739,10 @@ function renderDocsSection(container, toolKey, scrollToId) {
         html += '</ul></div>';
       }
 
+      if (entry.docUrl) {
+        html += '<a class="card-doc-link" href="' + escapeHtml(entry.docUrl) + '" target="_blank" rel="noopener">&#9656; official docs</a>';
+      }
+
       html += '</div></div>'; // .doc-entry-body + .doc-entry
     });
 
@@ -4826,6 +4815,7 @@ function renderRescanSection(container) {
       '</div>';
 
     // Paste import
+    html += '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;"><span style="color:var(--accent-cyan);">tip:</span> pipe scan output to clipboard: <span style="color:var(--accent-green);">nmap -sV target | clip.exe</span> &mdash; then paste below</div>';
     html += '<div class="paste-import-area">' +
       '<button class="paste-btn" id="pasteBtn">Paste scan output</button>' +
       '<textarea class="paste-textarea" id="pasteArea" placeholder="Paste raw nmap or curl output here..."></textarea>' +
@@ -6186,6 +6176,7 @@ function renderAuditSection(container) {
       'Drop a .txt file with headers here, or click to browse' +
       '<input type="file" id="auditFileInput" accept=".txt,.text,.json">' +
       '</div>';
+    html += '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;"><span style="color:var(--accent-cyan);">tip:</span> run your command and pipe to clipboard: <span style="color:var(--accent-green);">curl -I https://example.com | clip.exe</span></div>';
     html += '<textarea class="audit-textarea" id="auditInput" placeholder="Paste headers here...\n\nSupported formats:\n  curl -I https://example.com\n  HTTP/2 200\n  Strict-Transport-Security: max-age=31536000\n  ...\n\n  Raw Header: value lines\n  nmap http-security-headers script output">' +
       escapeHtml(currentAuditResult ? currentAuditResult.rawInput : '') + '</textarea>';
     html += '<div class="audit-actions">';

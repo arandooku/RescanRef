@@ -111,7 +111,7 @@ mark {
   transition: border-color 0.2s;
 }
 .sidebar-search input:focus {
-  border-color: var(--accent-pink);
+  border-color: var(--accent-green);
 }
 .sidebar-search input::placeholder { color: var(--text-muted); }
 
@@ -140,27 +140,27 @@ mark {
   margin: 1px 0;
 }
 .nav-item:hover {
-  background: rgba(249, 38, 114, 0.06);
+  background: rgba(166, 226, 46, 0.06);
   color: var(--text-primary);
-  border-left-color: rgba(249, 38, 114, 0.3);
+  border-left-color: rgba(166, 226, 46, 0.3);
 }
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(249, 38, 114, 0.15) 0%, transparent 100%);
-  color: var(--accent-pink);
+  background: linear-gradient(90deg, rgba(166, 226, 46, 0.15) 0%, transparent 100%);
+  color: var(--accent-green);
   font-weight: 600;
-  border-left-color: var(--accent-pink);
+  border-left-color: var(--accent-green);
 }
 .nav-item .match-count {
   font-size: 0.65rem;
   font-weight: 700;
-  background: rgba(249, 38, 114, 0.15);
-  color: var(--accent-pink);
+  background: rgba(166, 226, 46, 0.15);
+  color: var(--accent-green);
   padding: 1px 7px;
   border-radius: 0;
   min-width: 20px;
   text-align: center;
 }
-.nav-item.active .match-count { background: rgba(249, 38, 114, 0.25); }
+.nav-item.active .match-count { background: rgba(166, 226, 46, 0.25); }
 
 /* ===== GitBook-style tree nav ===== */
 .nav-tree-parent {
@@ -177,15 +177,15 @@ mark {
   margin: 1px 0;
 }
 .nav-tree-parent:hover {
-  background: rgba(249, 38, 114, 0.06);
+  background: rgba(166, 226, 46, 0.06);
   color: var(--text-primary);
-  border-left-color: rgba(249, 38, 114, 0.3);
+  border-left-color: rgba(166, 226, 46, 0.3);
 }
 .nav-tree-parent.active {
-  background: linear-gradient(90deg, rgba(249, 38, 114, 0.15) 0%, transparent 100%);
-  color: var(--accent-pink);
+  background: linear-gradient(90deg, rgba(166, 226, 46, 0.15) 0%, transparent 100%);
+  color: var(--accent-green);
   font-weight: 600;
-  border-left-color: var(--accent-pink);
+  border-left-color: var(--accent-green);
 }
 .nav-tree-chevron {
   display: inline-flex;
@@ -238,15 +238,15 @@ mark {
   background: var(--card-border);
 }
 .nav-tree-child:hover {
-  background: rgba(249, 38, 114, 0.04);
+  background: rgba(166, 226, 46, 0.04);
   color: var(--text-secondary);
-  border-left-color: rgba(249, 38, 114, 0.2);
+  border-left-color: rgba(166, 226, 46, 0.2);
 }
 .nav-tree-child.active {
-  color: var(--accent-pink);
+  color: var(--accent-green);
   font-weight: 600;
-  border-left-color: var(--accent-pink);
-  background: rgba(249, 38, 114, 0.08);
+  border-left-color: var(--accent-green);
+  background: rgba(166, 226, 46, 0.08);
 }
 .nav-tree-child .tree-child-count {
   font-size: 0.6rem;
@@ -279,7 +279,7 @@ mark {
   backdrop-filter: blur(8px);
   transition: border-color 0.2s;
 }
-.hamburger:hover { border-color: var(--accent-pink); }
+.hamburger:hover { border-color: var(--accent-green); }
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -464,7 +464,7 @@ mark {
   font-size: 1.05rem;
   background: var(--input-bg);
   color: var(--text-primary);
-  border: 2px solid var(--accent-pink);
+  border: 2px solid var(--accent-green);
   border-radius: 0;
   outline: none;
   transition: none;
@@ -532,14 +532,14 @@ mark {
   font-weight: 500;
 }
 .pill-btn:hover {
-  border-color: var(--accent-pink);
+  border-color: var(--accent-green);
   color: var(--text-primary);
-  background: rgba(249, 38, 114, 0.05);
+  background: rgba(166, 226, 46, 0.05);
 }
 .pill-btn.active {
-  background: var(--accent-pink);
-  border-color: var(--accent-pink);
-  color: #fff;
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0d0e0a;
   font-weight: 600;
 }
 
@@ -562,7 +562,7 @@ mark {
   transition: border-color 0.2s;
 }
 .custom-input:focus {
-  border-color: var(--accent-pink);
+  border-color: var(--accent-green);
 }
 
 .toggles-grid {
@@ -587,7 +587,7 @@ mark {
 .toggle-item .toggle-flag {
   font-family: inherit;
   font-size: 0.78rem;
-  color: var(--accent-pink);
+  color: var(--accent-cyan);
   min-width: 60px;
 }
 .toggle-item .toggle-label {
@@ -672,7 +672,7 @@ mark {
   line-height: 1.7;
 }
 .crafted-command .cmd-tool { color: var(--text-primary); font-weight: 700; }
-.crafted-command .cmd-flag { color: var(--accent-pink); }
+.crafted-command .cmd-flag { color: var(--accent-cyan); }
 .crafted-command .cmd-option { color: var(--accent-yellow); }
 .crafted-command .cmd-timing { color: var(--accent-cyan); }
 .crafted-command .cmd-target { color: var(--accent-green); }
@@ -885,11 +885,11 @@ mark {
   transition: all 0.2s;
   font-weight: 500;
 }
-.env-tab:hover { border-color: var(--accent-pink); color: var(--text-primary); }
+.env-tab:hover { border-color: var(--accent-green); color: var(--text-primary); }
 .env-tab.active {
-  background: var(--accent-pink);
-  border-color: var(--accent-pink);
-  color: #fff;
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0d0e0a;
   font-weight: 600;
 }
 
@@ -905,8 +905,8 @@ mark {
 }
 .drop-zone:hover { border-color: var(--text-muted); }
 .drop-zone.dragover {
-  border-color: var(--accent-pink);
-  background: rgba(249, 38, 114, 0.04);
+  border-color: var(--accent-green);
+  background: rgba(166, 226, 46, 0.04);
   transform: scale(1.01);
 }
 .drop-zone-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.6; }
@@ -942,7 +942,7 @@ mark {
   outline: none;
   transition: border-color 0.2s;
 }
-.paste-textarea:focus { border-color: var(--accent-pink); }
+.paste-textarea:focus { border-color: var(--accent-green); }
 .paste-textarea.visible { display: block; }
 .import-btn {
   display: none;
@@ -1006,7 +1006,7 @@ mark {
   outline: none;
   transition: border-color 0.2s;
 }
-.modal-field input:focus, .modal-field select:focus { border-color: var(--accent-pink); }
+.modal-field input:focus, .modal-field select:focus { border-color: var(--accent-green); }
 .modal-field select { cursor: pointer; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 .modal-btn-cancel {
@@ -1061,7 +1061,7 @@ mark {
   transition: all 0.2s;
 }
 .scan-entry:hover { border-color: var(--card-hover-border); transform: translateX(2px); }
-.scan-entry.selected { border-color: var(--accent-pink); background: rgba(249, 38, 114, 0.06); }
+.scan-entry.selected { border-color: var(--accent-green); background: rgba(166, 226, 46, 0.06); }
 .scan-entry-select {
   width: 18px; height: 18px;
   border: 2px solid var(--card-border);
@@ -1071,7 +1071,7 @@ mark {
   align-items: center;
   justify-content: center;
 }
-.scan-entry.selected .scan-entry-select { border-color: var(--accent-pink); background: var(--accent-pink); }
+.scan-entry.selected .scan-entry-select { border-color: var(--accent-green); background: var(--accent-green); }
 .scan-entry.selected .scan-entry-select::after { content: '\2713'; color: #fff; font-size: 0.7rem; }
 .scan-entry-title { flex: 1; font-size: 0.85rem; }
 .scan-entry-type {
@@ -1087,8 +1087,8 @@ mark {
   display: none;
   margin-top: 14px;
   padding: 9px 22px;
-  background: var(--accent-pink);
-  color: #fff;
+  background: var(--accent-green);
+  color: #0d0e0a;
   font-weight: 700;
   border: none;
   border-radius: 0;
@@ -1203,7 +1203,7 @@ mark {
 .search-results-section h3 {
   font-family: inherit;
   font-size: 0.95rem;
-  color: var(--accent-pink);
+  color: var(--accent-green);
   margin-bottom: 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--card-border);
@@ -1212,13 +1212,13 @@ mark {
 
 /* ===== Selection glow ===== */
 ::selection {
-  background: rgba(249, 38, 114, 0.3);
+  background: rgba(166, 226, 46, 0.3);
   color: var(--text-primary);
 }
 
 /* ===== Focus visible ===== */
 :focus-visible {
-  outline: 2px solid var(--accent-pink);
+  outline: 2px solid var(--accent-green);
   outline-offset: 2px;
 }
 
@@ -1242,13 +1242,13 @@ mark {
   outline: none;
   transition: border-color 0.2s;
 }
-.audit-textarea:focus { border-color: var(--accent-pink); }
+.audit-textarea:focus { border-color: var(--accent-green); }
 .audit-textarea::placeholder { color: var(--text-muted); }
 .audit-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .audit-btn-analyze {
   padding: 9px 22px;
-  background: var(--accent-pink);
-  color: #fff;
+  background: var(--accent-green);
+  color: #0d0e0a;
   font-weight: 700;
   border: none;
   border-radius: 0;
@@ -1303,8 +1303,8 @@ mark {
   transition: border-color 0.2s, background 0.2s;
 }
 .audit-drop-overlay.dragover {
-  border-color: var(--accent-pink);
-  background: rgba(249, 38, 114, 0.06);
+  border-color: var(--accent-green);
+  background: rgba(166, 226, 46, 0.06);
 }
 .audit-drop-overlay input[type="file"] { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; }
 
@@ -1571,7 +1571,7 @@ mark {
   transition: all 0.2s;
 }
 .audit-entry:hover { border-color: var(--card-hover-border); transform: translateX(2px); }
-.audit-entry.selected { border-color: var(--accent-pink); background: rgba(249, 38, 114, 0.06); }
+.audit-entry.selected { border-color: var(--accent-green); background: rgba(166, 226, 46, 0.06); }
 .audit-entry-select {
   width: 18px; height: 18px;
   border: 2px solid var(--card-border);
@@ -1581,7 +1581,7 @@ mark {
   align-items: center;
   justify-content: center;
 }
-.audit-entry.selected .audit-entry-select { border-color: var(--accent-pink); background: var(--accent-pink); }
+.audit-entry.selected .audit-entry-select { border-color: var(--accent-green); background: var(--accent-green); }
 .audit-entry.selected .audit-entry-select::after { content: '\2713'; color: #fff; font-size: 0.7rem; }
 .audit-entry-title { flex: 1; font-size: 0.85rem; }
 .audit-entry-summary {
@@ -5834,7 +5834,7 @@ document.getElementById('modalCancel').addEventListener('click', function() {
 document.getElementById('modalSave').addEventListener('click', function() {
   var title = document.getElementById('modalTitle').value.trim();
   if (!title) {
-    document.getElementById('modalTitle').style.borderColor = 'var(--accent-pink)';
+    document.getElementById('modalTitle').style.borderColor = 'var(--accent-green)';
     return;
   }
 
@@ -5892,7 +5892,7 @@ document.getElementById('auditModalCancel').addEventListener('click', function()
 document.getElementById('auditModalSave').addEventListener('click', function() {
   var title = document.getElementById('auditModalTitle').value.trim();
   if (!title) {
-    document.getElementById('auditModalTitle').style.borderColor = 'var(--accent-pink)';
+    document.getElementById('auditModalTitle').style.borderColor = 'var(--accent-green)';
     return;
   }
 

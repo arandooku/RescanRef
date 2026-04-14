@@ -583,77 +583,54 @@ mark {
 }
 
 .toggles-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   margin-bottom: 14px;
 }
-@media (max-width: 600px) { .toggles-grid { grid-template-columns: 1fr; } }
 
 .toggle-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--card-bg);
+  gap: 6px;
+  padding: 3px 8px;
+  background: transparent;
   border: 1px solid var(--card-border);
-  border-radius: 0;
-  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap;
 }
 .toggle-item:hover { border-color: var(--card-hover-border); }
+.toggle-item.active {
+  border-color: var(--accent-green);
+  background: rgba(166, 226, 46, 0.06);
+}
 .toggle-item .toggle-flag {
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   color: var(--accent-cyan);
-  min-width: 60px;
 }
+.toggle-item.active .toggle-flag { color: var(--accent-green); }
 .toggle-item .toggle-label {
-  flex: 1;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+  font-size: 0.65rem;
+  color: var(--text-muted);
 }
+.toggle-item.active .toggle-label { color: var(--text-secondary); }
 .toggle-item .toggle-info {
   color: var(--accent-cyan);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   text-decoration: none;
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.4;
   transition: opacity 0.2s;
 }
 .toggle-item .toggle-info:hover { opacity: 1; }
 
-.toggle-switch {
-  position: relative;
-  width: 36px; height: 20px;
-  flex-shrink: 0;
-}
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-switch .slider {
-  position: absolute;
-  inset: 0;
-  background: var(--toggle-off-bg);
-  border-radius: 0;
-  cursor: pointer;
-  transition: background 0.25s;
-}
-.toggle-switch .slider::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  background: #fff;
-  border-radius: 0;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.toggle-switch input:checked + .slider {
-  background: var(--accent-green);
-}
-.toggle-switch input:checked + .slider::after { transform: translateX(16px); }
-
 .toggle-custom-input {
   width: 100%;
-  margin-top: 6px;
+  flex-basis: 100%;
+  margin-top: 2px;
   display: none;
 }
 .toggle-custom-input.visible { display: block; }
@@ -4495,13 +4472,12 @@ function renderCraftSection(container, toolKey) {
       '<div class="option-group-body"><div class="toggles-grid">';
     tool.toggles.forEach(function(t, ti) {
       var isOn = state.toggles[t.flag];
-      html += '<div class="toggle-item">' +
+      html += '<div class="toggle-item' + (isOn ? ' active' : '') + '" data-flag="' + escapeHtml(t.flag) + '">' +
         '<span class="toggle-flag">' + escapeHtml(t.flag) + '</span>' +
         '<span class="toggle-label">' + escapeHtml(t.label) + '</span>' +
         (t.docId ? '<span class="toggle-info" data-docid="' + escapeHtml(t.docId) + '" data-tool="' + escapeHtml(toolKey) + '" title="View docs">&#9432;</span>' : '') +
-        '<label class="toggle-switch">' +
-        '<input type="checkbox" data-flag="' + escapeHtml(t.flag) + '"' + (isOn ? ' checked' : '') + '>' +
-        '<span class="slider"></span></label></div>';
+        '<input type="checkbox" data-flag="' + escapeHtml(t.flag) + '"' + (isOn ? ' checked' : '') + ' style="display:none;">' +
+        '</div>';
       if (t.customInput) {
         html += '<div class="toggle-custom-input' + (isOn ? ' visible' : '') + '" data-toggle-flag="' + escapeHtml(t.flag) + '">' +
           '<input type="text" class="custom-input" data-flag="' + escapeHtml(t.flag) +
@@ -4593,21 +4569,27 @@ function attachCraftHandlers(container, toolKey) {
     })(customInputs[ci]);
   }
 
-  // Toggle switches
-  var toggleInputs = container.querySelectorAll('.toggle-switch input');
-  for (var ti = 0; ti < toggleInputs.length; ti++) {
-    (function(chk) {
-      chk.addEventListener('change', function() {
-        var flag = chk.getAttribute('data-flag');
-        state.toggles[flag] = chk.checked;
+  // Toggle items (clickable pills)
+  var toggleItems = container.querySelectorAll('.toggle-item[data-flag]');
+  for (var ti = 0; ti < toggleItems.length; ti++) {
+    (function(item) {
+      item.addEventListener('click', function(e) {
+        if (e.target.classList.contains('toggle-info')) return;
+        var flag = item.getAttribute('data-flag');
+        var chk = item.querySelector('input[type="checkbox"]');
+        if (chk) {
+          chk.checked = !chk.checked;
+          state.toggles[flag] = chk.checked;
+        }
+        item.classList.toggle('active');
         var wrapper = container.querySelector('.toggle-custom-input[data-toggle-flag="' + flag + '"]');
         if (wrapper) {
-          if (chk.checked) wrapper.classList.add('visible');
+          if (chk && chk.checked) wrapper.classList.add('visible');
           else wrapper.classList.remove('visible');
         }
         updateOutput();
       });
-    })(toggleInputs[ti]);
+    })(toggleItems[ti]);
   }
 
   // Toggle custom inputs
@@ -4778,9 +4760,13 @@ function renderDocsSection(container, toolKey, scrollToId) {
   if (scrollToId) {
     var target = document.getElementById(scrollToId);
     if (target) {
-      var entries = target.querySelectorAll('.doc-entry');
-      for (var ei = 0; ei < entries.length; ei++) {
-        entries[ei].classList.add('expanded');
+      if (target.classList.contains('doc-entry')) {
+        target.classList.add('expanded');
+      } else {
+        var entries = target.querySelectorAll('.doc-entry');
+        for (var ei = 0; ei < entries.length; ei++) {
+          entries[ei].classList.add('expanded');
+        }
       }
       setTimeout(function() { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 10);
     }

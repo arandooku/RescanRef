@@ -48,16 +48,15 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 0; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 mark {
   background: var(--mark-bg);
   color: inherit;
   padding: 1px 3px;
-  border-radius: 0;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -312,8 +311,6 @@ mark {
 
 .section-header {
   margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
 }
 .section-header h2 {
   font-size: 1rem;
@@ -345,8 +342,6 @@ mark {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 8px;
   align-items: start;
-  position: relative;
-  z-index: 1;
 }
 @media (max-width: 500px) { .cards-grid { grid-template-columns: 1fr; } }
 

@@ -4322,7 +4322,7 @@ function getCraftState(toolKey) {
   if (!craftState[toolKey]) {
     var tool = craftTools[toolKey];
     if (!tool) return null;
-    var state = { target: '', groups: {}, toggles: {}, customInputs: {} };
+    var state = { target: '', targetMode: 'single', targetList: [], batchEnabled: false, groups: {}, toggles: {}, customInputs: {} };
     (tool.groups || []).forEach(function(g) {
       var defaultIdx = -1;
       g.options.forEach(function(o, i) { if (o.default) defaultIdx = i; });

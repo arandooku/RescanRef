@@ -4578,11 +4578,23 @@ function renderCraftSection(container, toolKey) {
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--craft</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(tool.name || toolKey) + '</h2>' +
     '<p>' + escapeHtml(tool.description || '') + '</p></div>';
 
-  // Target input
+  // Target input — dual mode
   html += '<div class="target-input-wrapper">' +
-    '<label>Target</label>' +
-    '<input type="text" class="target-input" id="craftTarget" value="' + escapeHtml(state.target) +
+    '<label>Target' +
+    '<span class="target-mode-toggle">' +
+    '<button class="target-mode-btn' + (state.targetMode === 'single' ? ' active' : '') + '" data-mode="single">Single</button>' +
+    '<button class="target-mode-btn' + (state.targetMode === 'list' ? ' active' : '') + '" data-mode="list">List</button>' +
+    '</span></label>' +
+    '<input type="text" class="target-input' + (state.targetMode === 'list' ? '" style="display:none' : '') + '" id="craftTarget" value="' + escapeHtml(state.target) +
     '" placeholder="' + escapeHtml(tool.targetPlaceholder || 'Enter target') + '">' +
+    '<div class="target-list-area' + (state.targetMode === 'list' ? ' visible' : '') + '">' +
+    '<textarea class="target-list-textarea" id="craftTargetList" placeholder="one host per line">' + escapeHtml(state.targetList.join('\n')) + '</textarea>' +
+    '<div class="target-list-toolbar">' +
+    '<span class="host-count" id="hostCount">' + state.targetList.length + ' hosts</span>' +
+    '<button class="import-file-btn" id="importTargetsBtn">Import .txt</button>' +
+    '<input type="file" class="target-list-file-input" id="targetFileInput" accept=".txt">' +
+    '</div>' +
+    '</div>' +
     '</div>';
 
   // Option groups
@@ -4641,12 +4653,28 @@ function renderCraftSection(container, toolKey) {
     });
     html += '</div></div></div>';
   }
+
+  // Batch toggle — visible only in list mode with 2+ hosts
+  var showBatch = state.targetMode === 'list' && state.targetList.length >= 2;
+  html += '<div class="option-group" id="batchToggleGroup" style="' + (showBatch ? '' : 'display:none;') + '">' +
+    '<div class="option-group-header">' +
+    '<span class="option-group-chevron">&#9654;</span>' +
+    '<span class="option-group-label">Batch</span></div>' +
+    '<div class="option-group-body"><div class="toggles-grid">' +
+    '<div class="toggle-item' + (state.batchEnabled ? ' active' : '') + '" data-flag="__batch__">' +
+    '<span class="toggle-flag">for %%H</span>' +
+    '<span class="toggle-label">Batch (CMD loop)</span>' +
+    '<input type="checkbox" data-flag="__batch__"' + (state.batchEnabled ? ' checked' : '') + ' style="display:none;">' +
+    '</div>' +
+    '</div></div></div>';
+
   html += '</div>'; // .craft-groups-grid
 
   // Crafted command output
   html += '<div class="crafted-output">' +
     '<div class="crafted-output-label">Crafted Command</div>' +
     '<div class="crafted-command" id="craftedPreview">' + colorCodeCommand(toolKey) + '</div>' +
+    '<div class="batch-script-note" style="display:none;"></div>' +
     '<button class="crafted-copy-btn" id="craftedCopyBtn" data-copy="' + escapeHtml(buildCraftedCommand(toolKey)) + '">Copy Command</button>' +
     '</div>';
 

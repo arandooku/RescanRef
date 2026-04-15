@@ -4490,6 +4490,47 @@ function getCraftState(toolKey) {
   return craftState[toolKey];
 }
 
+function buildBatchCommand(toolKey) {
+  var tool = craftTools[toolKey];
+  var state = getCraftState(toolKey);
+  if (!tool || !state) return '';
+
+  var hosts = state.targetList;
+  if (hosts.length < 2) return buildCraftedCommand(toolKey);
+
+  // Build base command without target
+  var parts = [tool.name || toolKey];
+  (tool.groups || []).forEach(function(g) {
+    var selIdx = state.groups[g.name];
+    if (selIdx >= 0 && selIdx < g.options.length) {
+      var opt = g.options[selIdx];
+      if (opt.flag) {
+        var flag = opt.flag;
+        if (opt.customInput && state.customInputs[opt.flag]) {
+          flag += ' ' + state.customInputs[opt.flag];
+        }
+        parts.push(flag);
+      }
+    }
+  });
+  (tool.toggles || []).forEach(function(t) {
+    if (state.toggles[t.flag]) {
+      var flag = t.flag;
+      if (t.customInput && state.customInputs[t.flag]) {
+        flag += ' ' + state.customInputs[t.flag];
+      }
+      parts.push(flag);
+    }
+  });
+  var baseCmd = parts.join(' ');
+
+  if (hosts.length < 10) {
+    return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+  } else {
+    return '@echo off\nfor /F "tokens=*" %%H in (targets.txt) do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+  }
+}
+
 function buildCraftedCommand(toolKey) {
   var tool = craftTools[toolKey];
   var state = getCraftState(toolKey);
@@ -4521,7 +4562,13 @@ function buildCraftedCommand(toolKey) {
     }
   });
 
-  if (state.target) {
+  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled) {
+    if ((tool.name || toolKey) === 'nmap') {
+      parts.push('-iL targets.txt');
+    } else {
+      parts.push(state.targetList[0] || '');
+    }
+  } else if (state.target) {
     parts.push(state.target);
   }
 
@@ -4683,6 +4730,13 @@ function renderCraftSection(container, toolKey) {
   attachCraftHandlers(container, toolKey);
 }
 
+function parseTargetList(text) {
+  return text.split('\n')
+    .map(function(line) { return line.trim(); })
+    .filter(function(line) { return line.length > 0; })
+    .filter(function(line, i, arr) { return arr.indexOf(line) === i; }); // dedupe
+}
+
 function attachCraftHandlers(container, toolKey) {
   var tool = craftTools[toolKey];
   var state = getCraftState(toolKey);
@@ -4704,8 +4758,38 @@ function attachCraftHandlers(container, toolKey) {
   function updateOutput() {
     var preview = document.getElementById('craftedPreview');
     var copyBtn = document.getElementById('craftedCopyBtn');
-    if (preview) preview.innerHTML = colorCodeCommand(toolKey);
-    if (copyBtn) copyBtn.setAttribute('data-copy', buildCraftedCommand(toolKey));
+    if (state.targetMode === 'list' && state.batchEnabled && state.targetList.length >= 2) {
+      var batchCmd = buildBatchCommand(toolKey);
+      if (preview) {
+        preview.classList.add('batch-mode');
+        preview.textContent = batchCmd;
+      }
+      if (copyBtn) copyBtn.setAttribute('data-copy', batchCmd);
+      var note = container.querySelector('.batch-script-note');
+      if (note) {
+        if (state.targetList.length >= 10) {
+          note.textContent = 'Save host list as targets.txt in the same directory before running.';
+          note.style.display = '';
+        } else {
+          note.style.display = 'none';
+        }
+      }
+    } else {
+      if (preview) {
+        preview.classList.remove('batch-mode');
+        preview.innerHTML = colorCodeCommand(toolKey);
+      }
+      if (copyBtn) copyBtn.setAttribute('data-copy', buildCraftedCommand(toolKey));
+      var note = container.querySelector('.batch-script-note');
+      if (note) {
+        if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled && (craftTools[toolKey].name || toolKey) === 'nmap') {
+          note.textContent = 'Save host list as targets.txt and use -iL flag.';
+          note.style.display = '';
+        } else {
+          note.style.display = 'none';
+        }
+      }
+    }
   }
 
   // Target input
@@ -4714,6 +4798,63 @@ function attachCraftHandlers(container, toolKey) {
     targetInput.addEventListener('input', function() {
       state.target = targetInput.value;
       updateOutput();
+    });
+  }
+
+  // Target mode toggle
+  var modeBtns = container.querySelectorAll('.target-mode-btn');
+  for (var mb = 0; mb < modeBtns.length; mb++) {
+    (function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        state.targetMode = btn.getAttribute('data-mode');
+        for (var m = 0; m < modeBtns.length; m++) {
+          modeBtns[m].classList.toggle('active', modeBtns[m].getAttribute('data-mode') === state.targetMode);
+        }
+        var singleInput = container.querySelector('#craftTarget');
+        var listArea = container.querySelector('.target-list-area');
+        if (state.targetMode === 'list') {
+          if (singleInput) singleInput.style.display = 'none';
+          if (listArea) listArea.classList.add('visible');
+        } else {
+          if (singleInput) singleInput.style.display = '';
+          if (listArea) listArea.classList.remove('visible');
+          state.batchEnabled = false;
+        }
+        updateOutput();
+      });
+    })(modeBtns[mb]);
+  }
+
+  // Target list textarea
+  var listTextarea = container.querySelector('#craftTargetList');
+  if (listTextarea) {
+    listTextarea.addEventListener('input', function() {
+      state.targetList = parseTargetList(listTextarea.value);
+      var hostCount = container.querySelector('#hostCount');
+      if (hostCount) hostCount.textContent = state.targetList.length + ' hosts';
+      updateOutput();
+    });
+  }
+
+  // Import targets file
+  var importBtn = container.querySelector('#importTargetsBtn');
+  var targetFileInput = container.querySelector('#targetFileInput');
+  if (importBtn && targetFileInput) {
+    importBtn.addEventListener('click', function() { targetFileInput.click(); });
+    targetFileInput.addEventListener('change', function() {
+      if (targetFileInput.files.length === 0) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var existing = listTextarea ? listTextarea.value : '';
+        var newText = existing ? existing + '\n' + e.target.result : e.target.result;
+        if (listTextarea) listTextarea.value = newText;
+        state.targetList = parseTargetList(newText);
+        var hostCount = container.querySelector('#hostCount');
+        if (hostCount) hostCount.textContent = state.targetList.length + ' hosts';
+        updateOutput();
+      };
+      reader.readAsText(targetFileInput.files[0]);
     });
   }
 
@@ -4784,6 +4925,30 @@ function attachCraftHandlers(container, toolKey) {
       });
     })(toggleCustomInputs[tci]);
   }
+
+  // Batch toggle handler
+  var batchItem = container.querySelector('.toggle-item[data-flag="__batch__"]');
+  if (batchItem) {
+    batchItem.addEventListener('click', function() {
+      state.batchEnabled = !state.batchEnabled;
+      batchItem.classList.toggle('active', state.batchEnabled);
+      var chk = batchItem.querySelector('input[type="checkbox"]');
+      if (chk) chk.checked = state.batchEnabled;
+      updateOutput();
+    });
+  }
+
+  // Update batch toggle visibility when target list changes
+  var origUpdateOutput = updateOutput;
+  updateOutput = function() {
+    var batchGroup = container.querySelector('#batchToggleGroup');
+    if (batchGroup) {
+      var showBatch = state.targetMode === 'list' && state.targetList.length >= 2;
+      batchGroup.style.display = showBatch ? '' : 'none';
+      if (!showBatch) state.batchEnabled = false;
+    }
+    origUpdateOutput();
+  };
 
   // Info icons -> docs
   var infoIcons = container.querySelectorAll('.toggle-info');

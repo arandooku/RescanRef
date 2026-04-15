@@ -4654,7 +4654,14 @@ function colorCodeCommand(toolKey) {
     }
   });
 
-  if (state.target) {
+  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled) {
+    if ((tool.name || toolKey) === 'nmap') {
+      var fn = state.targetFilename || 'targets.txt';
+      html += ' <span class="cmd-flag">-iL</span> <span class="cmd-target">' + escapeHtml(fn) + '</span>';
+    } else {
+      html += ' <span class="cmd-target">' + escapeHtml(state.targetList[0] || '') + '</span>';
+    }
+  } else if (state.target) {
     html += ' <span class="cmd-target">' + escapeHtml(state.target) + '</span>';
   }
 

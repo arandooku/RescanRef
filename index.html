@@ -1803,6 +1803,31 @@ mark {
   text-align: right;
 }
 
+/* ===== Toast Notifications ===== */
+.toast-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 255, 65, 0.15);
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  z-index: 9999;
+  max-width: 400px;
+}
+.toast-notification.toast-error {
+  background: rgba(255, 85, 85, 0.15);
+  color: #ff5555;
+  border-color: #ff5555;
+}
+.toast-notification.toast-warn {
+  background: rgba(230, 219, 116, 0.15);
+  color: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+}
+
 /* ===== Matrix Comparer ===== */
 .matrix-container {
   overflow-x: auto;
@@ -4111,6 +4136,28 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function showToast(message, type) {
+  var existing = document.querySelector('.toast-notification');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.className = 'toast-notification' + (type === 'error' ? ' toast-error' : type === 'warn' ? ' toast-warn' : '');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 4000);
+}
+
+function checkFileSize(file) {
+  var sizeMB = file.size / (1024 * 1024);
+  if (sizeMB > 50) {
+    showToast('File too large (' + sizeMB.toFixed(1) + 'MB). Max 50MB.', 'error');
+    return false;
+  }
+  if (sizeMB > 10) {
+    showToast('Large file (' + sizeMB.toFixed(1) + 'MB). Loading may be slow.', 'warn');
+  }
+  return true;
+}
+
 function copyToClipboard(text, btn) {
   function fallbackCopy() {
     var ta = document.createElement('textarea');
@@ -5336,6 +5383,80 @@ function attachRescanHandlers(container) {
     });
   }
 
+  // Matrix filter — show only differences
+  var filterBtn = container.querySelector('#matrixFilterDiff');
+  if (filterBtn) {
+    filterBtn.addEventListener('click', function() {
+      filterBtn.classList.toggle('active');
+      var table = container.querySelector('#matrixTable');
+      if (!table) return;
+      var rows = table.querySelectorAll('tbody tr');
+      var headerCells = table.querySelectorAll('thead th');
+      var colCount = headerCells.length;
+
+      for (var col = 1; col < colCount; col++) {
+        var values = [];
+        for (var r = 0; r < rows.length; r++) {
+          var cell = rows[r].cells[col];
+          if (cell) values.push(cell.textContent.trim());
+        }
+        var allSame = values.every(function(v) { return v === values[0]; });
+        var hide = filterBtn.classList.contains('active') && allSame;
+        headerCells[col].style.display = hide ? 'none' : '';
+        for (var r2 = 0; r2 < rows.length; r2++) {
+          if (rows[r2].cells[col]) rows[r2].cells[col].style.display = hide ? 'none' : '';
+        }
+      }
+    });
+  }
+
+  // Matrix sort by column
+  var matrixTable = container.querySelector('#matrixTable');
+  if (matrixTable) {
+    var thCells = matrixTable.querySelectorAll('thead th');
+    for (var th = 1; th < thCells.length; th++) {
+      (function(colIdx) {
+        thCells[colIdx].addEventListener('click', function() {
+          var tbody = matrixTable.querySelector('tbody');
+          var rowsArr = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+          rowsArr.sort(function(a, b) {
+            var aVal = a.cells[colIdx] ? a.cells[colIdx].textContent : '';
+            var bVal = b.cells[colIdx] ? b.cells[colIdx].textContent : '';
+            return aVal.localeCompare(bVal);
+          });
+          rowsArr.forEach(function(row) { tbody.appendChild(row); });
+        });
+      })(th);
+    }
+  }
+
+  // Matrix export CSV
+  var exportCsvBtn = container.querySelector('#matrixExportCsv');
+  if (exportCsvBtn && matrixTable) {
+    exportCsvBtn.addEventListener('click', function() {
+      var rows = matrixTable.querySelectorAll('tr');
+      var csvLines = [];
+      for (var r = 0; r < rows.length; r++) {
+        var cells = rows[r].querySelectorAll('th, td');
+        var line = [];
+        for (var c = 0; c < cells.length; c++) {
+          var text = cells[c].textContent.replace(/"/g, '""');
+          line.push('"' + text + '"');
+        }
+        csvLines.push(line.join(','));
+      }
+      var blob = new Blob([csvLines.join('\n')], { type: 'text/csv' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = new Date().toISOString().slice(0, 10) + '_matrix-export.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
   // Export button
   var rescanExportBtn = container.querySelector('#rescanExportBtn');
   if (rescanExportBtn) {
@@ -5355,11 +5476,15 @@ function attachRescanHandlers(container) {
 function handleFilesDrop(files, container) {
   var fileArray = Array.prototype.slice.call(files);
   fileArray.forEach(function(file) {
+    if (!checkFileSize(file)) return;
     var reader = new FileReader();
     reader.onload = function(e) {
       try {
         var data = JSON.parse(e.target.result);
         if (data.entries && Array.isArray(data.entries)) {
+          if (data.entries.length > 5000) {
+            showToast('File contains ' + data.entries.length + ' entries. Loading may be slow.', 'warn');
+          }
           data.entries.forEach(function(entry) {
             var exists = rescanEntries.some(function(ex) { return ex.id === entry.id; });
             if (!exists) rescanEntries.push(entry);
@@ -5367,7 +5492,7 @@ function handleFilesDrop(files, container) {
         }
         renderRescanSection(container);
       } catch (err) {
-        console.error('Failed to parse JSON file:', err);
+        showToast('Invalid JSON format: ' + err.message, 'error');
       }
     };
     reader.readAsText(file);
@@ -7083,12 +7208,16 @@ function attachAuditHandlers(container) {
 function handleAuditFileDrop(files, container) {
   var fileArray = Array.prototype.slice.call(files);
   fileArray.forEach(function(file) {
+    if (!checkFileSize(file)) return;
     var reader = new FileReader();
     reader.onload = function(e) {
       var content = e.target.result;
       try {
         var data = JSON.parse(content);
         if (data.auditEntries && Array.isArray(data.auditEntries)) {
+          if (data.auditEntries.length > 5000) {
+            showToast('File contains ' + data.auditEntries.length + ' entries. Loading may be slow.', 'warn');
+          }
           data.auditEntries.forEach(function(entry) {
             var exists = auditEntries.some(function(ex) { return ex.id === entry.id; });
             if (!exists) auditEntries.push(entry);
@@ -7096,7 +7225,12 @@ function handleAuditFileDrop(files, container) {
           renderAuditSection(container);
           return;
         }
-      } catch(err) { /* not JSON, treat as header text */ }
+      } catch(err) {
+        if (file.name.endsWith('.json')) {
+          showToast('Invalid JSON format: ' + err.message, 'error');
+          return;
+        }
+      }
       var textarea = container.querySelector('#auditInput');
       if (textarea) {
         textarea.value = content;

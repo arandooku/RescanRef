@@ -5850,6 +5850,140 @@ function renderComparisonView() {
   return html;
 }
 
+function renderMatrixView() {
+  var selected = rescanEntries.filter(function(e) { return rescanSelected.indexOf(e.id) >= 0; });
+  if (selected.length < 2) return renderEmptyState('Select at least 2 scans');
+
+  var scanType = selected[0].scanType;
+
+  var html = '<span class="comparison-back">&larr; Back to timeline</span>';
+  html += '<div class="comparison-view visible">';
+  html += '<h3 style="color:var(--accent-cyan);margin:0 0 8px;">Matrix View &mdash; ' + escapeHtml(scanType) + ' (' + selected.length + ' hosts)</h3>';
+
+  switch (scanType) {
+    case 'nmap-port': html += renderPortMatrix(selected); break;
+    case 'curl-headers': html += renderHeaderMatrix(selected); break;
+    default: html += renderEmptyState('Matrix view not supported for ' + escapeHtml(scanType));
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderPortMatrix(scans) {
+  var allPorts = {};
+  scans.forEach(function(scan) {
+    var ports = (scan.parsed && scan.parsed.ports) || [];
+    ports.forEach(function(p) {
+      allPorts[p.port + '/' + p.protocol] = true;
+    });
+  });
+  var sortedPorts = Object.keys(allPorts).sort(function(a, b) { return parseInt(a) - parseInt(b); });
+
+  if (sortedPorts.length === 0) return renderEmptyState('No port data found in selected scans');
+
+  var lookup = {};
+  scans.forEach(function(scan) {
+    lookup[scan.id] = {};
+    var ports = (scan.parsed && scan.parsed.ports) || [];
+    ports.forEach(function(p) {
+      lookup[scan.id][p.port + '/' + p.protocol] = p;
+    });
+  });
+
+  var html = '<div class="matrix-toolbar">' +
+    '<button class="matrix-filter-btn" id="matrixFilterDiff">Show only differences</button>' +
+    '<button class="matrix-export-btn" id="matrixExportCsv">Export CSV</button>' +
+    '</div>';
+
+  html += '<div class="matrix-container"><table class="matrix-table" id="matrixTable">';
+
+  html += '<thead><tr><th>Host</th>';
+  sortedPorts.forEach(function(portKey) {
+    html += '<th data-sort="' + escapeHtml(portKey) + '">' + escapeHtml(portKey) + '</th>';
+  });
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+  scans.forEach(function(scan) {
+    html += '<tr><td>' + escapeHtml(scan.target || scan.title) + '</td>';
+    sortedPorts.forEach(function(portKey) {
+      var p = lookup[scan.id][portKey];
+      if (p) {
+        var cls = 'matrix-cell-' + (p.state || 'open');
+        var label = p.state || 'open';
+        if (p.service) label += ' (' + p.service + ')';
+        html += '<td class="' + cls + '">' + escapeHtml(label) + '</td>';
+      } else {
+        html += '<td class="matrix-cell-missing">&mdash;</td>';
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  return html;
+}
+
+function renderHeaderMatrix(scans) {
+  var allHeaders = {};
+  scans.forEach(function(scan) {
+    var headers = (scan.parsed && scan.parsed.headers) || {};
+    Object.keys(headers).forEach(function(key) {
+      allHeaders[key] = true;
+    });
+  });
+  var sortedHeaders = Object.keys(allHeaders).sort();
+
+  if (sortedHeaders.length === 0) return renderEmptyState('No header data found in selected scans');
+
+  var lookup = {};
+  scans.forEach(function(scan) {
+    lookup[scan.id] = {};
+    var headers = (scan.parsed && scan.parsed.headers) || {};
+    Object.keys(headers).forEach(function(key) {
+      lookup[scan.id][key] = headers[key].value || headers[key];
+    });
+  });
+
+  var fpHeaders = {};
+  (HEADER_RULES.fingerprint || []).forEach(function(r) {
+    fpHeaders[r.header.toLowerCase()] = true;
+  });
+
+  var html = '<div class="matrix-toolbar">' +
+    '<button class="matrix-filter-btn" id="matrixFilterDiff">Show only differences</button>' +
+    '<button class="matrix-export-btn" id="matrixExportCsv">Export CSV</button>' +
+    '</div>';
+
+  html += '<div class="matrix-container"><table class="matrix-table" id="matrixTable">';
+
+  html += '<thead><tr><th>Host</th>';
+  sortedHeaders.forEach(function(hdr) {
+    html += '<th data-sort="' + escapeHtml(hdr) + '">' + escapeHtml(hdr) + '</th>';
+  });
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+  scans.forEach(function(scan) {
+    html += '<tr><td>' + escapeHtml(scan.target || scan.title) + '</td>';
+    sortedHeaders.forEach(function(hdr) {
+      var val = lookup[scan.id][hdr];
+      if (val) {
+        var cls = '';
+        if (fpHeaders[hdr.toLowerCase()]) cls = 'matrix-cell-fingerprint';
+        html += '<td class="' + cls + '">' + escapeHtml(val) + '</td>';
+      } else {
+        html += '<td class="matrix-cell-missing">&mdash;</td>';
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  return html;
+}
+
 function renderPortComparison(oldParsed, newParsed) {
   if (!oldParsed || !newParsed) return renderEmptyState('Parsed data not available');
   var oldPorts = oldParsed.ports || [];

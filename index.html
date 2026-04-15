@@ -5136,7 +5136,9 @@ function renderRescanSection(container) {
     '</div>';
 
   // Comparison view or normal view
-  if (rescanComparing && rescanSelected.length === 2) {
+  if (rescanComparing === 'matrix' && rescanSelected.length >= 2) {
+    html += renderMatrixView();
+  } else if (rescanComparing && rescanSelected.length === 2) {
     html += renderComparisonView();
   } else {
     // Drop zone
@@ -5158,10 +5160,20 @@ function renderRescanSection(container) {
     // Scan timeline
     html += renderScanTimeline();
 
-    // Compare & export buttons
-    html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;">';
+    // Compare, matrix & export buttons
+    html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap;">';
     html += '<button class="compare-btn' + (rescanSelected.length === 2 ? ' visible' : '') +
       '" id="compareBtn">Compare Selected (' + rescanSelected.length + '/2)</button>';
+    var canMatrix = rescanSelected.length >= 2 && (function() {
+      var types = {};
+      rescanEntries.forEach(function(e) {
+        if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
+      });
+      return Object.keys(types).length === 1;
+    })();
+    html += '<button class="compare-btn' + (canMatrix ? ' visible' : '') +
+      '" id="matrixBtn"' + (!canMatrix && rescanSelected.length >= 2 ? ' title="Select same scan type for matrix view"' : '') +
+      '>Matrix View (' + rescanSelected.length + ')</button>';
     if (rescanEntries.some(function(e) { return e.environment === rescanEnv; })) {
       html += '<button class="audit-btn-clear" id="rescanExportBtn">Export JSON</button>';
     }
@@ -5271,13 +5283,7 @@ function attachRescanHandlers(container) {
         if (idx >= 0) {
           rescanSelected.splice(idx, 1);
           entry.classList.remove('selected');
-        } else if (rescanSelected.length < 2) {
-          rescanSelected.push(id);
-          entry.classList.add('selected');
         } else {
-          var oldId = rescanSelected.shift();
-          var oldEntry = container.querySelector('.scan-entry[data-id="' + oldId + '"]');
-          if (oldEntry) oldEntry.classList.remove('selected');
           rescanSelected.push(id);
           entry.classList.add('selected');
         }
@@ -5286,6 +5292,19 @@ function attachRescanHandlers(container) {
           cBtn.textContent = 'Compare Selected (' + rescanSelected.length + '/2)';
           if (rescanSelected.length === 2) cBtn.classList.add('visible');
           else cBtn.classList.remove('visible');
+        }
+        var mBtn = container.querySelector('#matrixBtn');
+        if (mBtn) {
+          var canMatrix = rescanSelected.length >= 2 && (function() {
+            var types = {};
+            rescanEntries.forEach(function(e) {
+              if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
+            });
+            return Object.keys(types).length === 1;
+          })();
+          mBtn.textContent = 'Matrix View (' + rescanSelected.length + ')';
+          if (canMatrix) mBtn.classList.add('visible');
+          else mBtn.classList.remove('visible');
         }
       });
     })(scanEntries[j]);
@@ -5299,6 +5318,21 @@ function attachRescanHandlers(container) {
         rescanComparing = true;
         renderRescanSection(container);
       }
+    });
+  }
+
+  // Matrix view button
+  var matrixBtn = container.querySelector('#matrixBtn');
+  if (matrixBtn) {
+    matrixBtn.addEventListener('click', function() {
+      if (rescanSelected.length < 2) return;
+      var types = {};
+      rescanEntries.forEach(function(e) {
+        if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
+      });
+      if (Object.keys(types).length !== 1) return;
+      rescanComparing = 'matrix';
+      renderRescanSection(container);
     });
   }
 

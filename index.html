@@ -1896,6 +1896,252 @@ mark {
 .matrix-cell-missing { color: var(--text-muted); }
 .matrix-cell-fingerprint { color: var(--accent-yellow); }
 .matrix-cell-insecure { color: #ff5555; }
+
+/* ===== Tablet Responsive ===== */
+@media (max-width: 900px) {
+  .craft-groups-grid {
+    grid-template-columns: 1fr;
+  }
+  .main-content {
+    padding: 24px 20px;
+  }
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 767px) {
+  /* Main content — reduce padding, leave room for hamburger */
+  .main-content {
+    padding: 16px 12px;
+    padding-top: 52px;
+  }
+
+  /* All grids → single column on mobile */
+  .craft-groups-grid,
+  .doc-entries-grid,
+  .target-group-entries,
+  .ha-cards {
+    grid-template-columns: 1fr;
+  }
+  .audit-section.expanded .audit-section-body {
+    grid-template-columns: 1fr;
+  }
+
+  /* Cards grid — already has 500px breakpoint, extend to 767px */
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Craft command output — unstick on mobile */
+  .crafted-output {
+    position: relative;
+    bottom: auto;
+  }
+
+  /* Target input — smaller font on mobile */
+  .target-input {
+    font-size: 0.9rem;
+    padding: 9px 12px;
+  }
+
+  /* Custom input — full width */
+  .custom-input {
+    max-width: 100%;
+  }
+
+  /* Toggle items — allow wrapping on mobile */
+  .toggle-item {
+    white-space: normal;
+  }
+  .toggle-item .toggle-label {
+    word-break: break-word;
+  }
+
+  /* Raw diff — stack vertically instead of side-by-side */
+  .raw-diff {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Diff table — smaller padding */
+  .diff-table th,
+  .diff-table td {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+
+  /* Matrix table — allow smaller min-width, rely on container scroll */
+  .matrix-table {
+    min-width: 400px;
+    font-size: 0.68rem;
+  }
+  .matrix-table th,
+  .matrix-table td {
+    padding: 3px 5px;
+  }
+
+  /* Audit comparison items — stack on mobile */
+  .audit-comp-item {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .audit-comp-item-header {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .audit-comp-item-detail {
+    text-align: left;
+  }
+
+  /* Scan entry — tighter layout */
+  .scan-entry {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .scan-entry-date {
+    font-size: 0.68rem;
+  }
+  .scan-entry-type {
+    font-size: 0.62rem;
+    padding: 1px 5px;
+  }
+
+  /* Toast — fit mobile screens */
+  .toast-notification {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    bottom: 12px;
+  }
+
+  /* Modal — full-width on small phones */
+  .modal {
+    width: 95%;
+    padding: 20px 16px;
+  }
+
+  /* Section header — smaller */
+  .section-header h2 {
+    font-size: 0.88rem;
+  }
+
+  /* HA card header — stack badges below name on narrow screens */
+  .ha-card-header {
+    flex-wrap: wrap;
+  }
+  .ha-card-badges {
+    justify-content: flex-start;
+    flex-basis: 100%;
+    margin-top: 4px;
+  }
+
+  /* Comparison header — stack */
+  .comparison-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Matrix toolbar — wrap */
+  .matrix-toolbar {
+    flex-wrap: wrap;
+  }
+
+  /* Target mode toggle — inline with label */
+  .target-mode-toggle {
+    margin-left: 0;
+    margin-top: 4px;
+  }
+
+  /* Batch script — allow wrapping */
+  .crafted-command.batch-mode {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Doc entry title — allow wrapping */
+  .doc-entry-title {
+    white-space: normal;
+  }
+
+  /* Header analyzer detail — less left padding */
+  .ha-card-detail {
+    padding-left: 14px;
+  }
+
+  /* Audit textarea — shorter default */
+  .audit-textarea {
+    min-height: 120px;
+  }
+
+  /* Audit actions — stack buttons if needed */
+  .audit-actions {
+    gap: 6px;
+  }
+
+  /* Empty state — less padding */
+  .empty-state {
+    padding: 40px 16px;
+  }
+}
+
+/* ===== Small Phone (≤400px) ===== */
+@media (max-width: 400px) {
+  .main-content {
+    padding: 10px 8px;
+    padding-top: 50px;
+  }
+
+  /* Even smaller fonts for tight screens */
+  .card-title { font-size: 0.8rem; }
+  .card-notes { font-size: 0.72rem; }
+  .code-block { font-size: 0.72rem; padding: 6px 30px 6px 8px; }
+  .crafted-command { font-size: 0.82rem; padding: 10px 12px; }
+
+  /* Pill buttons — smaller */
+  .pill-btn {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+
+  /* Toggle items — even more compact */
+  .toggle-item {
+    padding: 3px 6px;
+    gap: 4px;
+  }
+  .toggle-item .toggle-flag { font-size: 0.62rem; }
+  .toggle-item .toggle-label { font-size: 0.6rem; }
+
+  /* Scan entries — stack metadata */
+  .scan-entry {
+    flex-wrap: wrap;
+  }
+  .scan-entry-title {
+    flex-basis: calc(100% - 28px);
+  }
+
+  /* Matrix — even tighter */
+  .matrix-table {
+    min-width: 300px;
+    font-size: 0.62rem;
+  }
+
+  /* Section prompt — allow wrapping */
+  .section-prompt {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  /* HA badges — smaller */
+  .ha-badge {
+    font-size: 0.5rem;
+    padding: 1px 5px;
+  }
+
+  /* Audit finding — tighter */
+  .audit-finding {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+}
 </style>
 </head>
 <body>

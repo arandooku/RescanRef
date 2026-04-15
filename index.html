@@ -490,6 +490,91 @@ mark {
 .target-input:focus {
 }
 
+/* ===== Multi-Target Input ===== */
+.target-mode-toggle {
+  display: inline-flex;
+  gap: 0;
+  margin-left: 10px;
+  font-size: 0.7rem;
+}
+.target-mode-toggle button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 1px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+.target-mode-toggle button:first-child {
+  border-right: none;
+}
+.target-mode-toggle button.active {
+  background: rgba(0, 255, 65, 0.1);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+.target-list-area {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.target-list-area.visible {
+  display: flex;
+}
+.target-list-textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 200px;
+  background: var(--bg-input);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  resize: vertical;
+}
+.target-list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+}
+.target-list-toolbar .host-count {
+  color: var(--accent-cyan);
+  font-size: 0.7rem;
+}
+.target-list-toolbar .import-file-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+.target-list-toolbar .import-file-btn:hover {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+.target-list-file-input {
+  display: none;
+}
+
+/* ===== Batch Script Output ===== */
+.batch-script-note {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  margin-top: 4px;
+  font-style: italic;
+}
+.crafted-command.batch-mode {
+  white-space: pre;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
 .option-group {
   background: var(--card-bg);
   border: 1px solid var(--card-border);

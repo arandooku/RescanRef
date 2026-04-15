@@ -4523,7 +4523,7 @@ function getCraftState(toolKey) {
   if (!craftState[toolKey]) {
     var tool = craftTools[toolKey];
     if (!tool) return null;
-    var state = { target: '', targetMode: 'single', targetList: [], batchEnabled: false, groups: {}, toggles: {}, customInputs: {} };
+    var state = { target: '', targetMode: 'single', targetList: [], targetFilename: '', batchEnabled: false, groups: {}, toggles: {}, customInputs: {} };
     (tool.groups || []).forEach(function(g) {
       var defaultIdx = -1;
       g.options.forEach(function(o, i) { if (o.default) defaultIdx = i; });
@@ -4571,10 +4571,11 @@ function buildBatchCommand(toolKey) {
   });
   var baseCmd = parts.join(' ');
 
+  var filename = state.targetFilename || 'targets.txt';
   if (hosts.length < 10) {
     return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
   } else {
-    return '@echo off\nfor /F "tokens=*" %%H in (targets.txt) do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+    return '@echo off\nfor /F "tokens=*" %%H in (' + filename + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
   }
 }
 
@@ -4611,7 +4612,7 @@ function buildCraftedCommand(toolKey) {
 
   if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled) {
     if ((tool.name || toolKey) === 'nmap') {
-      parts.push('-iL targets.txt');
+      parts.push('-iL ' + (state.targetFilename || 'targets.txt'));
     } else {
       parts.push(state.targetList[0] || '');
     }
@@ -4686,6 +4687,7 @@ function renderCraftSection(container, toolKey) {
     '<div class="target-list-toolbar">' +
     '<span class="host-count" id="hostCount">' + state.targetList.length + ' hosts</span>' +
     '<button class="import-file-btn" id="importTargetsBtn">Import .txt</button>' +
+    '<button class="import-file-btn" id="downloadTargetsBtn" style="' + (state.targetList.length > 0 ? '' : 'display:none;') + '">Download .txt</button>' +
     '<input type="file" class="target-list-file-input" id="targetFileInput" accept=".txt">' +
     '</div>' +
     '</div>' +
@@ -4784,6 +4786,30 @@ function parseTargetList(text) {
     .filter(function(line, i, arr) { return arr.indexOf(line) === i; }); // dedupe
 }
 
+function generateTargetFilename(toolKey) {
+  var now = new Date();
+  var ts = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0') + '_' +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0');
+  return toolKey + '-targets_' + ts + '.txt';
+}
+
+function downloadTargetList(state) {
+  if (state.targetList.length === 0) return;
+  if (!state.targetFilename) state.targetFilename = generateTargetFilename('nmap');
+  var blob = new Blob([state.targetList.join('\n') + '\n'], { type: 'text/plain' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = state.targetFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function attachCraftHandlers(container, toolKey) {
   var tool = craftTools[toolKey];
   var state = getCraftState(toolKey);
@@ -4814,8 +4840,9 @@ function attachCraftHandlers(container, toolKey) {
       if (copyBtn) copyBtn.setAttribute('data-copy', batchCmd);
       var note = container.querySelector('.batch-script-note');
       if (note) {
+        var fn = state.targetFilename || 'targets.txt';
         if (state.targetList.length >= 10) {
-          note.textContent = 'Save host list as targets.txt in the same directory before running.';
+          note.textContent = 'Uses file: ' + fn + ' — click Download .txt above to save it.';
           note.style.display = '';
         } else {
           note.style.display = 'none';
@@ -4829,8 +4856,9 @@ function attachCraftHandlers(container, toolKey) {
       if (copyBtn) copyBtn.setAttribute('data-copy', buildCraftedCommand(toolKey));
       var note = container.querySelector('.batch-script-note');
       if (note) {
+        var fn = state.targetFilename || 'targets.txt';
         if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled && (craftTools[toolKey].name || toolKey) === 'nmap') {
-          note.textContent = 'Save host list as targets.txt and use -iL flag.';
+          note.textContent = 'Uses file: ' + fn + ' — click Download .txt above to save it.';
           note.style.display = '';
         } else {
           note.style.display = 'none';
@@ -4875,13 +4903,28 @@ function attachCraftHandlers(container, toolKey) {
 
   // Target list textarea
   var listTextarea = container.querySelector('#craftTargetList');
+  var dlBtn = container.querySelector('#downloadTargetsBtn');
+
+  function updateTargetList() {
+    state.targetList = parseTargetList(listTextarea ? listTextarea.value : '');
+    if (state.targetList.length > 0) {
+      state.targetFilename = generateTargetFilename(toolKey);
+    } else {
+      state.targetFilename = '';
+    }
+    var hostCount = container.querySelector('#hostCount');
+    if (hostCount) hostCount.textContent = state.targetList.length + ' hosts';
+    if (dlBtn) dlBtn.style.display = state.targetList.length > 0 ? '' : 'none';
+    updateOutput();
+  }
+
   if (listTextarea) {
-    listTextarea.addEventListener('input', function() {
-      state.targetList = parseTargetList(listTextarea.value);
-      var hostCount = container.querySelector('#hostCount');
-      if (hostCount) hostCount.textContent = state.targetList.length + ' hosts';
-      updateOutput();
-    });
+    listTextarea.addEventListener('input', updateTargetList);
+  }
+
+  // Download targets file
+  if (dlBtn) {
+    dlBtn.addEventListener('click', function() { downloadTargetList(state); });
   }
 
   // Import targets file
@@ -4896,10 +4939,7 @@ function attachCraftHandlers(container, toolKey) {
         var existing = listTextarea ? listTextarea.value : '';
         var newText = existing ? existing + '\n' + e.target.result : e.target.result;
         if (listTextarea) listTextarea.value = newText;
-        state.targetList = parseTargetList(newText);
-        var hostCount = container.querySelector('#hostCount');
-        if (hostCount) hostCount.textContent = state.targetList.length + ' hosts';
-        updateOutput();
+        updateTargetList();
       };
       reader.readAsText(targetFileInput.files[0]);
     });

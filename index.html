@@ -562,6 +562,16 @@ mark {
   display: none;
 }
 
+/* ===== Multi-Host Import Info ===== */
+.modal-multi-host-info {
+  background: var(--card-bg);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+
 /* ===== Batch Script Output ===== */
 .batch-script-note {
   color: var(--text-muted);
@@ -2178,6 +2188,7 @@ mark {
 <div class="modal-overlay" id="classifyModal">
   <div class="modal">
     <h3>Classify Scan Result</h3>
+    <div id="modalMultiHostInfo" class="modal-multi-host-info" style="display:none;"></div>
     <div class="modal-field">
       <label for="modalTitle">Title (required)</label>
       <input type="text" id="modalTitle" placeholder="e.g. Prod Web Server - Initial Scan">
@@ -3761,6 +3772,7 @@ let rescanSelected = [];
 let rescanComparing = false;
 let pendingImportRaw = '';
 let pendingImportParsed = null;
+let pendingImportMulti = []; // array of {raw, parsed, target} for multi-host imports
 
 /* ================================================================
    HEADER AUDIT: DATA
@@ -4769,7 +4781,7 @@ function getCraftState(toolKey) {
   if (!craftState[toolKey]) {
     var tool = craftTools[toolKey];
     if (!tool) return null;
-    var state = { target: '', targetMode: 'single', targetList: [], targetFilename: '', batchEnabled: false, groups: {}, toggles: {}, customInputs: {} };
+    var state = { target: '', targetMode: 'single', targetList: [], targetFilename: '', batchMode: '', groups: {}, toggles: {}, customInputs: {} };
     (tool.groups || []).forEach(function(g) {
       var defaultIdx = -1;
       g.options.forEach(function(o, i) { if (o.default) defaultIdx = i; });
@@ -4790,6 +4802,8 @@ function buildBatchCommand(toolKey) {
 
   var hosts = state.targetList;
   if (hosts.length < 2) return buildCraftedCommand(toolKey);
+
+  var mode = state.batchMode || 'bat';
 
   // Build base command without target
   var parts = [tool.name || toolKey];
@@ -4818,10 +4832,20 @@ function buildBatchCommand(toolKey) {
   var baseCmd = parts.join(' ');
 
   var filename = state.targetFilename || 'targets.txt';
-  if (hosts.length < 10) {
-    return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+  if (mode === 'cmd') {
+    // CMD terminal: single % variable, no @echo off
+    if (hosts.length < 10) {
+      return 'for %H in (' + hosts.join(' ') + ') do ' + baseCmd + ' %H & echo ---';
+    } else {
+      return 'for /F "tokens=*" %H in (' + filename + ') do ' + baseCmd + ' %H & echo ---';
+    }
   } else {
-    return '@echo off\nfor /F "tokens=*" %%H in (' + filename + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+    // .bat file: double %% variable, @echo off, multiline
+    if (hosts.length < 10) {
+      return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+    } else {
+      return '@echo off\nfor /F "tokens=*" %%H in (' + filename + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+    }
   }
 }
 
@@ -4856,7 +4880,7 @@ function buildCraftedCommand(toolKey) {
     }
   });
 
-  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled) {
+  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode) {
     if ((tool.name || toolKey) === 'nmap') {
       parts.push('-iL ' + (state.targetFilename || 'targets.txt'));
     } else {
@@ -4900,7 +4924,7 @@ function colorCodeCommand(toolKey) {
     }
   });
 
-  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled) {
+  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode) {
     if ((tool.name || toolKey) === 'nmap') {
       var fn = state.targetFilename || 'targets.txt';
       html += ' <span class="cmd-flag">-iL</span> <span class="cmd-target">' + escapeHtml(fn) + '</span>';
@@ -5010,10 +5034,13 @@ function renderCraftSection(container, toolKey) {
     '<span class="option-group-chevron">&#9654;</span>' +
     '<span class="option-group-label">Batch</span></div>' +
     '<div class="option-group-body"><div class="toggles-grid">' +
-    '<div class="toggle-item' + (state.batchEnabled ? ' active' : '') + '" data-flag="__batch__">' +
-    '<span class="toggle-flag">for %%H</span>' +
-    '<span class="toggle-label">Batch (CMD loop)</span>' +
-    '<input type="checkbox" data-flag="__batch__"' + (state.batchEnabled ? ' checked' : '') + ' style="display:none;">' +
+    '<div class="toggle-item' + (state.batchMode === 'bat' ? ' active' : '') + '" data-flag="__batch_bat__">' +
+    '<span class="toggle-flag">%%H</span>' +
+    '<span class="toggle-label">Batch (.bat file)</span>' +
+    '</div>' +
+    '<div class="toggle-item' + (state.batchMode === 'cmd' ? ' active' : '') + '" data-flag="__batch_cmd__">' +
+    '<span class="toggle-flag">%H</span>' +
+    '<span class="toggle-label">Batch (CMD terminal)</span>' +
     '</div>' +
     '</div></div></div>';
 
@@ -5084,7 +5111,7 @@ function attachCraftHandlers(container, toolKey) {
   function updateOutput() {
     var preview = document.getElementById('craftedPreview');
     var copyBtn = document.getElementById('craftedCopyBtn');
-    if (state.targetMode === 'list' && state.batchEnabled && state.targetList.length >= 2) {
+    if (state.targetMode === 'list' && state.batchMode && state.targetList.length >= 2) {
       var batchCmd = buildBatchCommand(toolKey);
       if (preview) {
         preview.classList.add('batch-mode');
@@ -5110,7 +5137,7 @@ function attachCraftHandlers(container, toolKey) {
       var note = container.querySelector('.batch-script-note');
       if (note) {
         var fn = state.targetFilename || 'targets.txt';
-        if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchEnabled && (craftTools[toolKey].name || toolKey) === 'nmap') {
+        if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode && (craftTools[toolKey].name || toolKey) === 'nmap') {
           note.textContent = 'Uses file: ' + fn + ' — click Download .txt above to save it.';
           note.style.display = '';
         } else {
@@ -5147,7 +5174,7 @@ function attachCraftHandlers(container, toolKey) {
         } else {
           if (singleInput) singleInput.style.display = '';
           if (listArea) listArea.classList.remove('visible');
-          state.batchEnabled = false;
+          state.batchMode = '';
         }
         updateOutput();
       });
@@ -5266,14 +5293,24 @@ function attachCraftHandlers(container, toolKey) {
     })(toggleCustomInputs[tci]);
   }
 
-  // Batch toggle handler
-  var batchItem = container.querySelector('.toggle-item[data-flag="__batch__"]');
-  if (batchItem) {
-    batchItem.addEventListener('click', function() {
-      state.batchEnabled = !state.batchEnabled;
-      batchItem.classList.toggle('active', state.batchEnabled);
-      var chk = batchItem.querySelector('input[type="checkbox"]');
-      if (chk) chk.checked = state.batchEnabled;
+  // Batch toggle handlers — mutually exclusive
+  var batchBatItem = container.querySelector('.toggle-item[data-flag="__batch_bat__"]');
+  var batchCmdItem = container.querySelector('.toggle-item[data-flag="__batch_cmd__"]');
+  function updateBatchToggles() {
+    if (batchBatItem) batchBatItem.classList.toggle('active', state.batchMode === 'bat');
+    if (batchCmdItem) batchCmdItem.classList.toggle('active', state.batchMode === 'cmd');
+  }
+  if (batchBatItem) {
+    batchBatItem.addEventListener('click', function() {
+      state.batchMode = state.batchMode === 'bat' ? '' : 'bat';
+      updateBatchToggles();
+      updateOutput();
+    });
+  }
+  if (batchCmdItem) {
+    batchCmdItem.addEventListener('click', function() {
+      state.batchMode = state.batchMode === 'cmd' ? '' : 'cmd';
+      updateBatchToggles();
       updateOutput();
     });
   }
@@ -5285,7 +5322,7 @@ function attachCraftHandlers(container, toolKey) {
     if (batchGroup) {
       var showBatch = state.targetMode === 'list' && state.targetList.length >= 2;
       batchGroup.style.display = showBatch ? '' : 'none';
-      if (!showBatch) state.batchEnabled = false;
+      if (!showBatch) state.batchMode = '';
     }
     origUpdateOutput();
   };
@@ -5794,26 +5831,87 @@ function handleFilesDrop(files, container) {
 
 function handlePasteImport(raw, container) {
   var detected = autoDetectScanType(raw);
-  var parsed = parseScanOutput(raw, detected.type);
 
-  pendingImportRaw = raw;
-  pendingImportParsed = parsed;
+  // Check for multi-host nmap output
+  var multiChunks = (detected.type === 'nmap-port' || detected.type === 'nmap-script') ? splitNmapByHost(raw) : null;
 
-  // Populate modal
-  document.getElementById('modalTitle').value = '';
-  document.getElementById('modalEnv').value = rescanEnv;
-  document.getElementById('modalTarget').value = parsed.target || detected.target || '';
-  document.getElementById('modalScanType').value = detected.type;
-  var now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  document.getElementById('modalTimestamp').value = now.toISOString().slice(0, 16);
+  if (multiChunks && multiChunks.length > 1) {
+    // Multi-host import
+    pendingImportMulti = multiChunks.map(function(chunk) {
+      var chunkDetected = autoDetectScanType(chunk);
+      var chunkParsed = parseScanOutput(chunk, detected.type);
+      return { raw: chunk, parsed: chunkParsed, target: chunkParsed.target || chunkDetected.target || '' };
+    });
+    pendingImportRaw = '';
+    pendingImportParsed = null;
 
-  document.getElementById('classifyModal').classList.add('open');
+    // Populate modal for multi-host
+    document.getElementById('modalTitle').value = '';
+    document.getElementById('modalTitle').placeholder = 'e.g. Weekly Port Scan (prefix for all hosts)';
+    document.getElementById('modalEnv').value = rescanEnv;
+    document.getElementById('modalTarget').value = '';
+    document.getElementById('modalTarget').disabled = true;
+    document.getElementById('modalScanType').value = detected.type;
+    var now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('modalTimestamp').value = now.toISOString().slice(0, 16);
+
+    var multiInfo = document.getElementById('modalMultiHostInfo');
+    if (multiInfo) {
+      multiInfo.textContent = pendingImportMulti.length + ' hosts detected \u2014 one entry per host will be created';
+      multiInfo.style.display = '';
+    }
+
+    document.getElementById('classifyModal').classList.add('open');
+  } else {
+    // Single-host import (original flow)
+    var parsed = parseScanOutput(raw, detected.type);
+    pendingImportRaw = raw;
+    pendingImportParsed = parsed;
+    pendingImportMulti = [];
+
+    document.getElementById('modalTitle').value = '';
+    document.getElementById('modalTitle').placeholder = 'e.g. Prod Web Server - Initial Scan';
+    document.getElementById('modalEnv').value = rescanEnv;
+    document.getElementById('modalTarget').value = parsed.target || detected.target || '';
+    document.getElementById('modalTarget').disabled = false;
+    document.getElementById('modalScanType').value = detected.type;
+    var now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('modalTimestamp').value = now.toISOString().slice(0, 16);
+
+    var multiInfo = document.getElementById('modalMultiHostInfo');
+    if (multiInfo) multiInfo.style.display = 'none';
+
+    document.getElementById('classifyModal').classList.add('open');
+  }
 }
 
 /* ================================================================
    PARSERS
    ================================================================ */
+
+function splitNmapByHost(raw) {
+  var hostStarts = [];
+  var re = /^Nmap scan report for\s+\S+/gm;
+  var match;
+  while ((match = re.exec(raw)) !== null) {
+    hostStarts.push(match.index);
+  }
+  if (hostStarts.length <= 1) return null; // single or no host
+
+  var chunks = [];
+  for (var i = 0; i < hostStarts.length; i++) {
+    var start = hostStarts[i];
+    var end = (i + 1 < hostStarts.length) ? hostStarts[i + 1] : raw.length;
+    var chunk = raw.substring(start, end).trim();
+    if (i === hostStarts.length - 1) {
+      chunk = chunk.replace(/\nNmap done:.*$/m, '').trim();
+    }
+    if (chunk) chunks.push(chunk);
+  }
+  return chunks;
+}
 
 function autoDetectScanType(raw) {
   var result = { type: 'nmap-port', target: '' };
@@ -6758,8 +6856,10 @@ function renderRawComparison(oldRaw, newRaw) {
 
 document.getElementById('modalCancel').addEventListener('click', function() {
   document.getElementById('classifyModal').classList.remove('open');
+  document.getElementById('modalTarget').disabled = false;
   pendingImportRaw = '';
   pendingImportParsed = null;
+  pendingImportMulti = [];
 });
 
 document.getElementById('modalSave').addEventListener('click', function() {
@@ -6770,26 +6870,54 @@ document.getElementById('modalSave').addEventListener('click', function() {
   }
 
   var env = document.getElementById('modalEnv').value;
-  var target = document.getElementById('modalTarget').value.trim();
   var timestamp = new Date(document.getElementById('modalTimestamp').value).toISOString();
   var scanType = document.getElementById('modalScanType').value;
 
-  var entry = {
-    id: generateId(),
-    title: title,
-    environment: env,
-    target: target || (pendingImportParsed ? pendingImportParsed.target : '') || 'unknown',
-    timestamp: timestamp,
-    scanType: scanType,
-    rawOutput: pendingImportRaw,
-    parsed: pendingImportParsed
-  };
+  if (pendingImportMulti.length > 1) {
+    // Multi-host bulk import
+    var newIds = [];
+    pendingImportMulti.forEach(function(item) {
+      var entry = {
+        id: generateId(),
+        title: title + ' \u2014 ' + (item.target || 'unknown'),
+        environment: env,
+        target: item.target || 'unknown',
+        timestamp: timestamp,
+        scanType: scanType,
+        rawOutput: item.raw,
+        parsed: item.parsed
+      };
+      rescanEntries.push(entry);
+      newIds.push(entry.id);
+    });
 
-  rescanEntries.push(entry);
+    // Auto-select all new entries for matrix view
+    rescanSelected = newIds;
+
+    pendingImportMulti = [];
+    pendingImportRaw = '';
+    pendingImportParsed = null;
+  } else {
+    // Single-host import
+    var target = document.getElementById('modalTarget').value.trim();
+    var entry = {
+      id: generateId(),
+      title: title,
+      environment: env,
+      target: target || (pendingImportParsed ? pendingImportParsed.target : '') || 'unknown',
+      timestamp: timestamp,
+      scanType: scanType,
+      rawOutput: pendingImportRaw,
+      parsed: pendingImportParsed
+    };
+    rescanEntries.push(entry);
+    pendingImportRaw = '';
+    pendingImportParsed = null;
+    pendingImportMulti = [];
+  }
 
   document.getElementById('classifyModal').classList.remove('open');
-  pendingImportRaw = '';
-  pendingImportParsed = null;
+  document.getElementById('modalTarget').disabled = false;
 
   if (activeSection && activeSection.type === 'rescan') {
     renderRescanSection(document.getElementById('mainContent'));

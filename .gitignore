@@ -1,0 +1,3 @@
+# Local workspace artifacts (Claude Code permissions, brainstorm sessions)
+.claude/
+.superpowers/

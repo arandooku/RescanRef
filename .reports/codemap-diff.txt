@@ -1,0 +1,70 @@
+CODEMAP DIFF REPORT
+===================
+Generated: 2026-04-25
+Project:   ScanRef (RescanRef)
+Branch:    master (last commit: b61f15c)
+
+PRIOR CODEMAPS
+--------------
+None. First codemap generation for this repo.
+
+CURRENT SCAN
+------------
+Files scanned:        1 (index.html)
+Lines:                7799 (CLAUDE.md still says ~6730 — stale by ~1070 lines)
+Source directories:   none beyond root + docs/
+Entry point:          index.html (opens via file://)
+Build artifacts:      none
+External deps:        none
+
+CODEMAPS WRITTEN
+----------------
+docs/CODEMAPS/architecture.md   ~750 tokens   layout, sections, render pattern
+docs/CODEMAPS/frontend.md       ~950 tokens   section tree, state, render pipeline
+docs/CODEMAPS/backend.md        ~400 tokens   no backend; client-side parsers/builders
+docs/CODEMAPS/data.md           ~700 tokens   static data, runtime state, JSON sidecar v1
+docs/CODEMAPS/dependencies.md   ~350 tokens   zero deps, browser APIs only
+
+ARCHITECTURE NOTES
+------------------
+Single-file SPA. ~80 top-level functions. Five sidebar tabs: reference, craft (nmap/curl),
+docs (nmap/curl), rescan history, header audit. State held in module vars; persistence
+via downloaded JSON sidecars (version: 1). No build, no test, no lint commands.
+
+DRIFT FLAGS
+-----------
+- CLAUDE.md says "index.html, ~6730 lines" — actual is 7799. Update suggested.
+- commands[] array (line 2250) is empty — reference section has no content yet but
+  routing/render code is fully wired. Either populate or remove the placeholder.
+
+RECENT CHANGES (last 10 commits)
+--------------------------------
+b61f15c feat: batch mode .bat/CMD toggle + multi-host nmap import splitting
+1b3c877 Merge branch 'master'
+8798e27 feat: comprehensive mobile responsive styles (≤900/767/400px)
+54bfa54 fix: -iL flag in colorCodeCommand preview for list mode
+537e6b2 feat: Download .txt button for target lists
+b51a799 feat: matrix interactivity — filter, sort, CSV export
+5effe95 feat: render port and header matrix views
+6dc28c9 feat: multi-select timeline and matrix view button routing
+43db2a5 feat: target list handlers and batch CMD loop generation
+0b808ae feat: render dual-mode target input (single/list)
+
+NEW DEPENDENCIES DETECTED
+-------------------------
+None.
+
+NEW ROUTES / SERVICES
+---------------------
+N/A (no backend).
+
+STALENESS WARNINGS
+------------------
+None — all codemaps generated fresh.
+
+NEXT-RUN GUIDANCE
+-----------------
+- Re-run after major feature additions (new craft tool, new audit rule category, new
+  parser, new comparison view).
+- If commands[] gets populated, refresh data.md cardinality table.
+- If line count drifts >10% past 7799, refresh architecture.md layout map.

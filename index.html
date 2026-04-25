@@ -2152,6 +2152,138 @@ mark {
     font-size: 0.75rem;
   }
 }
+
+/* ===== Help Overlay ===== */
+.modal-help {
+  max-width: 520px;
+}
+.modal-help h3 {
+  font-family: inherit;
+  color: var(--accent-green);
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+.kbd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+}
+.kbd-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--text-primary);
+}
+.kbd-table td:first-child {
+  width: 32%;
+  white-space: nowrap;
+}
+.kbd-table tr:last-child td {
+  border-bottom: none;
+}
+kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--accent-green);
+  background: var(--code-bg);
+  border: 1px solid var(--card-border);
+  border-bottom-width: 2px;
+  margin: 0 2px;
+}
+
+/* ===== Focus Visible (keyboard-only focus rings) ===== */
+:focus { outline: none; }
+:focus-visible {
+  outline: 1px solid var(--accent-green);
+  outline-offset: 1px;
+}
+.nav-item:focus-visible,
+.nav-tree-parent:focus-visible,
+.nav-tree-child:focus-visible {
+  outline: none;
+  background: rgba(166, 226, 46, 0.1);
+  border-left-color: var(--accent-green);
+}
+button:focus-visible {
+  outline: 1px solid var(--accent-green);
+  outline-offset: 2px;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===== Toast (success type) ===== */
+.toast-notification.toast-success {
+  background: rgba(166, 226, 46, 0.18);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+.toast-notification.toast-info {
+  background: rgba(102, 217, 239, 0.15);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+/* ===== Section Hint (after navigateTo) ===== */
+.section-hint {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.section-hint kbd {
+  font-size: 0.62rem;
+  padding: 1px 5px;
+  border-bottom-width: 1px;
+}
+
+/* ===== Print Stylesheet ===== */
+@media print {
+  body { background: white; color: black; }
+  .sidebar, .hamburger, .sidebar-overlay,
+  .audit-input-zone, .drop-zone, .paste-import-area,
+  .modal-overlay, .copy-btn, .crafted-copy-btn,
+  .modal-btn-cancel, .modal-btn-save,
+  .compare-btn, .audit-btn-clear, .audit-btn-save, .audit-btn-analyze,
+  .toast-notification, .env-tabs button, .footer,
+  .help-trigger, button { display: none !important; }
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    overflow: visible !important;
+  }
+  .card, .doc-entry, .audit-finding, .scan-entry {
+    page-break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+  .card.expanded, .card { display: block !important; }
+  .card-content, .doc-entry-body { display: block !important; }
+  .card-title, .doc-entry-title { color: black !important; }
+  .code-block, pre {
+    background: #f6f6f6 !important;
+    color: black !important;
+    border: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+  mark { background: #ffff80 !important; color: black !important; }
+  a { color: black !important; text-decoration: underline; }
+  a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 0.75rem; }
+  .section-prompt { color: #666 !important; }
+  h1, h2, h3 { color: black !important; }
+}
 </style>
 </head>
 <body>
@@ -2168,13 +2300,15 @@ mark {
       <div class="subtitle">Command Reference &amp; Scanner</div>
     </div>
     <div class="sidebar-search">
-      <input type="text" id="searchInput" placeholder="Search... ( / )" aria-label="Search">
+      <input type="text" id="searchInput" placeholder="Search... ( / )" aria-label="Search" autocomplete="off" spellcheck="false">
     </div>
     <nav class="sidebar-nav" id="sidebarNav">
       <!-- Auto-generated from data -->
     </nav>
     <div class="sidebar-footer">
       <span style="font-size:0.6rem; color:var(--text-muted); letter-spacing:1px;">SCANREF &middot; OFFLINE</span>
+      <button id="helpTrigger" class="help-trigger" title="Keyboard shortcuts (?)" aria-label="Show keyboard shortcuts"
+        style="float:right; background:transparent; border:1px solid var(--card-border); color:var(--text-muted); font-family:inherit; font-size:0.6rem; padding:1px 7px; cursor:pointer; letter-spacing:1px;">?</button>
     </div>
   </aside>
 
@@ -2219,6 +2353,33 @@ mark {
     <div class="modal-actions">
       <button class="modal-btn-cancel" id="modalCancel">Cancel</button>
       <button class="modal-btn-save" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help Overlay -->
+<div class="modal-overlay" id="helpOverlay">
+  <div class="modal modal-help">
+    <h3># scanref --help</h3>
+    <table class="kbd-table">
+      <tr><td><kbd>/</kbd></td><td>Focus search</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close modal / clear search</td></tr>
+      <tr><td><kbd>c</kbd></td><td>Craft (first tool)</td></tr>
+      <tr><td><kbd>d</kbd></td><td>Docs (first tool)</td></tr>
+      <tr><td><kbd>r</kbd></td><td>Rescan history</td></tr>
+      <tr><td><kbd>h</kbd></td><td>Header audit</td></tr>
+      <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Jump to nav item N</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>Print current view</td></tr>
+    </table>
+    <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px; line-height:1.6;">
+      ScanRef runs entirely offline (file://). Sections deep-link via URL hash —
+      e.g. <span style="color:var(--accent-cyan);">#craft/nmap</span>,
+      <span style="color:var(--accent-cyan);">#docs/curl</span>,
+      <span style="color:var(--accent-cyan);">#audit</span>.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-save" id="helpClose">Close</button>
     </div>
   </div>
 </div>
@@ -4652,6 +4813,63 @@ function navigateTo(section, scrollToId) {
   updateSidebarActive();
   updateSidebarMatchCounts(null);
   renderMainContent(scrollToId);
+  updateHashFromSection(scrollToId);
+  updateDocumentTitle();
+}
+
+function getSectionLabel(section) {
+  if (!section) return 'ScanRef';
+  switch (section.type) {
+    case 'reference': return 'ScanRef · Reference / ' + section.key;
+    case 'craft':     return 'ScanRef · Craft / ' + section.key;
+    case 'docs':      return 'ScanRef · Docs / ' + section.key;
+    case 'rescan':    return 'ScanRef · Rescan History';
+    case 'audit':     return 'ScanRef · Header Audit';
+    default:          return 'ScanRef';
+  }
+}
+
+function updateDocumentTitle() {
+  document.title = getSectionLabel(activeSection);
+}
+
+var _suppressHashChange = false;
+
+function updateHashFromSection(scrollToId) {
+  if (!activeSection) return;
+  var s = activeSection;
+  var parts = [s.type, encodeURIComponent(s.key)];
+  if (scrollToId) parts.push(encodeURIComponent(scrollToId));
+  var h = '#' + parts.join('/');
+  if (location.hash !== h) {
+    _suppressHashChange = true;
+    try { location.hash = h; } catch (e) {}
+    setTimeout(function() { _suppressHashChange = false; }, 0);
+  }
+}
+
+function parseHash() {
+  var raw = (location.hash || '').replace(/^#/, '');
+  if (!raw) return null;
+  var parts = raw.split('/');
+  var type = parts[0];
+  var key = parts[1] ? decodeURIComponent(parts[1]) : '';
+  var scrollTo = parts[2] ? decodeURIComponent(parts[2]) : null;
+  var valid = false;
+  if (type === 'reference') {
+    var refSections = [];
+    commands.forEach(function(c) { if (refSections.indexOf(c.section) === -1) refSections.push(c.section); });
+    valid = refSections.indexOf(key) >= 0;
+  } else if (type === 'craft') {
+    valid = !!craftTools[key];
+  } else if (type === 'docs') {
+    valid = !!docs[key];
+  } else if (type === 'rescan') {
+    valid = true; key = key || 'rescan';
+  } else if (type === 'audit') {
+    valid = true; key = key || 'audit';
+  }
+  return valid ? { type: type, key: key, scrollTo: scrollTo } : null;
 }
 
 function renderMainContent(scrollToId) {
@@ -5530,7 +5748,7 @@ function renderRescanSection(container) {
     html += '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;"><span style="color:var(--accent-cyan);">tip:</span> pipe scan output to clipboard: <span style="color:var(--accent-green);">nmap -sV target | clip.exe</span> &mdash; then paste below</div>';
     html += '<div class="paste-import-area">' +
       '<button class="paste-btn" id="pasteBtn">Paste scan output</button>' +
-      '<textarea class="paste-textarea" id="pasteArea" placeholder="Paste raw nmap or curl output here..."></textarea>' +
+      '<textarea class="paste-textarea" id="pasteArea" data-autosize spellcheck="false" placeholder="Paste raw nmap or curl output here..."></textarea>' +
       '<button class="import-btn" id="importBtn">Import</button>' +
       '</div>';
 
@@ -7153,31 +7371,128 @@ searchInput.addEventListener('input', function() {
    KEYBOARD SHORTCUTS
    ================================================================ */
 
+function toggleHelpOverlay(force) {
+  var help = document.getElementById('helpOverlay');
+  if (!help) return;
+  if (force === true) help.classList.add('open');
+  else if (force === false) help.classList.remove('open');
+  else help.classList.toggle('open');
+}
+
+function closeAnyOpenModal() {
+  var help = document.getElementById('helpOverlay');
+  if (help && help.classList.contains('open')) { help.classList.remove('open'); return true; }
+  var modals = document.querySelectorAll('.modal-overlay.open');
+  if (modals.length) {
+    for (var i = 0; i < modals.length; i++) modals[i].classList.remove('open');
+    return true;
+  }
+  return false;
+}
+
 document.addEventListener('keydown', function(e) {
   var tag = (e.target.tagName || '').toLowerCase();
-  var isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+  var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
+
+  // Esc — modal first, then search clear
+  if (e.key === 'Escape') {
+    if (closeAnyOpenModal()) return;
+    if (searchInput.value || document.activeElement === searchInput) {
+      searchInput.value = '';
+      searchInput.blur();
+      searchQuery = '';
+      updateSidebarMatchCounts(null);
+      if (activeSection) renderMainContent();
+    }
+    closeMobileSidebar();
+    return;
+  }
 
   if (e.key === '/' && !isInput) {
     e.preventDefault();
     searchInput.focus();
+    searchInput.select();
     return;
   }
 
-  if (e.key === 'Escape') {
-    searchInput.value = '';
-    searchInput.blur();
-    searchQuery = '';
-    updateSidebarMatchCounts(null);
-    if (activeSection) renderMainContent();
+  if (e.key === '?' && !isInput && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    toggleHelpOverlay();
     return;
   }
 
-  if (!isInput && e.key >= '1' && e.key <= '9') {
+  if (isInput) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  // Single-letter section shortcuts
+  var navMap = {
+    c: function() { var k = Object.keys(craftTools)[0]; if (k) navigateTo({ type: 'craft', key: k }); },
+    d: function() { var k = Object.keys(docs)[0]; if (k) navigateTo({ type: 'docs', key: k }); },
+    r: function() { navigateTo({ type: 'rescan', key: 'rescan' }); },
+    h: function() { navigateTo({ type: 'audit', key: 'audit' }); }
+  };
+  if (navMap[e.key]) {
+    e.preventDefault();
+    navMap[e.key]();
+    closeMobileSidebar();
+    return;
+  }
+
+  // 1-9 — nth nav item
+  if (e.key >= '1' && e.key <= '9') {
     var items = document.querySelectorAll('.nav-item');
     var idx = parseInt(e.key) - 1;
     if (idx < items.length) items[idx].click();
   }
 });
+
+// Auto-resize textareas marked with [data-autosize]
+document.body.addEventListener('input', function(e) {
+  var t = e.target;
+  if (t && t.matches && t.matches('textarea[data-autosize]')) {
+    autoSizeTextarea(t);
+  }
+});
+
+function autoSizeTextarea(el) {
+  if (!el) return;
+  var max = 0.6 * window.innerHeight;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight + 2, max) + 'px';
+}
+
+// Hash change listener — supports back/forward + manual hash edits
+window.addEventListener('hashchange', function() {
+  if (_suppressHashChange) return;
+  var parsed = parseHash();
+  if (parsed) {
+    navigateTo({ type: parsed.type, key: parsed.key }, parsed.scrollTo);
+  }
+});
+
+// Help overlay close button + click-outside
+(function() {
+  var helpBtn = document.getElementById('helpClose');
+  if (helpBtn) helpBtn.addEventListener('click', function() { toggleHelpOverlay(false); });
+  var helpOverlay = document.getElementById('helpOverlay');
+  if (helpOverlay) {
+    helpOverlay.addEventListener('click', function(e) {
+      if (e.target === helpOverlay) toggleHelpOverlay(false);
+    });
+  }
+  var classifyOverlay = document.getElementById('classifyModal');
+  if (classifyOverlay) {
+    classifyOverlay.addEventListener('click', function(e) {
+      if (e.target === classifyOverlay) classifyOverlay.classList.remove('open');
+    });
+  }
+  var auditOverlay = document.getElementById('auditSaveModal');
+  if (auditOverlay) {
+    auditOverlay.addEventListener('click', function(e) {
+      if (e.target === auditOverlay) auditOverlay.classList.remove('open');
+    });
+  }
+})();
 
 /* ================================================================
    MOBILE SIDEBAR
@@ -7224,7 +7539,7 @@ function renderAuditSection(container) {
       '<input type="file" id="auditFileInput" accept=".txt,.text,.json">' +
       '</div>';
     html += '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;"><span style="color:var(--accent-cyan);">tip:</span> run your command and pipe to clipboard: <span style="color:var(--accent-green);">curl -I https://example.com | clip.exe</span></div>';
-    html += '<textarea class="audit-textarea" id="auditInput" placeholder="Paste headers here...\n\nSupported formats:\n  curl -I https://example.com\n  HTTP/2 200\n  Strict-Transport-Security: max-age=31536000\n  ...\n\n  Raw Header: value lines\n  nmap http-security-headers script output">' +
+    html += '<textarea class="audit-textarea" id="auditInput" data-autosize spellcheck="false" placeholder="Paste headers here...\n\nSupported formats:\n  curl -I https://example.com\n  HTTP/2 200\n  Strict-Transport-Security: max-age=31536000\n  ...\n\n  Raw Header: value lines\n  nmap http-security-headers script output">' +
       escapeHtml(currentAuditResult ? currentAuditResult.rawInput : '') + '</textarea>';
     html += '<div class="audit-actions">';
     html += '<button class="audit-btn-analyze" id="auditAnalyzeBtn">Analyze</button>';
@@ -7775,6 +8090,16 @@ function renderAuditComparisonView() {
 function init() {
   initTheme();
   buildSidebar();
+
+  var helpTrigger = document.getElementById('helpTrigger');
+  if (helpTrigger) helpTrigger.addEventListener('click', function() { toggleHelpOverlay(); });
+
+  // Hash routing — restore deep-linked section if valid
+  var parsed = parseHash();
+  if (parsed) {
+    navigateTo({ type: parsed.type, key: parsed.key }, parsed.scrollTo);
+    return;
+  }
 
   var refSections = [];
   commands.forEach(function(c) {

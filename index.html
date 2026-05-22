@@ -7964,6 +7964,60 @@ function beautifyMarkup(raw, isXml) {
   return { ok: true, text: serializeNode(doc.documentElement, 0), error: '' };
 }
 
+// Beautifies a non-HTTP body of a known type. Returns {label, segments}.
+function beautifyBodySegments(raw, type) {
+  if (type === 'json') {
+    var j = beautifyJson(raw);
+    if (j.ok) return { label: 'JSON', segments: tokenizeJson(j.text) };
+    return { label: 'JSON (invalid)', segments: [
+      { text: j.error + '\n\n', cls: 'viewer-err' },
+      { text: String(raw), cls: null }
+    ] };
+  }
+  if (type === 'html' || type === 'xml') {
+    var m = beautifyMarkup(raw, type === 'xml');
+    if (m.ok) return { label: type.toUpperCase(), segments: [{ text: m.text, cls: null }] };
+    return { label: type.toUpperCase() + ' (unparsed)', segments: [
+      { text: m.error + '\n\n', cls: 'viewer-err' },
+      { text: String(raw), cls: null }
+    ] };
+  }
+  return { label: 'Plain text', segments: [{ text: String(raw), cls: null }] };
+}
+
+// Top-level: detects type, beautifies, returns {badge, segments}.
+function buildViewerOutput(raw) {
+  var type = detectResponseType(raw);
+  if (type === 'empty') return { badge: '', segments: [] };
+  if (type === 'http') {
+    var parsed = parseHeaderBlock(raw);
+    var segs = headerSegments(parsed);
+    if (parsed.body && parsed.body.trim() !== '') {
+      var bodyType = detectResponseType(parsed.body);
+      var body = bodyType === 'http'
+        ? { label: 'text', segments: [{ text: parsed.body, cls: null }] }
+        : beautifyBodySegments(parsed.body, bodyType);
+      segs.push({ text: '\n', cls: null });
+      return { badge: 'HTTP response + ' + body.label, segments: segs.concat(body.segments) };
+    }
+    return { badge: 'HTTP headers', segments: segs };
+  }
+  var out = beautifyBodySegments(raw, type);
+  return { badge: out.label, segments: out.segments };
+}
+
+// Renders [{text, cls}] segments into a <pre>, clearing it first.
+function renderSegments(preEl, segments) {
+  while (preEl.firstChild) preEl.removeChild(preEl.firstChild);
+  segments.forEach(function(s) {
+    if (s.cls) {
+      preEl.appendChild(vEl('span', { cls: s.cls, text: s.text }));
+    } else {
+      preEl.appendChild(document.createTextNode(s.text));
+    }
+  });
+}
+
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +

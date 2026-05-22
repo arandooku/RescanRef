@@ -7910,6 +7910,60 @@ function headerSegments(parsed) {
   return segs;
 }
 
+// Recursively serializes a DOM node to an indented markup string (2-space indent).
+function serializeNode(node, depth) {
+  var pad = new Array(depth + 1).join('  ');
+  var nt = node.nodeType;
+  if (nt === 1) { // element
+    var tag = node.nodeName.toLowerCase();
+    var attrs = '';
+    for (var a = 0; a < node.attributes.length; a++) {
+      attrs += ' ' + node.attributes[a].name + '="' + node.attributes[a].value + '"';
+    }
+    var open = '<' + tag + attrs + '>';
+    var close = '</' + tag + '>';
+    if (VIEWER_VOID_ELEMENTS[tag]) return pad + '<' + tag + attrs + ' />';
+    if (VIEWER_PRESERVE_CONTENT[tag]) {
+      var rawText = node.textContent;
+      if (rawText === '') return pad + open + close;
+      if (rawText.indexOf('\n') === -1) return pad + open + rawText + close;
+      return pad + open + '\n' + rawText + '\n' + pad + close;
+    }
+    if (node.childNodes.length === 1 && node.childNodes[0].nodeType === 3) {
+      var inlineTxt = node.childNodes[0].nodeValue.replace(/\s+/g, ' ').trim();
+      return pad + open + inlineTxt + close;
+    }
+    var childOut = [];
+    for (var c = 0; c < node.childNodes.length; c++) {
+      var s = serializeNode(node.childNodes[c], depth + 1);
+      if (s !== null && s !== '') childOut.push(s);
+    }
+    if (childOut.length === 0) return pad + open + close;
+    return pad + open + '\n' + childOut.join('\n') + '\n' + pad + close;
+  }
+  if (nt === 3) { // text
+    var txt = node.nodeValue.replace(/\s+/g, ' ').trim();
+    return txt === '' ? null : pad + txt;
+  }
+  if (nt === 8) return pad + '<!--' + node.nodeValue + '-->'; // comment
+  if (nt === 4) return pad + '<![CDATA[' + node.nodeValue + ']]>'; // CDATA
+  return null;
+}
+
+// Beautifies HTML/XML. Returns {ok, text, error}; tries the other parser on failure.
+function beautifyMarkup(raw, isXml) {
+  function tryParse(mime) {
+    var doc = new DOMParser().parseFromString(raw, mime);
+    return doc.querySelector('parsererror') ? null : doc;
+  }
+  var doc = isXml ? tryParse('application/xml') : tryParse('text/html');
+  if (!doc) doc = isXml ? tryParse('text/html') : tryParse('application/xml');
+  if (!doc || !doc.documentElement) {
+    return { ok: false, text: String(raw), error: 'Could not parse markup' };
+  }
+  return { ok: true, text: serializeNode(doc.documentElement, 0), error: '' };
+}
+
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +

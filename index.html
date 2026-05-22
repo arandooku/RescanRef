@@ -1410,7 +1410,6 @@ mark {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
-  overflow-x: auto;
 }
 .viewer-output:empty { display: none; }
 .jv-key { color: var(--accent-cyan); }
@@ -4956,6 +4955,7 @@ function getSectionLabel(section) {
     case 'docs':      return 'ScanRef · Docs / ' + section.key;
     case 'rescan':    return 'ScanRef · Rescan History';
     case 'audit':     return 'ScanRef · Header Audit';
+    case 'viewer':    return 'ScanRef · Response Viewer';
     default:          return 'ScanRef';
   }
 }
@@ -4999,6 +4999,8 @@ function parseHash() {
     valid = true; key = key || 'rescan';
   } else if (type === 'audit') {
     valid = true; key = key || 'audit';
+  } else if (type === 'viewer') {
+    valid = true; key = key || 'viewer';
   }
   return valid ? { type: type, key: key, scrollTo: scrollTo } : null;
 }
@@ -5026,6 +5028,9 @@ function renderMainContent(scrollToId) {
       break;
     case 'audit':
       renderAuditSection(main);
+      break;
+    case 'viewer':
+      renderViewerSection(main);
       break;
     default:
       main.innerHTML = renderEmptyState('Unknown section type');
@@ -7995,7 +8000,7 @@ function buildViewerOutput(raw) {
     if (parsed.body && parsed.body.trim() !== '') {
       var bodyType = detectResponseType(parsed.body);
       var body = bodyType === 'http'
-        ? { label: 'text', segments: [{ text: parsed.body, cls: null }] }
+        ? { label: 'Plain text', segments: [{ text: parsed.body, cls: null }] }
         : beautifyBodySegments(parsed.body, bodyType);
       segs.push({ text: '\n', cls: null });
       return { badge: 'HTTP response + ' + body.label, segments: segs.concat(body.segments) };
@@ -8010,12 +8015,82 @@ function buildViewerOutput(raw) {
 function renderSegments(preEl, segments) {
   while (preEl.firstChild) preEl.removeChild(preEl.firstChild);
   segments.forEach(function(s) {
-    if (s.cls) {
+    if (s.cls != null) {
       preEl.appendChild(vEl('span', { cls: s.cls, text: s.text }));
     } else {
       preEl.appendChild(document.createTextNode(s.text));
     }
   });
+}
+
+// Renders the Response Viewer section into `container`. Built with DOM APIs
+// only, so pasted markup is never live-injected into the page.
+function renderViewerSection(container) {
+  var header = vEl('div', { cls: 'section-header' }, [
+    vEl('div', { cls: 'section-prompt' }, [
+      '# ',
+      vEl('span', { cls: 'cmd', text: 'scanref' }),
+      ' ',
+      vEl('span', { cls: 'flag', text: '--viewer' })
+    ]),
+    vEl('h2', { text: 'Response Viewer' }),
+    vEl('p', { text: 'Paste raw curl output to beautify JSON, headers, HTML, or XML' })
+  ]);
+
+  var textarea = vEl('textarea', {
+    cls: 'viewer-textarea',
+    id: 'viewerInput',
+    text: currentViewerInput,
+    attrs: {
+      'data-autosize': '',
+      spellcheck: 'false',
+      placeholder: 'Paste raw curl output here...\n\nJSON, HTTP headers, HTML, and XML are auto-detected.'
+    }
+  });
+
+  var badge = vEl('span', { cls: 'viewer-badge', id: 'viewerBadge' });
+  var copyBtn = vEl('button', { cls: 'crafted-copy-btn', id: 'viewerCopyBtn', text: 'Copy Output' });
+  copyBtn.style.display = 'none';
+  var bar = vEl('div', { cls: 'viewer-bar' }, [badge, copyBtn]);
+
+  var output = vEl('pre', { cls: 'viewer-output', id: 'viewerOutput' });
+
+  var wrap = vEl('div', { cls: 'viewer-container' }, [header, textarea, bar, output]);
+
+  while (container.firstChild) container.removeChild(container.firstChild);
+  container.appendChild(wrap);
+
+  attachViewerHandlers(container);
+}
+
+function attachViewerHandlers(container) {
+  var input = container.querySelector('#viewerInput');
+  var output = container.querySelector('#viewerOutput');
+  var badge = container.querySelector('#viewerBadge');
+  var copyBtn = container.querySelector('#viewerCopyBtn');
+  if (!input || !output || !badge || !copyBtn) return;
+
+  function update() {
+    currentViewerInput = input.value;
+    var result = buildViewerOutput(input.value);
+    renderSegments(output, result.segments);
+    badge.textContent = result.badge;
+    if (result.segments.length > 0) {
+      copyBtn.style.display = '';
+      copyBtn.setAttribute('data-copy', output.textContent);
+    } else {
+      copyBtn.style.display = 'none';
+      copyBtn.removeAttribute('data-copy');
+    }
+  }
+
+  input.addEventListener('input', update);
+  copyBtn.addEventListener('click', function() {
+    copyToClipboard(copyBtn.getAttribute('data-copy') || '', copyBtn);
+  });
+
+  update();
+  autoSizeTextarea(input);
 }
 
 function renderAuditSection(container) {

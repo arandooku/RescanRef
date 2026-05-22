@@ -7864,6 +7864,52 @@ function tokenizeJson(jsonText) {
   return segs;
 }
 
+// Parses an HTTP response: {statusLine, headers:[{name,value}], body}.
+// The header block ends at the first blank line; everything after is body.
+function parseHeaderBlock(raw) {
+  var lines = String(raw).replace(/\r\n/g, '\n').split('\n');
+  var statusLine = '';
+  var headers = [];
+  var i = 0;
+  if (/^HTTP\/\d/i.test(lines[0] || '')) {
+    statusLine = lines[0].trim();
+    i = 1;
+  }
+  for (; i < lines.length; i++) {
+    if (lines[i].trim() === '') { i++; break; }
+    var idx = lines[i].indexOf(':');
+    if (idx > 0) {
+      headers.push({ name: lines[i].slice(0, idx).trim(), value: lines[i].slice(idx + 1).trim() });
+    } else {
+      headers.push({ name: '', value: lines[i].trim() });
+    }
+  }
+  return { statusLine: statusLine, headers: headers, body: lines.slice(i).join('\n') };
+}
+
+// Turns a parsed header block into [{text, cls}] segments with aligned names.
+function headerSegments(parsed) {
+  var segs = [];
+  if (parsed.statusLine) {
+    segs.push({ text: parsed.statusLine, cls: 'hv-status' });
+    segs.push({ text: '\n', cls: null });
+  }
+  var maxLen = 0;
+  parsed.headers.forEach(function(h) { if (h.name.length > maxLen) maxLen = h.name.length; });
+  parsed.headers.forEach(function(h) {
+    if (h.name) {
+      var pad = new Array(Math.max(0, maxLen - h.name.length) + 1).join(' ');
+      segs.push({ text: h.name, cls: 'hv-name' });
+      segs.push({ text: pad + ': ', cls: 'hv-sep' });
+      segs.push({ text: h.value, cls: 'hv-val' });
+    } else {
+      segs.push({ text: h.value, cls: null });
+    }
+    segs.push({ text: '\n', cls: null });
+  });
+  return segs;
+}
+
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +

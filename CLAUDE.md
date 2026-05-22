@@ -37,4 +37,5 @@ reference, command crafting (nmap/curl), and HTTP header auditing. Opens via `fi
 - URL hash routing for deep-linkable sections (`#craft/nmap`, `#docs/curl`, `#audit`, `#rescan`)
 - Keyboard shortcuts: `/` search, `?` help overlay, `c/d/r/h` jump to section, `Esc` close modal, `1-9` Nth nav item
 - Print stylesheet, `:focus-visible` rings, `prefers-reduced-motion` respect, auto-resizing paste textareas
+- Response Viewer: standalone `#viewer` section — paste raw curl output, auto-detects and beautifies JSON / HTTP headers / HTML / XML (native `JSON.parse` + `DOMParser`, no deps)
 - Architecture codemaps in `docs/CODEMAPS/` (architecture, frontend, backend, data, dependencies)

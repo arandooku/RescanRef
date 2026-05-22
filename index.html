@@ -7834,6 +7834,36 @@ function detectResponseType(raw) {
   return 'text';
 }
 
+// Pretty-prints JSON. Returns {ok, text, error}; on failure text is the raw input.
+function beautifyJson(raw) {
+  try {
+    return { ok: true, text: JSON.stringify(JSON.parse(raw), null, 2), error: '' };
+  } catch (e) {
+    return { ok: false, text: String(raw), error: 'Invalid JSON: ' + e.message };
+  }
+}
+
+// Splits well-formed (JSON.stringify) output into [{text, cls}] highlight segments.
+function tokenizeJson(jsonText) {
+  var re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  var segs = [];
+  var last = 0;
+  Array.from(jsonText.matchAll(re)).forEach(function(m) {
+    if (m.index > last) segs.push({ text: jsonText.slice(last, m.index), cls: null });
+    if (m[1] != null) {
+      segs.push({ text: m[1], cls: m[2] ? 'jv-key' : 'jv-str' });
+      if (m[2]) segs.push({ text: m[2], cls: null });
+    } else if (m[3] != null) {
+      segs.push({ text: m[3], cls: 'jv-kw' });
+    } else if (m[4] != null) {
+      segs.push({ text: m[4], cls: 'jv-num' });
+    }
+    last = m.index + m[0].length;
+  });
+  if (last < jsonText.length) segs.push({ text: jsonText.slice(last), cls: null });
+  return segs;
+}
+
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +

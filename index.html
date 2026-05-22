@@ -7918,7 +7918,7 @@ function serializeNode(node, depth) {
     var tag = node.nodeName.toLowerCase();
     var attrs = '';
     for (var a = 0; a < node.attributes.length; a++) {
-      attrs += ' ' + node.attributes[a].name + '="' + node.attributes[a].value + '"';
+      attrs += ' ' + node.attributes[a].name + '="' + node.attributes[a].value.replace(/"/g, '&quot;') + '"';
     }
     var open = '<' + tag + attrs + '>';
     var close = '</' + tag + '>';

@@ -7819,6 +7819,21 @@ function vEl(tag, opts, kids) {
   return e;
 }
 
+// Sniffs raw text and returns: 'empty' | 'http' | 'json' | 'html' | 'xml' | 'text'.
+function detectResponseType(raw) {
+  var t = String(raw == null ? '' : raw).replace(/^﻿/, '').replace(/^\s+/, '');
+  if (t === '') return 'empty';
+  if (/^HTTP\/\d/i.test(t)) return 'http';
+  var c = t.charAt(0);
+  if (c === '{' || c === '[') return 'json';
+  if (c === '<') {
+    if (/^<\?xml/i.test(t)) return 'xml';
+    if (/<!doctype\s+html/i.test(t) || /<html[\s>]/i.test(t)) return 'html';
+    return 'xml';
+  }
+  return 'text';
+}
+
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--audit</span> <span class="flag">--headers</span></div><h2>Header Audit</h2>' +

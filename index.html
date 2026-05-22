@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- CSP hardening for this offline file:// app. Blocks external scripts/resources
+     (default-src 'none') and injected inline event handlers (no 'unsafe-inline').
+     The nonce is static because a file:// page has no server to randomize it per
+     load, so the CSP is defense-in-depth — NOT the primary control. The primary
+     XSS defense is escapeHtml() on every untrusted value before it reaches
+     innerHTML; that prevents tag injection regardless of the nonce. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-scanref'; style-src 'unsafe-inline'; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>ScanRef</title>
 <style>
 /* ===== CSS Custom Properties ===== */
@@ -17,7 +24,8 @@
   --accent-orange: #fd971f;
   --text-primary: #e0e0d8;
   --text-secondary: #8a8c84;
-  --text-muted: #4a4c44;
+  --text-muted: #84867b;
+  --placeholder: #6e7066;
   --code-bg: #0a0c08;
   --card-bg: #0e100c;
   --card-border: #1e201a;
@@ -112,13 +120,13 @@ mark {
 .sidebar-search input:focus {
   border-color: var(--accent-green);
 }
-.sidebar-search input::placeholder { color: #3a3c34; }
+.sidebar-search input::placeholder { color: var(--placeholder); }
 
 .sidebar-nav { flex: 1; overflow-y: auto; padding: 6px 0; }
 
 .nav-group-label {
   padding: 14px 18px 5px;
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--text-muted);
@@ -313,13 +321,12 @@ mark {
   margin-bottom: 24px;
 }
 .section-header h2 {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--accent-green);
   letter-spacing: 0.5px;
-  display: inline-block;
-  border: 1px solid rgba(166, 226, 46, 0.3);
-  padding: 2px 10px;
+  display: block;
+  padding: 0;
 }
 .section-header p {
   font-size: 0.85rem;
@@ -380,7 +387,7 @@ mark {
 }
 .card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .tag-badge {
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   padding: 1px 6px;
   border-radius: 0;
   background: rgba(174, 129, 255, 0.12);
@@ -458,10 +465,9 @@ mark {
 }
 .craft-groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+  grid-template-columns: 1fr;
   gap: 8px;
   align-items: start;
-  max-width: 1100px;
 }
 
 .target-input-wrapper { margin-bottom: 22px; }
@@ -486,7 +492,7 @@ mark {
   outline: none;
   transition: none;
 }
-.target-input::placeholder { color: #3a3c34; }
+.target-input::placeholder { color: var(--placeholder); }
 .target-input:focus {
 }
 
@@ -680,7 +686,7 @@ mark {
 .toggles-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 14px;
 }
 
@@ -688,7 +694,7 @@ mark {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 8px;
+  padding: 6px 10px;
   background: transparent;
   border: 1px solid var(--card-border);
   cursor: pointer;
@@ -702,23 +708,25 @@ mark {
 }
 .toggle-item .toggle-flag {
   font-family: inherit;
-  font-size: 0.68rem;
+  font-size: 0.74rem;
   color: var(--accent-cyan);
 }
 .toggle-item.active .toggle-flag { color: var(--accent-green); }
 .toggle-item .toggle-label {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 .toggle-item.active .toggle-label { color: var(--text-secondary); }
 .toggle-item .toggle-info {
   color: var(--accent-cyan);
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   text-decoration: none;
   flex-shrink: 0;
-  opacity: 0.4;
+  opacity: 0.55;
   transition: opacity 0.2s;
+  padding: 2px 4px;
+  margin: -2px -2px -2px 0;
 }
 .toggle-item .toggle-info:hover { opacity: 1; }
 
@@ -823,7 +831,7 @@ mark {
   text-transform: uppercase;
 }
 .doc-category-count {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 700;
   background: rgba(174, 129, 255, 0.12);
   color: var(--accent-purple);
@@ -1324,6 +1332,39 @@ mark {
 /* ===== Utility ===== */
 .hidden { display: none !important; }
 
+/* ===== Skip Link (keyboard a11y) ===== */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: var(--accent-green);
+  color: #0d0e0a;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus { left: 8px; top: 8px; }
+
+/* ===== Inline Field Errors ===== */
+.field-error {
+  display: none;
+  color: var(--accent-pink);
+  font-size: 0.68rem;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+.field-error.show { display: block; }
+
+/* ===== Header card status markers (monochrome, replaces emoji) ===== */
+.ha-icon-ok { color: var(--accent-green); }
+.ha-icon-insecure { color: var(--accent-pink); }
+.ha-icon-deprecated { color: var(--accent-orange); }
+.ha-icon-fingerprint { color: var(--accent-yellow); }
+.ha-icon-empty { color: var(--accent-yellow); }
+.ha-icon-none { color: var(--text-muted); }
+
 /* ===== Header Audit ===== */
 .audit-container { }
 .audit-input-zone { margin-bottom: 20px; }
@@ -1342,7 +1383,7 @@ mark {
   transition: border-color 0.2s;
 }
 .audit-textarea:focus { border-color: var(--accent-green); }
-.audit-textarea::placeholder { color: #3a3c34; }
+.audit-textarea::placeholder { color: var(--placeholder); }
 .audit-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .audit-btn-analyze {
   padding: 6px 16px;
@@ -1610,7 +1651,7 @@ mark {
   align-items: flex-start;
 }
 .ha-badge {
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 0;
@@ -2112,13 +2153,13 @@ mark {
     font-size: 0.72rem;
   }
 
-  /* Toggle items — even more compact */
+  /* Toggle items — compact but still legible/tappable */
   .toggle-item {
-    padding: 3px 6px;
-    gap: 4px;
+    padding: 5px 8px;
+    gap: 5px;
   }
-  .toggle-item .toggle-flag { font-size: 0.62rem; }
-  .toggle-item .toggle-label { font-size: 0.6rem; }
+  .toggle-item .toggle-flag { font-size: 0.68rem; }
+  .toggle-item .toggle-label { font-size: 0.66rem; }
 
   /* Scan entries — stack metadata */
   .scan-entry {
@@ -2142,7 +2183,7 @@ mark {
 
   /* HA badges — smaller */
   .ha-badge {
-    font-size: 0.5rem;
+    font-size: 0.58rem;
     padding: 1px 5px;
   }
 
@@ -2288,6 +2329,8 @@ button:focus-visible {
 </head>
 <body>
 
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
 <div class="app">
   <!-- Hamburger (mobile) -->
   <button class="hamburger" id="hamburger" aria-label="Open menu">&#9776;</button>
@@ -2313,19 +2356,20 @@ button:focus-visible {
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" id="mainContent">
+  <main class="main-content" id="mainContent" tabindex="-1">
     <!-- Dynamic content rendered here -->
   </main>
 </div>
 
 <!-- Classify Modal -->
 <div class="modal-overlay" id="classifyModal">
-  <div class="modal">
-    <h3>Classify Scan Result</h3>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="classifyModalHeading">
+    <h3 id="classifyModalHeading">Classify Scan Result</h3>
     <div id="modalMultiHostInfo" class="modal-multi-host-info" style="display:none;"></div>
     <div class="modal-field">
       <label for="modalTitle">Title (required)</label>
       <input type="text" id="modalTitle" placeholder="e.g. Prod Web Server - Initial Scan">
+      <div class="field-error" id="modalTitleError">Title is required.</div>
     </div>
     <div class="modal-field">
       <label for="modalEnv">Environment</label>
@@ -2341,6 +2385,7 @@ button:focus-visible {
     <div class="modal-field">
       <label for="modalTimestamp">Timestamp</label>
       <input type="datetime-local" id="modalTimestamp">
+      <div class="field-error" id="modalTimestampError">Enter a valid date &amp; time.</div>
     </div>
     <div class="modal-field">
       <label for="modalScanType">Scan Type (auto-detected)</label>
@@ -2359,8 +2404,8 @@ button:focus-visible {
 
 <!-- Help Overlay -->
 <div class="modal-overlay" id="helpOverlay">
-  <div class="modal modal-help">
-    <h3># scanref --help</h3>
+  <div class="modal modal-help" role="dialog" aria-modal="true" aria-labelledby="helpModalHeading">
+    <h3 id="helpModalHeading"># scanref --help</h3>
     <table class="kbd-table">
       <tr><td><kbd>/</kbd></td><td>Focus search</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close modal / clear search</td></tr>
@@ -2386,11 +2431,12 @@ button:focus-visible {
 
 <!-- Audit Save Modal -->
 <div class="modal-overlay" id="auditSaveModal">
-  <div class="modal">
-    <h3>Save Audit Result</h3>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="auditModalHeading">
+    <h3 id="auditModalHeading">Save Audit Result</h3>
     <div class="modal-field">
       <label for="auditModalTitle">Title (required)</label>
       <input type="text" id="auditModalTitle" placeholder="e.g. example.com - Q1 Audit">
+      <div class="field-error" id="auditModalTitleError">Title is required.</div>
     </div>
     <div class="modal-field">
       <label for="auditModalTarget">Target</label>
@@ -2403,7 +2449,7 @@ button:focus-visible {
   </div>
 </div>
 
-<script>
+<script nonce="scanref">
 /* ================================================================
    DATA -- Empty placeholders, populated in subsequent tasks
    ================================================================ */
@@ -4550,9 +4596,12 @@ function generateId() {
 
 function escapeHtml(str) {
   if (str == null) return '';
-  var div = document.createElement('div');
-  div.textContent = String(str);
-  return div.innerHTML;
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function showToast(message, type) {
@@ -4624,16 +4673,38 @@ function formatDate(iso) {
   try {
     var d = new Date(iso);
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch(e) { return iso; }
+  } catch(e) { return escapeHtml(String(iso)); }
 }
 
-/* ================================================================
-   THEME
-   ================================================================ */
+/* Make non-button clickable elements keyboard-accessible (a11y).
+   Adds role=button + tabindex so they can be focused and activated
+   via the global Enter/Space handler below. */
+function applyButtonRoles(root) {
+  if (!root) return;
+  var sel = '.nav-item,.nav-tree-parent,.nav-tree-child,.card-header,.doc-entry-header,' +
+    '.option-group-header,.toggle-item,.scan-entry,.audit-entry,.audit-section-header,' +
+    '.ha-card-header,.ha-tab,.back-link,.comparison-back';
+  var els = root.querySelectorAll(sel);
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    if (el.tagName === 'BUTTON') continue;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  }
+}
 
-function initTheme() {}
-function toggleTheme() {}
-function updateThemeLabel() {}
+// Clear inline field errors + invalid styling within a modal (a11y reset on open).
+function clearFieldErrors(modalId) {
+  var modal = document.getElementById(modalId);
+  if (!modal) return;
+  var errs = modal.querySelectorAll('.field-error');
+  for (var i = 0; i < errs.length; i++) errs[i].classList.remove('show');
+  var fields = modal.querySelectorAll('input, select');
+  for (var j = 0; j < fields.length; j++) {
+    fields[j].style.borderColor = '';
+    fields[j].removeAttribute('aria-invalid');
+  }
+}
 
 /* ================================================================
    SIDEBAR NAVIGATION
@@ -4704,6 +4775,8 @@ function buildSidebar() {
     '<span class="nav-item-label">Header Audit</span></div>';
 
   nav.innerHTML = html;
+
+  applyButtonRoles(nav);
 
   // Attach click handlers for flat nav items
   var items = nav.querySelectorAll('.nav-item');
@@ -4922,7 +4995,7 @@ function renderEmptyState(text, sub) {
 function renderReferenceSection(container, sectionName) {
   var items = commands.filter(function(c) { return c.section === sectionName; });
   if (items.length === 0) {
-    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--section</span> <span class="arg">' + escapeHtml(sectionName.toLowerCase().replace(/\s+/g, '-')) + '</span> <span class="flag">--count</span> <span class="arg">0</span></div><h2>' + escapeHtml(sectionName) + '</h2><p>No commands yet. Add entries to the commands array.</p></div>' +
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--section</span> <span class="arg">' + escapeHtml(sectionName.toLowerCase().replace(/\s+/g, '-')) + '</span> <span class="flag">--count</span> <span class="arg">0</span></div><h2>' + escapeHtml(sectionName) + '</h2><p>No commands available in this section yet.</p></div>' +
       renderEmptyState('No commands in this section');
     return;
   }
@@ -4989,6 +5062,7 @@ function attachCopyHandlers(container) {
       });
     })(craftBtns[j]);
   }
+  applyButtonRoles(container);
 }
 
 /* ================================================================
@@ -5012,6 +5086,12 @@ function getCraftState(toolKey) {
   }
   return craftState[toolKey];
 }
+
+// Host lists at or below this size are embedded directly in the FOR set so the
+// command needs no sidecar file (true 1-click). Larger lists fall back to a
+// file-driven `for /F` loop. 50 hosts inline is well under the ~8191-char
+// cmd.exe line limit.
+var BATCH_INLINE_MAX = 50;
 
 function buildBatchCommand(toolKey) {
   var tool = craftTools[toolKey];
@@ -5051,18 +5131,21 @@ function buildBatchCommand(toolKey) {
 
   var filename = state.targetFilename || 'targets.txt';
   if (mode === 'cmd') {
-    // CMD terminal: single % variable, no @echo off
-    if (hosts.length < 10) {
-      return 'for %H in (' + hosts.join(' ') + ') do ' + baseCmd + ' %H & echo ---';
+    // CMD terminal: single % variable, no @echo off.
+    // The body MUST be parenthesised — without parens the bare `&` ends the
+    // FOR statement, so `echo ---` would run only once instead of per host.
+    if (hosts.length <= BATCH_INLINE_MAX) {
+      return 'for %H in (' + hosts.join(' ') + ') do (' + baseCmd + ' %H & echo ---)';
     } else {
-      return 'for /F "tokens=*" %H in (' + filename + ') do ' + baseCmd + ' %H & echo ---';
+      // usebackq + quotes so a filename containing spaces still parses.
+      return 'for /F "usebackq tokens=*" %H in ("' + filename + '") do (' + baseCmd + ' %H & echo ---)';
     }
   } else {
     // .bat file: double %% variable, @echo off, multiline
-    if (hosts.length < 10) {
+    if (hosts.length <= BATCH_INLINE_MAX) {
       return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
     } else {
-      return '@echo off\nfor /F "tokens=*" %%H in (' + filename + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+      return '@echo off\nfor /F "usebackq tokens=*" %%H in ("' + filename + '") do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
     }
   }
 }
@@ -5098,12 +5181,10 @@ function buildCraftedCommand(toolKey) {
     }
   });
 
-  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode) {
-    if ((tool.name || toolKey) === 'nmap') {
-      parts.push('-iL ' + (state.targetFilename || 'targets.txt'));
-    } else {
-      parts.push(state.targetList[0] || '');
-    }
+  if (state.targetMode === 'list' && !state.batchMode && state.targetList.length >= 1) {
+    // nmap and curl both accept many targets directly on the command line, so
+    // inline every host — a true 1-click command with no sidecar file.
+    parts.push(state.targetList.join(' '));
   } else if (state.target) {
     parts.push(state.target);
   }
@@ -5142,13 +5223,8 @@ function colorCodeCommand(toolKey) {
     }
   });
 
-  if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode) {
-    if ((tool.name || toolKey) === 'nmap') {
-      var fn = state.targetFilename || 'targets.txt';
-      html += ' <span class="cmd-flag">-iL</span> <span class="cmd-target">' + escapeHtml(fn) + '</span>';
-    } else {
-      html += ' <span class="cmd-target">' + escapeHtml(state.targetList[0] || '') + '</span>';
-    }
+  if (state.targetMode === 'list' && !state.batchMode && state.targetList.length >= 1) {
+    html += ' <span class="cmd-target">' + escapeHtml(state.targetList.join(' ')) + '</span>';
   } else if (state.target) {
     html += ' <span class="cmd-target">' + escapeHtml(state.target) + '</span>';
   }
@@ -5159,7 +5235,7 @@ function colorCodeCommand(toolKey) {
 function renderCraftSection(container, toolKey) {
   var tool = craftTools[toolKey];
   if (!tool) {
-    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--craft</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>Craft: ' + escapeHtml(toolKey) + '</h2><p>Tool not configured yet.</p></div>' + renderEmptyState('Add this tool to craftTools object');
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--craft</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>Craft: ' + escapeHtml(toolKey) + '</h2><p>Tool not configured yet.</p></div>' + renderEmptyState('This tool is not available');
     return;
   }
 
@@ -5191,7 +5267,7 @@ function renderCraftSection(container, toolKey) {
   // Option groups
   html += '<div class="craft-groups-grid">';
   (tool.groups || []).forEach(function(g, gi) {
-    html += '<div class="option-group">' +
+    html += '<div class="option-group' + (gi === 0 ? ' expanded' : '') + '">' +
       '<div class="option-group-header">' +
       '<span class="option-group-chevron">&#9654;</span>' +
       '<span class="option-group-label">' + escapeHtml(g.name) + '</span>' +
@@ -5327,6 +5403,12 @@ function attachCraftHandlers(container, toolKey) {
   }
 
   function updateOutput() {
+    var batchGroup = container.querySelector('#batchToggleGroup');
+    if (batchGroup) {
+      var showBatch = state.targetMode === 'list' && state.targetList.length >= 2;
+      batchGroup.style.display = showBatch ? '' : 'none';
+      if (!showBatch) { state.batchMode = ''; updateBatchToggles(); }
+    }
     var preview = document.getElementById('craftedPreview');
     var copyBtn = document.getElementById('craftedCopyBtn');
     if (state.targetMode === 'list' && state.batchMode && state.targetList.length >= 2) {
@@ -5339,12 +5421,14 @@ function attachCraftHandlers(container, toolKey) {
       var note = container.querySelector('.batch-script-note');
       if (note) {
         var fn = state.targetFilename || 'targets.txt';
-        if (state.targetList.length >= 10) {
-          note.textContent = 'Uses file: ' + fn + ' — click Download .txt above to save it.';
-          note.style.display = '';
+        if (state.targetList.length > BATCH_INLINE_MAX) {
+          note.textContent = 'Reads hosts from ' + fn + ' — click Download .txt (or import that file) and run the command from the folder that holds it.';
         } else {
-          note.style.display = 'none';
+          note.textContent = state.batchMode === 'cmd'
+            ? 'Paste straight into a cmd.exe window — all hosts are embedded, no file needed.'
+            : 'Save as scan.bat and double-click to run — all hosts are embedded, no file needed.';
         }
+        note.style.display = '';
       }
     } else {
       if (preview) {
@@ -5353,15 +5437,7 @@ function attachCraftHandlers(container, toolKey) {
       }
       if (copyBtn) copyBtn.setAttribute('data-copy', buildCraftedCommand(toolKey));
       var note = container.querySelector('.batch-script-note');
-      if (note) {
-        var fn = state.targetFilename || 'targets.txt';
-        if (state.targetMode === 'list' && state.targetList.length >= 2 && !state.batchMode && (craftTools[toolKey].name || toolKey) === 'nmap') {
-          note.textContent = 'Uses file: ' + fn + ' — click Download .txt above to save it.';
-          note.style.display = '';
-        } else {
-          note.style.display = 'none';
-        }
-      }
+      if (note) note.style.display = 'none';
     }
   }
 
@@ -5406,7 +5482,10 @@ function attachCraftHandlers(container, toolKey) {
   function updateTargetList() {
     state.targetList = parseTargetList(listTextarea ? listTextarea.value : '');
     if (state.targetList.length > 0) {
-      state.targetFilename = generateTargetFilename(toolKey);
+      // Generate the name once and keep it stable — the old code regenerated
+      // the timestamp on every keystroke, so the command could point at a
+      // different file than the one the user downloaded.
+      if (!state.targetFilename) state.targetFilename = generateTargetFilename(toolKey);
     } else {
       state.targetFilename = '';
     }
@@ -5432,12 +5511,23 @@ function attachCraftHandlers(container, toolKey) {
     importBtn.addEventListener('click', function() { targetFileInput.click(); });
     targetFileInput.addEventListener('change', function() {
       if (targetFileInput.files.length === 0) return;
+      var importedName = targetFileInput.files[0].name;
+      var hadExisting = !!(listTextarea && listTextarea.value.trim());
       var reader = new FileReader();
+      reader.onerror = function() { showToast('Could not read target file', 'error'); };
       reader.onload = function(e) {
         var existing = listTextarea ? listTextarea.value : '';
         var newText = existing ? existing + '\n' + e.target.result : e.target.result;
         if (listTextarea) listTextarea.value = newText;
         updateTargetList();
+        // If the imported file IS the whole list, reuse its real name so the
+        // file-driven batch command points at a file the user already has on
+        // disk. If hosts were typed in first, the on-disk file is incomplete —
+        // keep the generated name so the note tells the user to Download .txt.
+        if (!hadExisting) {
+          state.targetFilename = importedName;
+          updateOutput();
+        }
       };
       reader.readAsText(targetFileInput.files[0]);
     });
@@ -5533,18 +5623,6 @@ function attachCraftHandlers(container, toolKey) {
     });
   }
 
-  // Update batch toggle visibility when target list changes
-  var origUpdateOutput = updateOutput;
-  updateOutput = function() {
-    var batchGroup = container.querySelector('#batchToggleGroup');
-    if (batchGroup) {
-      var showBatch = state.targetMode === 'list' && state.targetList.length >= 2;
-      batchGroup.style.display = showBatch ? '' : 'none';
-      if (!showBatch) state.batchMode = '';
-    }
-    origUpdateOutput();
-  };
-
   // Info icons -> docs
   var infoIcons = container.querySelectorAll('.toggle-info');
   for (var ii = 0; ii < infoIcons.length; ii++) {
@@ -5577,7 +5655,7 @@ function attachCraftHandlers(container, toolKey) {
 function renderDocsSection(container, toolKey, scrollToId) {
   var entries = docs[toolKey];
   if (!entries || entries.length === 0) {
-    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--docs</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(toolKey) + ' Reference</h2><p>No documentation yet.</p></div>' + renderEmptyState('Add entries to the docs object');
+    container.innerHTML = '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--docs</span> <span class="arg">' + escapeHtml(toolKey) + '</span></div><h2>' + escapeHtml(toolKey) + ' Reference</h2><p>No documentation yet.</p></div>' + renderEmptyState('No documentation available yet');
     return;
   }
 
@@ -5719,6 +5797,16 @@ function renderDocsSection(container, toolKey, scrollToId) {
    RESCAN HISTORY SECTION RENDERER
    ================================================================ */
 
+// True only when 2+ scans are selected and all share one scan type.
+function canCompareAsMatrix() {
+  if (rescanSelected.length < 2) return false;
+  var types = {};
+  rescanEntries.forEach(function(e) {
+    if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
+  });
+  return Object.keys(types).length === 1;
+}
+
 function renderRescanSection(container) {
   var html = '<div class="rescan-container">';
   html += '<div class="section-header"><div class="section-prompt"># <span class="cmd">scanref</span> <span class="flag">--history</span></div><h2>Rescan History</h2>' +
@@ -5738,7 +5826,7 @@ function renderRescanSection(container) {
   } else {
     // Drop zone
     html += '<div class="drop-zone" id="dropZone">' +
-      '<div class="drop-zone-icon">&#128230;</div>' +
+      '<div class="drop-zone-icon">&darr;</div>' +
       '<div class="drop-zone-text">Drag &amp; drop JSON history files here</div>' +
       '<div class="drop-zone-sub">or click to browse</div>' +
       '<input type="file" id="fileInput" accept=".json" multiple>' +
@@ -5759,13 +5847,7 @@ function renderRescanSection(container) {
     html += '<div style="display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap;">';
     html += '<button class="compare-btn' + (rescanSelected.length === 2 ? ' visible' : '') +
       '" id="compareBtn">Compare Selected (' + rescanSelected.length + '/2)</button>';
-    var canMatrix = rescanSelected.length >= 2 && (function() {
-      var types = {};
-      rescanEntries.forEach(function(e) {
-        if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
-      });
-      return Object.keys(types).length === 1;
-    })();
+    var canMatrix = canCompareAsMatrix();
     html += '<button class="compare-btn' + (canMatrix ? ' visible' : '') +
       '" id="matrixBtn"' + (!canMatrix && rescanSelected.length >= 2 ? ' title="Select same scan type for matrix view"' : '') +
       '>Matrix View (' + rescanSelected.length + ')</button>';
@@ -5890,13 +5972,7 @@ function attachRescanHandlers(container) {
         }
         var mBtn = container.querySelector('#matrixBtn');
         if (mBtn) {
-          var canMatrix = rescanSelected.length >= 2 && (function() {
-            var types = {};
-            rescanEntries.forEach(function(e) {
-              if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
-            });
-            return Object.keys(types).length === 1;
-          })();
+          var canMatrix = canCompareAsMatrix();
           mBtn.textContent = 'Matrix View (' + rescanSelected.length + ')';
           if (canMatrix) mBtn.classList.add('visible');
           else mBtn.classList.remove('visible');
@@ -5920,12 +5996,7 @@ function attachRescanHandlers(container) {
   var matrixBtn = container.querySelector('#matrixBtn');
   if (matrixBtn) {
     matrixBtn.addEventListener('click', function() {
-      if (rescanSelected.length < 2) return;
-      var types = {};
-      rescanEntries.forEach(function(e) {
-        if (rescanSelected.indexOf(e.id) >= 0) types[e.scanType] = true;
-      });
-      if (Object.keys(types).length !== 1) return;
+      if (!canCompareAsMatrix()) return;
       rescanComparing = 'matrix';
       renderRescanSection(container);
     });
@@ -6019,6 +6090,29 @@ function attachRescanHandlers(container) {
       renderRescanSection(container);
     });
   }
+  applyButtonRoles(container);
+}
+
+function isPlainObject(o) {
+  return !!o && typeof o === 'object' && !Array.isArray(o);
+}
+
+// Validate imported entries at the trust boundary before pushing into state.
+function validateRescanEntry(e) {
+  return isPlainObject(e) &&
+    typeof e.id === 'string' &&
+    typeof e.title === 'string' &&
+    typeof e.timestamp === 'string' &&
+    typeof e.scanType === 'string';
+}
+
+function validateAuditEntry(e) {
+  return isPlainObject(e) &&
+    typeof e.id === 'string' &&
+    typeof e.title === 'string' &&
+    typeof e.timestamp === 'string' &&
+    isPlainObject(e.counts) &&
+    isPlainObject(e.findings);
 }
 
 function handleFilesDrop(files, container) {
@@ -6026,6 +6120,7 @@ function handleFilesDrop(files, container) {
   fileArray.forEach(function(file) {
     if (!checkFileSize(file)) return;
     var reader = new FileReader();
+    reader.onerror = function() { showToast('Could not read file: ' + file.name, 'error'); };
     reader.onload = function(e) {
       try {
         var data = JSON.parse(e.target.result);
@@ -6033,10 +6128,18 @@ function handleFilesDrop(files, container) {
           if (data.entries.length > 5000) {
             showToast('File contains ' + data.entries.length + ' entries. Loading may be slow.', 'warn');
           }
+          var rejected = 0;
           data.entries.forEach(function(entry) {
+            if (!validateRescanEntry(entry)) { rejected++; return; }
             var exists = rescanEntries.some(function(ex) { return ex.id === entry.id; });
             if (!exists) rescanEntries.push(entry);
           });
+          if (rejected > 0) {
+            showToast(rejected + ' invalid entr' + (rejected === 1 ? 'y' : 'ies') + ' skipped', 'warn');
+          }
+        } else {
+          showToast('Not a valid history file (missing "entries" array)', 'error');
+          return;
         }
         renderRescanSection(container);
       } catch (err) {
@@ -6080,7 +6183,9 @@ function handlePasteImport(raw, container) {
       multiInfo.style.display = '';
     }
 
+    clearFieldErrors('classifyModal');
     document.getElementById('classifyModal').classList.add('open');
+    document.getElementById('modalTitle').focus();
   } else {
     // Single-host import (original flow)
     var parsed = parseScanOutput(raw, detected.type);
@@ -6101,7 +6206,9 @@ function handlePasteImport(raw, container) {
     var multiInfo = document.getElementById('modalMultiHostInfo');
     if (multiInfo) multiInfo.style.display = 'none';
 
+    clearFieldErrors('classifyModal');
     document.getElementById('classifyModal').classList.add('open');
+    document.getElementById('modalTitle').focus();
   }
 }
 
@@ -7018,7 +7125,7 @@ function renderHeaderComparison(oldParsed, newParsed) {
     html += '<div class="audit-comp-item changed" style="margin-bottom:12px;">' +
       '<span class="audit-comp-icon">&#9998;</span>' +
       '<span class="audit-comp-item-header">Status Code</span>' +
-      '<span class="audit-comp-item-detail">' + oldParsed.statusCode + ' \u2192 ' + newParsed.statusCode + '</span>' +
+      '<span class="audit-comp-item-detail">' + escapeHtml(String(oldParsed.statusCode)) + ' \u2192 ' + escapeHtml(String(newParsed.statusCode)) + '</span>' +
     '</div>';
   }
 
@@ -7082,13 +7189,33 @@ document.getElementById('modalCancel').addEventListener('click', function() {
 
 document.getElementById('modalSave').addEventListener('click', function() {
   var title = document.getElementById('modalTitle').value.trim();
+  var titleEl = document.getElementById('modalTitle');
   if (!title) {
-    document.getElementById('modalTitle').style.borderColor = 'var(--accent-green)';
+    titleEl.style.borderColor = 'var(--accent-pink)';
+    titleEl.setAttribute('aria-invalid', 'true');
+    document.getElementById('modalTitleError').classList.add('show');
+    titleEl.focus();
     return;
   }
+  titleEl.style.borderColor = '';
+  titleEl.removeAttribute('aria-invalid');
+  document.getElementById('modalTitleError').classList.remove('show');
 
   var env = document.getElementById('modalEnv').value;
-  var timestamp = new Date(document.getElementById('modalTimestamp').value).toISOString();
+  var tsRaw = document.getElementById('modalTimestamp').value;
+  var tsDate = new Date(tsRaw);
+  var tsEl = document.getElementById('modalTimestamp');
+  if (!tsRaw || isNaN(tsDate.getTime())) {
+    tsEl.style.borderColor = 'var(--accent-pink)';
+    tsEl.setAttribute('aria-invalid', 'true');
+    document.getElementById('modalTimestampError').classList.add('show');
+    tsEl.focus();
+    return;
+  }
+  tsEl.style.borderColor = '';
+  tsEl.removeAttribute('aria-invalid');
+  document.getElementById('modalTimestampError').classList.remove('show');
+  var timestamp = tsDate.toISOString();
   var scanType = document.getElementById('modalScanType').value;
 
   if (pendingImportMulti.length > 1) {
@@ -7168,10 +7295,17 @@ document.getElementById('auditModalCancel').addEventListener('click', function()
 
 document.getElementById('auditModalSave').addEventListener('click', function() {
   var title = document.getElementById('auditModalTitle').value.trim();
+  var atEl = document.getElementById('auditModalTitle');
   if (!title) {
-    document.getElementById('auditModalTitle').style.borderColor = 'var(--accent-green)';
+    atEl.style.borderColor = 'var(--accent-pink)';
+    atEl.setAttribute('aria-invalid', 'true');
+    document.getElementById('auditModalTitleError').classList.add('show');
+    atEl.focus();
     return;
   }
+  atEl.style.borderColor = '';
+  atEl.removeAttribute('aria-invalid');
+  document.getElementById('auditModalTitleError').classList.remove('show');
 
   var target = document.getElementById('auditModalTarget').value.trim();
   var now = new Date().toISOString();
@@ -7377,6 +7511,10 @@ function toggleHelpOverlay(force) {
   if (force === true) help.classList.add('open');
   else if (force === false) help.classList.remove('open');
   else help.classList.toggle('open');
+  if (help.classList.contains('open')) {
+    var hc = document.getElementById('helpClose');
+    if (hc) hc.focus();
+  }
 }
 
 function closeAnyOpenModal() {
@@ -7443,6 +7581,38 @@ document.addEventListener('keydown', function(e) {
     var items = document.querySelectorAll('.nav-item');
     var idx = parseInt(e.key) - 1;
     if (idx < items.length) items[idx].click();
+  }
+});
+
+// Keyboard activation (Enter/Space) for elements given role=button by applyButtonRoles
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  var t = e.target;
+  if (t && t.tagName !== 'BUTTON' && t.getAttribute && t.getAttribute('role') === 'button') {
+    e.preventDefault();
+    t.click();
+  }
+});
+
+// Focus trap — keep Tab within an open modal dialog (a11y)
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Tab') return;
+  var modal = document.querySelector('.modal-overlay.open .modal');
+  if (!modal) return;
+  var focusable = modal.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  var list = [];
+  for (var i = 0; i < focusable.length; i++) {
+    var el = focusable[i];
+    if (!el.disabled && el.offsetParent !== null) list.push(el);
+  }
+  if (list.length === 0) return;
+  var first = list[0], last = list[list.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
   }
 });
 
@@ -7707,7 +7877,7 @@ function renderHeaderAnalyzer(result) {
 
       html += '<div class="ha-card" data-ha-cat="' + escapeHtml(knowledge ? knowledge.category : 'Other') + '">';
       html += '<div class="ha-card-header">';
-      html += '<span class="ha-card-icon">' + (knowledge ? knowledge.icon : '📋') + '</span>';
+      html += '<span class="ha-card-icon ha-icon-' + (status || 'none') + '">▪</span>';
       html += '<div class="ha-card-main">';
       html += '<div class="ha-card-name">' + escapeHtml(name) + '</div>';
       html += '<div class="ha-card-summary">' + escapeHtml(knowledge ? knowledge.summary : 'HTTP response header') + '</div>';
@@ -7801,8 +7971,9 @@ function renderAuditTimeline() {
       '<div class="target-group-entries">';
     audits.forEach(function(audit) {
       var selected = auditSelected.indexOf(audit.id) >= 0;
-      var summary = audit.counts.missing + 'M ' + audit.counts.deprecated + 'D ' +
-        audit.counts.insecure + 'I ' + audit.counts.fingerprint + 'F';
+      var ac = audit.counts || {};
+      var summary = (Number(ac.missing) || 0) + 'M ' + (Number(ac.deprecated) || 0) + 'D ' +
+        (Number(ac.insecure) || 0) + 'I ' + (Number(ac.fingerprint) || 0) + 'F';
       html += '<div class="audit-entry' + (selected ? ' selected' : '') + '" data-id="' + escapeHtml(audit.id) + '">' +
         '<div class="audit-entry-select"></div>' +
         '<span class="audit-entry-title">' + escapeHtml(audit.title) + '</span>' +
@@ -7857,7 +8028,9 @@ function attachAuditHandlers(container) {
       if (!currentAuditResult) return;
       document.getElementById('auditModalTitle').value = '';
       document.getElementById('auditModalTarget').value = currentAuditResult.meta.target || '';
+      clearFieldErrors('auditSaveModal');
       document.getElementById('auditSaveModal').classList.add('open');
+      document.getElementById('auditModalTitle').focus();
     });
   }
 
@@ -7946,6 +8119,7 @@ function handleAuditFileDrop(files, container) {
   fileArray.forEach(function(file) {
     if (!checkFileSize(file)) return;
     var reader = new FileReader();
+    reader.onerror = function() { showToast('Could not read file: ' + file.name, 'error'); };
     reader.onload = function(e) {
       var content = e.target.result;
       try {
@@ -7954,10 +8128,15 @@ function handleAuditFileDrop(files, container) {
           if (data.auditEntries.length > 5000) {
             showToast('File contains ' + data.auditEntries.length + ' entries. Loading may be slow.', 'warn');
           }
+          var rejected = 0;
           data.auditEntries.forEach(function(entry) {
+            if (!validateAuditEntry(entry)) { rejected++; return; }
             var exists = auditEntries.some(function(ex) { return ex.id === entry.id; });
             if (!exists) auditEntries.push(entry);
           });
+          if (rejected > 0) {
+            showToast(rejected + ' invalid entr' + (rejected === 1 ? 'y' : 'ies') + ' skipped', 'warn');
+          }
           renderAuditSection(container);
           return;
         }
@@ -8088,7 +8267,6 @@ function renderAuditComparisonView() {
 }
 
 function init() {
-  initTheme();
   buildSidebar();
 
   var helpTrigger = document.getElementById('helpTrigger');

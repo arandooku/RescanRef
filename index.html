@@ -2470,6 +2470,7 @@ button:focus-visible {
       <tr><td><kbd>d</kbd></td><td>Docs (first tool)</td></tr>
       <tr><td><kbd>r</kbd></td><td>Rescan history</td></tr>
       <tr><td><kbd>h</kbd></td><td>Header audit</td></tr>
+      <tr><td><kbd>v</kbd></td><td>Response viewer</td></tr>
       <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Jump to nav item N</td></tr>
       <tr><td><kbd>?</kbd></td><td>Toggle this help</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>Print current view</td></tr>
@@ -4826,10 +4827,12 @@ function buildSidebar() {
   html += '<div class="nav-item" data-type="rescan" data-key="rescan">' +
     '<span class="nav-item-label">Rescan History</span></div>';
 
-  // Header Audit
+  // Header Audit + Response Viewer
   html += '<div class="nav-group-label">Audit</div>';
   html += '<div class="nav-item" data-type="audit" data-key="audit">' +
     '<span class="nav-item-label">Header Audit</span></div>';
+  html += '<div class="nav-item" data-type="viewer" data-key="viewer">' +
+    '<span class="nav-item-label">Response Viewer</span></div>';
 
   nav.innerHTML = html;
 
@@ -7662,7 +7665,8 @@ document.addEventListener('keydown', function(e) {
     c: function() { var k = Object.keys(craftTools)[0]; if (k) navigateTo({ type: 'craft', key: k }); },
     d: function() { var k = Object.keys(docs)[0]; if (k) navigateTo({ type: 'docs', key: k }); },
     r: function() { navigateTo({ type: 'rescan', key: 'rescan' }); },
-    h: function() { navigateTo({ type: 'audit', key: 'audit' }); }
+    h: function() { navigateTo({ type: 'audit', key: 'audit' }); },
+    v: function() { navigateTo({ type: 'viewer', key: 'viewer' }); }
   };
   if (navMap[e.key]) {
     e.preventDefault();

@@ -1365,6 +1365,64 @@ mark {
 .ha-icon-empty { color: var(--accent-yellow); }
 .ha-icon-none { color: var(--text-muted); }
 
+/* ===== Response Viewer ===== */
+.viewer-container { max-width: 1100px; }
+.viewer-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 10px 12px;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+.viewer-textarea:focus { border-color: var(--accent-green); }
+.viewer-textarea::placeholder { color: var(--placeholder); }
+.viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 8px;
+  min-height: 24px;
+}
+.viewer-badge {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-cyan);
+  border: 1px solid var(--card-border);
+  padding: 2px 8px;
+}
+.viewer-badge:empty { display: none; }
+.viewer-output {
+  background: var(--code-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  padding: 12px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+.viewer-output:empty { display: none; }
+.jv-key { color: var(--accent-cyan); }
+.jv-str { color: var(--accent-yellow); }
+.jv-num { color: var(--accent-purple); }
+.jv-kw  { color: var(--accent-pink); }
+.hv-status { color: var(--accent-green); font-weight: 700; }
+.hv-name { color: var(--accent-cyan); }
+.hv-sep  { color: var(--text-muted); }
+.hv-val  { color: var(--text-primary); }
+.viewer-err { color: var(--accent-pink); }
+
 /* ===== Header Audit ===== */
 .audit-container { }
 .audit-input-zone { margin-bottom: 20px; }
@@ -7726,6 +7784,40 @@ function closeMobileSidebar() {
    ================================================================ */
 
 var currentAuditResult = null;
+
+/* ================================================================
+   RESPONSE VIEWER
+   ================================================================ */
+
+// Persists the pasted input across section re-renders (navigation away/back).
+var currentViewerInput = '';
+
+// HTML elements that are void (no closing tag) / that keep raw text content.
+var VIEWER_VOID_ELEMENTS = { area:1, base:1, br:1, col:1, embed:1, hr:1, img:1,
+  input:1, link:1, meta:1, param:1, source:1, track:1, wbr:1 };
+var VIEWER_PRESERVE_CONTENT = { script:1, style:1, pre:1, textarea:1 };
+
+// Minimal DOM builder. opts: {cls, id, text, attrs}. kids: array of node|string.
+function vEl(tag, opts, kids) {
+  var e = document.createElement(tag);
+  if (opts) {
+    if (opts.cls) e.className = opts.cls;
+    if (opts.id) e.id = opts.id;
+    if (opts.text != null) e.textContent = opts.text;
+    if (opts.attrs) {
+      for (var k in opts.attrs) {
+        if (opts.attrs.hasOwnProperty(k)) e.setAttribute(k, opts.attrs[k]);
+      }
+    }
+  }
+  if (kids) {
+    for (var i = 0; i < kids.length; i++) {
+      var c = kids[i];
+      e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+  }
+  return e;
+}
 
 function renderAuditSection(container) {
   var html = '<div class="audit-container">';

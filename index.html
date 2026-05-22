@@ -2560,7 +2560,7 @@ const craftTools = {
       { flag: "-s", label: "Silent", docId: "curl-s" },
       { flag: "-L", label: "Follow redirects", docId: "curl-L" },
       { flag: "-k", label: "Insecure (skip TLS)", docId: "curl-k" },
-      { flag: "-o", label: "Output to file", customInput: true, placeholder: "output.json", docId: "curl-o" },
+      { flag: "-o", label: "Save output to file", customInput: true, placeholder: "results.txt", docId: "curl-o" },
       { flag: "-I", label: "Headers only", docId: "curl-I" },
       { flag: '-w "%{http_code}"', label: "Show status code", docId: "curl-w" },
       { flag: "--connect-timeout", label: "Connection timeout", customInput: true, placeholder: "10", docId: "curl-timeout" },
@@ -5093,6 +5093,16 @@ function getCraftState(toolKey) {
 // cmd.exe line limit.
 var BATCH_INLINE_MAX = 50;
 
+// curl-only: when the "Save output to file" toggle is on, returns the file to
+// redirect into via shell `>`, else ''. Redirection is used instead of curl's
+// own -o flag — -o binds only to the first URL and would be overwritten on
+// every iteration of a batch loop, so only the last host would survive.
+function curlOutFile(toolKey, tool, state) {
+  if ((tool.name || toolKey) !== 'curl') return '';
+  if (!state.toggles || !state.toggles['-o']) return '';
+  return ((state.customInputs && state.customInputs['-o']) || '').trim() || 'curl-output.txt';
+}
+
 function buildBatchCommand(toolKey) {
   var tool = craftTools[toolKey];
   var state = getCraftState(toolKey);
@@ -5118,7 +5128,9 @@ function buildBatchCommand(toolKey) {
       }
     }
   });
+  var isCurl = (tool.name || toolKey) === 'curl';
   (tool.toggles || []).forEach(function(t) {
+    if (t.flag === '-o' && isCurl) return; // handled via shell redirection below
     if (state.toggles[t.flag]) {
       var flag = t.flag;
       if (t.customInput && state.customInputs[t.flag]) {
@@ -5130,23 +5142,31 @@ function buildBatchCommand(toolKey) {
   var baseCmd = parts.join(' ');
 
   var filename = state.targetFilename || 'targets.txt';
+  var outFile = curlOutFile(toolKey, tool, state);
+
   if (mode === 'cmd') {
     // CMD terminal: single % variable, no @echo off.
     // The body MUST be parenthesised — without parens the bare `&` ends the
     // FOR statement, so `echo ---` would run only once instead of per host.
+    var loop;
     if (hosts.length <= BATCH_INLINE_MAX) {
-      return 'for %H in (' + hosts.join(' ') + ') do (' + baseCmd + ' %H & echo ---)';
+      loop = 'for %H in (' + hosts.join(' ') + ') do (' + baseCmd + ' %H & echo ---)';
     } else {
       // usebackq + quotes so a filename containing spaces still parses.
-      return 'for /F "usebackq tokens=*" %H in ("' + filename + '") do (' + baseCmd + ' %H & echo ---)';
+      loop = 'for /F "usebackq tokens=*" %H in ("' + filename + '") do (' + baseCmd + ' %H & echo ---)';
     }
+    // Redirect the whole loop once so every host's output lands in one file.
+    return outFile ? '(' + loop + ') > ' + outFile : loop;
   } else {
     // .bat file: double %% variable, @echo off, multiline
+    var forBlock;
     if (hosts.length <= BATCH_INLINE_MAX) {
-      return '@echo off\nfor %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+      forBlock = 'for %%H in (' + hosts.join(' ') + ') do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
     } else {
-      return '@echo off\nfor /F "usebackq tokens=*" %%H in ("' + filename + '") do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
+      forBlock = 'for /F "usebackq tokens=*" %%H in ("' + filename + '") do (\n    ' + baseCmd + ' %%H\n    echo ---\n)';
     }
+    // Wrap the FOR block in ( ) > file so all hosts' output is captured.
+    return outFile ? '@echo off\n(\n' + forBlock + '\n) > ' + outFile : '@echo off\n' + forBlock;
   }
 }
 
@@ -5171,7 +5191,9 @@ function buildCraftedCommand(toolKey) {
     }
   });
 
+  var isCurl = (tool.name || toolKey) === 'curl';
   (tool.toggles || []).forEach(function(t) {
+    if (t.flag === '-o' && isCurl) return; // handled via shell redirection below
     if (state.toggles[t.flag]) {
       var flag = t.flag;
       if (t.customInput && state.customInputs[t.flag]) {
@@ -5189,7 +5211,10 @@ function buildCraftedCommand(toolKey) {
     parts.push(state.target);
   }
 
-  return parts.join(' ');
+  var cmd = parts.join(' ');
+  var outFile = curlOutFile(toolKey, tool, state);
+  if (outFile) cmd += ' > ' + outFile; // shell redirect — saves output to file
+  return cmd;
 }
 
 function colorCodeCommand(toolKey) {
@@ -5214,7 +5239,9 @@ function colorCodeCommand(toolKey) {
     }
   });
 
+  var isCurl = (tool.name || toolKey) === 'curl';
   (tool.toggles || []).forEach(function(t) {
+    if (t.flag === '-o' && isCurl) return; // shown as a `>` redirection below
     if (state.toggles[t.flag]) {
       html += ' <span class="cmd-flag">' + escapeHtml(t.flag) + '</span>';
       if (t.customInput && state.customInputs[t.flag]) {
@@ -5227,6 +5254,11 @@ function colorCodeCommand(toolKey) {
     html += ' <span class="cmd-target">' + escapeHtml(state.targetList.join(' ')) + '</span>';
   } else if (state.target) {
     html += ' <span class="cmd-target">' + escapeHtml(state.target) + '</span>';
+  }
+
+  var outFile = curlOutFile(toolKey, tool, state);
+  if (outFile) {
+    html += ' <span class="cmd-flag">&gt;</span> <span class="cmd-option">' + escapeHtml(outFile) + '</span>';
   }
 
   return html;
